@@ -5,7 +5,7 @@ for(const item of catalog){const full=path.join(root,item.file);const html=fs.re
  assert(!html.includes('[Truncated]'),'Captura truncada '+item.file);assert(!/\\b\\d{8,9}-[0-9kK]\\b/.test(html),'Identificador personal sin anonimizar '+item.file);
  for(const e of document.querySelectorAll('input,textarea'))assert(!e.getAttribute('value')&&!e.textContent.trim(),'Campo sin anonimizar '+item.file);
  for(const e of document.querySelectorAll('style,[style]'))assert(!/url\(\s*['"]?(?:https?:|\/\/)/i.test(e.textContent||e.getAttribute('style')||''),'URL externa en CSS inline');
- assert(document.querySelector('meta[http-equiv="Content-Security-Policy"]').content.includes("connect-src 'none'"));
+ assert(document.querySelector('meta[http-equiv="Content-Security-Policy"]').content.includes(item.file==='views/rcv.html'?"connect-src 'self'":"connect-src 'none'"));
  for(const e of document.querySelectorAll('[src],[href]')){const u=e.getAttribute('src')||e.getAttribute('href');if(!u||u==='#'||u.startsWith('data:'))continue;assert(!/^(?:https?:|javascript:|\/\/)/i.test(u),'Referencia externa '+u);const p=path.resolve(path.dirname(full),u.split('#')[0]);assert(fs.existsSync(p),'Falta recurso '+u);references++;}
  for(const script of document.querySelectorAll('script'))assert(['../assets/offline.js','../assets/rcv-import.js'].includes(script.getAttribute('src')),'Script original ejecutable');
  assert(!document.querySelector('input[type=hidden]'));assert(!document.querySelector('iframe'));assert(!document.querySelector('[data-id-emp]'));

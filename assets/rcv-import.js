@@ -49,7 +49,9 @@
  const COMPRAS_FIELDS=['exento','neto','iva','ivaNoRec','ivaUsoComun','otros','total'];
  const VENTAS_FIELDS=['exento','neto','iva','ivaRetenido','otros','total'];
  function buildBooks(parsed){
-  const compras=parsed.filter(p=>p.kind==='compras').flatMap(p=>p.docs),ventas=parsed.filter(p=>p.kind==='ventas').flatMap(p=>p.docs);
+  // Los documentos leídos desde la base de datos no traen nombre de tipo ni signo: se recalculan aquí.
+  const prep=d=>({...d,tipoNombre:DOC_TYPES[d.tipo]||('Documento '+d.tipo),signo:CREDIT_NOTES.has(d.tipo)?-1:1});
+  const compras=parsed.filter(p=>p.kind==='compras').flatMap(p=>p.docs.map(prep)),ventas=parsed.filter(p=>p.kind==='ventas').flatMap(p=>p.docs.map(prep));
   const tc=totals(compras,COMPRAS_FIELDS),tv=totals(ventas,VENTAS_FIELDS);
   // Débito: IVA de ventas menos el IVA retenido por el comprador (cambio de sujeto). Crédito: IVA recuperable de compras.
   const debito=tv.iva-tv.ivaRetenido,credito=tc.iva,diferencia=debito-credito;
@@ -89,38 +91,78 @@
   return el('section',{class:'rcv-iva'},el('h3',null,'IVA del período · '+formatPeriod(books.period)),el('div',{class:'rcv-cards'},card('Débito fiscal (ventas)',money(i.debito)),card('Crédito fiscal (compras)',money(i.credito)),card(result[0],result[1],result[2])),...notes.map(n=>el('p',{class:'rcv-note'},n)));
  }
 
- const state={files:[]};
+ // Con el servidor PHP (api/rcv.php) los libros se guardan en la base de datos; sin él, solo se muestran en este navegador.
+ const API='../api/rcv.php';
+ const state={files:[],server:false,periods:[],period:null};
+ async function request(method,query,body){
+  const res=await fetch(API+(query||''),{method,headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});
+  const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||('Error '+res.status+' del servidor.'));return data;
+ }
+ function setMsg(text){document.getElementById('rcv-import-msg').textContent=text||'';}
  function render(){
-  const out=document.getElementById('rcv-import-result'),msg=document.getElementById('rcv-import-msg');out.replaceChildren();
+  const out=document.getElementById('rcv-import-result');out.replaceChildren();
   const list=document.getElementById('rcv-import-files');list.replaceChildren(...state.files.map(f=>el('li',null,(f.kind==='compras'?'Compras':'Ventas')+' · '+formatPeriod(f.period)+' · '+f.docs.length+' documentos · '+f.fileName)));
-  document.getElementById('rcv-import-clear').hidden=!state.files.length;
+  const clear=document.getElementById('rcv-import-clear');clear.hidden=!state.files.length;clear.textContent=state.server?'Borrar período guardado':'Quitar archivos';
+  const select=document.getElementById('rcv-import-periods');select.hidden=!state.server||!state.periods.length;
+  select.replaceChildren(el('option',{value:''},'Períodos guardados'),...state.periods.map(p=>{const o=el('option',{value:p.period},formatPeriod(p.period)+' · '+p.compras+' compras · '+p.ventas+' ventas');if(p.period===state.period)o.selected=true;return o;}));
   const welcome=document.querySelector('#contenido_rcv .welcome-royal-container')?.closest('.container-fluid');if(welcome)welcome.style.display=state.files.length?'none':'';
   if(!state.files.length)return;
   const books=buildBooks(state.files);
-  if(books.periods.length>1)msg.textContent='Los archivos cargados son de períodos distintos ('+books.periods.map(formatPeriod).join(', ')+'). El IVA suma todos los documentos.';
+  if(books.periods.length>1)setMsg('Los archivos cargados son de períodos distintos ('+books.periods.map(formatPeriod).join(', ')+'). El IVA suma todos los documentos.');
   out.append(ivaSection(books),bookSection('compras',books.compras),bookSection('ventas',books.ventas));
  }
+ async function openPeriod(period){
+  state.period=period||null;
+  state.files=period?(await request('GET','?periodo='+encodeURIComponent(period))).libros:[];
+  render();
+ }
+ async function refreshPeriods(){state.periods=(await request('GET')).periodos;}
  function showBook(){const select=document.getElementById('rcv_filtro_tipoRCV');const kind=select&&select.selectedIndex===1?'ventas':'compras';document.querySelector('#rcv-import-result .rcv-book[data-book="'+kind+'"]')?.scrollIntoView({behavior:'smooth',block:'start'});}
  async function readFile(file){const buf=await file.arrayBuffer();try{return new TextDecoder('utf-8',{fatal:true}).decode(buf);}catch{return new TextDecoder('windows-1252').decode(buf);}}
  async function load(files){
-  const msg=document.getElementById('rcv-import-msg');msg.textContent='';const errors=[];
-  for(const file of files){try{const parsed=parseRcv(await readFile(file),file.name);state.files=state.files.filter(f=>!(f.kind===parsed.kind&&f.period===parsed.period));state.files.push(parsed);}catch(e){errors.push(file.name+': '+e.message);}}
-  render();if(errors.length)msg.textContent=errors.join(' ');
+  setMsg('');const errors=[],parsedFiles=[];
+  for(const file of files){try{parsedFiles.push(parseRcv(await readFile(file),file.name));}catch(e){errors.push(file.name+': '+e.message);}}
+  if(state.server){
+   let saved=null;
+   for(const parsed of parsedFiles){
+    if(!parsed.period){errors.push(parsed.fileName+': no se pudo determinar el período.');continue;}
+    try{await request('POST','',{kind:parsed.kind,period:parsed.period,fileName:parsed.fileName,docs:parsed.docs});saved=parsed.period;}catch(e){errors.push(parsed.fileName+': '+e.message);}
+   }
+   try{await refreshPeriods();if(saved)await openPeriod(saved);else render();}catch(e){errors.push(e.message);}
+  }else{
+   for(const parsed of parsedFiles){state.files=state.files.filter(f=>!(f.kind===parsed.kind&&f.period===parsed.period));state.files.push(parsed);}
+   render();
+  }
+  if(errors.length)setMsg(errors.join(' '));
+ }
+ async function clearAll(){
+  if(!state.server){state.files=[];setMsg('');render();return;}
+  if(!state.period||!window.confirm('¿Borrar de la base de datos los libros de '+formatPeriod(state.period)+'?'))return;
+  try{await request('DELETE','?periodo='+encodeURIComponent(state.period));await refreshPeriods();await openPeriod(null);setMsg('');}catch(e){setMsg(e.message);}
+ }
+ async function connect(){
+  const note=document.getElementById('rcv-import-storage');
+  try{await refreshPeriods();state.server=true;note.textContent='Los libros importados se guardan en la base de datos de iContador.';if(state.periods.length)await openPeriod(state.periods[0].period);else render();}
+  catch{state.server=false;note.textContent='Sin servidor PHP: los archivos se procesan en este navegador y no se guardan. Inicia la copia con "npm run start:php" para guardarlos.';render();}
  }
  function init(){
   const host=document.getElementById('contenido_rcv');if(!host)return;
   const input=el('input',{type:'file',id:'rcv-import-input',accept:'.csv,text/csv',multiple:''});
   const clear=el('button',{type:'button',id:'rcv-import-clear',class:'rcv-btn-secondary'},'Quitar archivos');clear.hidden=true;
+  const periods=el('select',{id:'rcv-import-periods',class:'rcv-select','aria-label':'Períodos guardados'});periods.hidden=true;
   const panel=el('div',{class:'rcv-import',id:'rcv-import'},
    el('h3',null,'Importar RCV desde archivo del SII'),
-   el('p',null,'En sii.cl, Registro de Compras y Ventas, descarga el detalle de compras y el de ventas del mes (botón "Descargar Detalles") y selecciona ambos CSV aquí. Los archivos se procesan en este navegador y no se envían a ningún servidor.'),
-   el('div',{class:'rcv-import-actions'},el('label',{class:'rcv-btn',for:'rcv-import-input'},'Seleccionar CSV de compras y ventas'),input,clear),
+   el('p',null,'En sii.cl, Registro de Compras y Ventas, descarga el detalle de compras y el de ventas del mes (botón "Descargar Detalles") y selecciona ambos CSV aquí.'),
+   el('p',{id:'rcv-import-storage',class:'rcv-note'}),
+   el('div',{class:'rcv-import-actions'},el('label',{class:'rcv-btn',for:'rcv-import-input'},'Seleccionar CSV de compras y ventas'),input,periods,clear),
    el('ul',{id:'rcv-import-files',class:'rcv-files'}),el('p',{id:'rcv-import-msg',class:'rcv-msg',role:'status'}),el('div',{id:'rcv-import-result'}));
   host.prepend(panel);
   input.addEventListener('change',()=>{load([...input.files]);input.value='';});
-  clear.addEventListener('click',e=>{e.stopPropagation();state.files=[];document.getElementById('rcv-import-msg').textContent='';render();});
-  // Con archivos cargados, la lupa de "Tipo RCV" lleva al libro elegido en vez del aviso de operación desactivada.
+  periods.addEventListener('change',()=>{openPeriod(periods.value).catch(e=>setMsg(e.message));});
+  clear.addEventListener('click',e=>{e.stopPropagation();clearAll();});
+  // Con libros cargados, la lupa de "Tipo RCV" lleva al libro elegido en vez del aviso de operación desactivada.
   document.getElementById('btn_rcv_filtro')?.addEventListener('click',e=>{if(!state.files.length)return;e.preventDefault();e.stopPropagation();showBook();});
+  connect();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })(typeof window!=='undefined'?window:globalThis);
