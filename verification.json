@@ -1,7 +1,7 @@
 {
   "status": "passed",
   "views": 128,
-  "localReferences": 4235,
+  "localReferences": 4237,
   "checks": [
     "referencias locales existentes",
     "CSP sin conexiones ni formularios externos",
