@@ -1,0 +1,6 @@
+Nro;Tipo Doc;Tipo Compra;RUT Proveedor;Razon Social;Folio;Fecha Docto;Fecha Recepcion;Fecha Acuse;Monto Exento;Monto Neto;Monto IVA Recuperable;Monto Iva No Recuperable;Codigo IVA No Rec.;Monto Total;Monto Neto Activo Fijo;IVA Activo Fijo;IVA uso Comun;Impto. Sin Derecho a Credito;IVA No Retenido;Tabacos Puros;Tabacos Cigarrillos;Tabacos Elaborados;NCE o NDE sobre Fact. de Compra;Codigo Otro Impuesto;Valor Otro Impuesto;Tasa Otro Impuesto
+1;33;Del Giro;77000001-1;PROVEEDOR DE EJEMPLO UNO SPA;1520;03/09/2026;03/09/2026 10:12:00;;0;1000000;190000;0;;1190000;;;;;;;;;;;;
+2;33;Del Giro;77000002-2;DISTRIBUIDORA EJEMPLO LTDA;88412;10/09/2026;10/09/2026 16:40:21;;0;250000;47500;0;;297500;;;;;;;;;;;;
+3;34;Del Giro;77000003-3;SERVICIOS EXENTOS EJEMPLO;311;12/09/2026;12/09/2026 09:00:00;;120000;0;0;0;;120000;;;;;;;;;;;;
+4;61;Del Giro;77000002-2;DISTRIBUIDORA EJEMPLO LTDA;9031;15/09/2026;15/09/2026 11:05:44;;0;50000;9500;0;;59500;;;;;;;;;;;;
+5;33;Del Giro;77000004-4;COMBUSTIBLES EJEMPLO SA;55123;22/09/2026;22/09/2026 18:30:10;;0;84034;15966;0;;120000;;;;;;;;;;;;
