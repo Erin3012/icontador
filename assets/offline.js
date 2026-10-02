@@ -1,6 +1,8 @@
 'use strict';
-document.addEventListener('submit',event=>{event.preventDefault();notify();});
+// Las zonas marcadas con data-conta tienen su propio comportamiento en contabilidad.js.
+document.addEventListener('submit',event=>{if(event.target.closest('[data-conta]'))return;event.preventDefault();notify();});
 document.addEventListener('click',event=>{
+ if(event.target.closest('[data-conta]'))return;
  const accordion=event.target.closest('.ui-accordion-header[aria-controls]');if(accordion){event.preventDefault();const panel=document.getElementById(accordion.getAttribute('aria-controls'));if(panel){const open=accordion.getAttribute('aria-expanded')!=='true';accordion.setAttribute('aria-expanded',String(open));panel.setAttribute('aria-hidden',String(!open));panel.style.display=open?'block':'none';}return;}
  const a=event.target.closest('a');
  if(a?.dataset.offlinePanel){event.preventDefault();const tab=a.closest('[role=tab]'),panel=document.getElementById(a.dataset.offlinePanel);const group=tab?.closest('.ui-tabs');group?.querySelectorAll(':scope > [role=tabpanel]').forEach(p=>{p.style.display=p===panel?'block':'none';p.setAttribute('aria-hidden',String(p!==panel));});group?.querySelectorAll('[role=tab]').forEach(t=>{t.classList.toggle('ui-tabs-active',t===tab);t.setAttribute('aria-selected',String(t===tab));});return;}

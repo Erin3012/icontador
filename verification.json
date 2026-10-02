@@ -1,10 +1,10 @@
 {
   "status": "passed",
-  "views": 128,
-  "localReferences": 4237,
+  "views": 129,
+  "localReferences": 4301,
   "checks": [
     "referencias locales existentes",
-    "CSP sin conexiones ni formularios externos",
+    "CSP sin conexiones externas (solo vistas contables hacia la API local)",
     "sin scripts originales activos",
     "sin iframe ni inputs ocultos",
     "fixture de privacidad y sanitización"
