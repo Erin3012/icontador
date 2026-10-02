@@ -12,6 +12,23 @@ npm start
 
 Abre http://127.0.0.1:4173. El servidor escucha únicamente en tu equipo. No necesitas instalar dependencias para consultar la copia. También puedes abrir `index.html` directamente.
 
+## Vouchers y libros contables (PHP)
+
+Las pantallas **Voucher**, **Crear Voucher**, **Libro Diario** y **Libro Mayor** funcionan con una base de datos en PHP (`api/`). Para usarlas inicie el servidor PHP en lugar de `npm start`:
+
+```powershell
+npm run php
+```
+
+Esto ejecuta `php -S 127.0.0.1:4173 tools/router.php` (requiere PHP 8.1 o superior con PDO). También funciona copiando la carpeta en Apache/XAMPP.
+
+- Por defecto los datos se guardan en SQLite (`data/icontador.sqlite`, se crea solo). Para MySQL/MariaDB copie `api/config.php` como `api/config.local.php` y cambie el DSN, usuario y clave; las tablas se crean al primer uso.
+- Un voucher solo se guarda si Debe = Haber, tiene al menos dos líneas y cada línea usa una cuenta del plan con un monto en Debe o en Haber. La validación se hace en PHP (`api/lib.php`).
+- El número de comprobante es correlativo por tipo (Ingreso, Egreso, Traspaso) y mes.
+- Libro Diario y Libro Mayor se generan desde la base de datos con filtros de fecha y tipo de contabilidad (Tributario/IFRS). PDF imprime el reporte; EXCEL y CSV descargan un CSV.
+- API: `api/vouchers.php` (GET, POST, PUT, DELETE), `api/cuentas.php` (plan de cuentas) y `api/libros.php?libro=diario|mayor`.
+- Pruebas: `npm test` (vistas y JavaScript) y `npm run test:php` (lógica contable y base de datos).
+
 ## Trabajar con los archivos
 
 - `views/`: pantallas HTML editables recuperadas del navegador.

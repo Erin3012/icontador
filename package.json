@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "start": "node tools/serve.cjs",
-    "test": "node tools/verify.cjs",
+    "php": "php -S 127.0.0.1:4173 tools/router.php",
+    "test": "node tools/verify.cjs && node tools/test-contabilidad.cjs",
+    "test:php": "php tools/test-api.php",
     "prepare-local": "node tools/prepare.cjs"
   },
   "keywords": [],

@@ -1,2 +1,4 @@
 node_modules/
 *.log
+data/*.sqlite
+api/config.local.php
