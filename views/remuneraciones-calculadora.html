@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<html lang="en"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
         
         <meta name="description" content="Contabilidad, remuneraciones Icontador, Programa contable, Software de remuneraciones, contable. Plan de cuentas en Contabilidad online.">
         <meta name="keywords" content="Software contable, Software de remuneraciones, remuneraciones, contabilidad, sistema contable, contabilidad online, programa contable, plan de cuentas">
@@ -44,7 +44,7 @@
         
         
 
-    <link rel="stylesheet" href="../assets/offline.css"></head><body><aside class="offline-banner"><a href="../index.html">Índice local</a> · Copia de referencia · Datos ficticios · Operaciones desactivadas</aside><script src="../assets/offline.js"></script></body><div id="codex-agent-overlay-root"></div>
+    <link rel="stylesheet" href="../assets/offline.css"></head><body><aside class="offline-banner"><a href="../index.html">Índice local</a> · Copia de referencia · Datos ficticios · Operaciones desactivadas</aside><script src="../assets/offline.js"></script><script src="../assets/liquidacion.js"></script></body><div id="codex-agent-overlay-root"></div>
 
     <body>
                         
@@ -447,19 +447,19 @@
 
             </div> 
 
-            <div id="tabs" class="col-lg-12 col-md-12 col-sm-12 col-xs-12 padding_0px box_datos_new margin_top_7px border-6px ui-tabs ui-corner-all ui-widget ui-widget-content" href="#lock_tab"> 
+            <div id="tabs" class="col-lg-12 col-md-12 col-sm-12 col-xs-12 padding_0px box_datos_new margin_top_7px border-6px ui-tabs ui-corner-all ui-widget ui-widget-content"> 
                 <ul class="ic-tab-basico ui-tabs-nav ui-corner-all ui-helper-reset ui-helper-clearfix ui-widget-header" style="border-bottom: none !important;" role="tablist">
-                    <li role="tab" tabindex="-1" class="ui-tabs-tab ui-corner-top ui-state-default ui-tab" aria-controls="tab1" aria-labelledby="tabH1" aria-selected="false" aria-expanded="false"><a id="tabH1" href="remuneraciones.html" tabindex="-1" class="ui-tabs-anchor">Liquidación</a></li>
+                    <li role="tab" tabindex="0" class="ui-tabs-tab ui-corner-top ui-state-default ui-tab ui-tabs-active ui-state-active" aria-controls="tab1" aria-labelledby="tabH1" aria-selected="true" aria-expanded="true"><a id="tabH1" href="remuneraciones.html" tabindex="-1" class="ui-tabs-anchor">Liquidación</a></li>
                     <li role="tab" tabindex="-1" class="ui-tabs-tab ui-corner-top ui-state-default ui-tab" aria-controls="ui-id-70" aria-labelledby="tabH2" aria-selected="false" aria-expanded="false"><a data-local-action="finc:f_rpers" id="tabH2" href="remuneraciones-personal.html" tabindex="-1" class="ui-tabs-anchor">Personal</a></li>
                     <li role="tab" tabindex="-1" class="ui-tabs-tab ui-corner-top ui-state-default ui-tab" aria-controls="ui-id-71" aria-labelledby="tabH3" aria-selected="false" aria-expanded="false"><a data-local-action="finc:f_rpar" id="tabH3" href="remuneraciones-parametros.html" tabindex="-1" class="ui-tabs-anchor">Parámetros</a></li>
-                    <li role="tab" tabindex="0" class="ui-tabs-tab ui-corner-top ui-state-default ui-tab ui-state-hover ui-state-focus ui-tabs-active ui-state-active" aria-controls="ui-id-72" aria-labelledby="tabH4" aria-selected="true" aria-expanded="true"><a data-local-action="finc:f_rprem" id="tabH4" href="remuneraciones-prevision.html" tabindex="-1" class="ui-tabs-anchor">Previsión Empresa</a></li>
+                    <li role="tab" tabindex="-1" class="ui-tabs-tab ui-corner-top ui-state-default ui-tab" aria-controls="ui-id-72" aria-labelledby="tabH4" aria-selected="false" aria-expanded="false"><a data-local-action="finc:f_rprem" id="tabH4" href="remuneraciones-prevision.html" tabindex="-1" class="ui-tabs-anchor">Previsión Empresa</a></li>
                     <li role="tab" tabindex="-1" class="ui-tabs-tab ui-corner-top ui-state-default ui-tab" aria-controls="ui-id-73" aria-labelledby="tabH5" aria-selected="false" aria-expanded="false"><a data-local-action="finc:f_rhade" id="tabH5" href="remuneraciones-haberes.html" tabindex="-1" class="ui-tabs-anchor">Haberes | Descuentos</a></li>
                     <li role="tab" tabindex="-1" class="ui-tabs-tab ui-corner-top ui-state-default ui-tab" aria-controls="ui-id-74" aria-labelledby="tabH6" aria-selected="false" aria-expanded="false"><a data-local-action="finc:f_rascta" id="tabH6" href="remuneraciones-cuentas.html" tabindex="-1" class="ui-tabs-anchor">Asignación Cuentas</a></li>
                     <li role="tab" tabindex="-1" class="ui-tabs-tab ui-corner-top ui-state-default ui-tab" aria-controls="ui-id-75" aria-labelledby="tabH7" aria-selected="false" aria-expanded="false"><a data-local-action="finc:f_rctprd" id="tabH7" href="remuneraciones-previred.html" tabindex="-1" class="ui-tabs-anchor">Cotizaciones | Previred</a></li>
                                             <li role="tab" tabindex="-1" class="ui-tabs-tab ui-corner-top ui-state-default ui-tab" aria-controls="ui-id-76" aria-labelledby="tabH8" aria-selected="false" aria-expanded="false"><a data-local-action="finc:f_rlqms" id="tabH8" href="remuneraciones-globales.html" tabindex="-1" class="ui-tabs-anchor"> C. Globales</a></li>
                                     </ul>
 
-                <div id="tab1" aria-labelledby="tabH1" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;">
+                <div id="tab1" aria-labelledby="tabH1" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="false">
                     
 <div id="topGEN">
     <div id="lrLiquidacion">
@@ -471,7 +471,7 @@
 </div>
 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 padding_0px">
     <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-        <h2 class="ic-modulo-titulo-clean">Liquidaciones</h2>
+        <h2 class="ic-modulo-titulo-clean">Calculadora</h2>
     </div>
     <div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 padding_0px">
         <div class="col-lg-12 col-md-12 col-sm-7 col-xs-3 padding_0px text-right">
@@ -538,22 +538,69 @@
     </div>
 </div>
 <div class="border_sepmodulos"></div>
+<style>
+#calcLiquidacion{display:flex;flex-wrap:wrap;gap:20px;padding:15px;clear:both}
+#calcLiquidacion .calc-col{flex:1 1 360px;min-width:0}
+#calcLiquidacion fieldset{border:1px solid #d9e0e8;border-radius:6px;padding:12px 16px;margin:0 0 16px;background:#fff}
+#calcLiquidacion legend{font-size:15px;font-weight:700;color:#173759;border:0;width:auto;padding:0 6px;margin:0}
+#calcLiquidacion .calc-campo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0}
+#calcLiquidacion .calc-campo label{margin:0;font-weight:400;flex:1}
+#calcLiquidacion .calc-campo input[type=text],#calcLiquidacion .calc-campo input[type=month],#calcLiquidacion .calc-campo select{width:190px;text-align:right}
+#calcLiquidacion #calcTrabajador{text-align:left}
+#calcLiquidacion .calc-campo select{text-align:left}
+#calcLiquidacion table{width:100%;border-collapse:collapse;margin-bottom:16px;background:#fff}
+#calcLiquidacion caption{font-size:15px;font-weight:700;color:#173759;text-align:left;padding:6px 0}
+#calcLiquidacion td,#calcLiquidacion th{padding:6px 8px;border-bottom:1px solid #e6ebf1;vertical-align:top}
+#calcLiquidacion td:nth-child(2){color:#526579;font-size:12px}
+#calcLiquidacion tr.info th{background:#eef3f8}
+#calcLiquidacion .calc-liquido{display:flex;justify-content:space-between;align-items:center;background:#173759;color:#fff;border-radius:6px;padding:14px 16px;margin-bottom:16px;font-size:18px;font-weight:700}
+#calcLiquidacion .calc-nota{font-size:12px;color:#526579}
+#calcLiquidacion [hidden]{display:none}
+#calcLiquidacion #calcGuardadas td:nth-child(2){color:inherit;font-size:inherit}
+#calcLiquidacion .calc-borrar{color:#b4232c;cursor:pointer;background:none;border:0;padding:0}
+</style>
 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 padding_0px">
-    
-    
-<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 padding_0px table-container">
-    <div id="tbLiquidaciones_wrapper" class="dataTables_wrapper"><div class="dataTables_length" id="tbLiquidaciones_length"><label>Mostrar <select name="tbLiquidaciones_length" aria-controls="tbLiquidaciones"><option value="demo">10</option><option value="demo">25</option><option value="demo">50</option><option value="demo">100</option></select> registros</label></div><div id="tbLiquidaciones_filter" class="dataTables_filter"><label>Buscar:<input type="search" placeholder="" aria-controls="tbLiquidaciones"></label></div><table id="tbLiquidaciones" class="display nowrap dataTable" cellspacing="0" width="100%" role="grid" aria-describedby="tbLiquidaciones_info" style="width: 100%;">
-        <thead class="blanco">
-            <tr role="row"><th class="sorting_asc" tabindex="-1" aria-controls="tbLiquidaciones" rowspan="1" colspan="1" aria-sort="ascending" style="width: 135px;">Apellidos</th><th class="sorting" tabindex="-1" aria-controls="tbLiquidaciones" rowspan="1" colspan="1" style="width: 132px;">Nombres</th><th class="texto_der sorting" tabindex="-1" aria-controls="tbLiquidaciones" rowspan="1" colspan="1" style="width: 71px;">Rut</th><th class="text-left sorting" tabindex="-1" aria-controls="tbLiquidaciones" rowspan="1" colspan="1" style="width: 177px;">Centro Costo</th><th class="text-left sorting" tabindex="-1" aria-controls="tbLiquidaciones" rowspan="1" colspan="1" style="width: 109px;">Estado</th><th class="sorting" tabindex="-1" aria-controls="tbLiquidaciones" rowspan="1" colspan="1" style="width: 255px;">Última Actualización</th><th class="texto_centrado sorting_disabled" rowspan="1" colspan="1" style="width: 134px;">Acciones</th></tr>
-        </thead>
-        <tbody class="letra-mayuscula">
-        <tr class="odd"><td valign="top" colspan="7" class="dataTables_empty"><b>Ningún dato disponible en esta tabla</b></td></tr></tbody>
-        <tfoot>
-            <tr><th rowspan="1" colspan="1">Apellidos</th><th rowspan="1" colspan="1">Nombres</th><th class="texto_der" rowspan="1" colspan="1">Rut</th><th class="text-left" rowspan="1" colspan="1">Centro Costo</th><th class="text-left" rowspan="1" colspan="1">Estado</th><th rowspan="1" colspan="1">Última Actualización</th><th class="texto_centrado" rowspan="1" colspan="1">Acciones</th></tr>
-        </tfoot>
-    </table><div class="dataTables_info" id="tbLiquidaciones_info" role="status" aria-live="polite">Mostrando registros del 0 al 0 de un total de 0 registros</div><div class="dataTables_paginate paging_simple_numbers" id="tbLiquidaciones_paginate"><a href="#" class="paginate_button previous disabled" aria-controls="tbLiquidaciones" tabindex="-1" id="tbLiquidaciones_previous">Anterior</a><span></span><a href="#" class="paginate_button next disabled" aria-controls="tbLiquidaciones" tabindex="-1" id="tbLiquidaciones_next">Siguiente</a></div></div>
+<form id="calcLiquidacion" autocomplete="off">
+ <div class="calc-col">
+  <fieldset>
+   <legend>Trabajador</legend>
+   <div class="calc-campo"><label for="calcSueldo">Sueldo base bruto</label><input id="calcSueldo" class="form-control" type="text" inputmode="numeric"></div>
+   <div class="calc-campo"><label for="calcGratificacion">Gratificación legal (art. 50, 25 % con tope)</label><input id="calcGratificacion" type="checkbox" checked></div>
+   <div class="calc-campo"><label for="calcOtrosImp">Otros haberes imponibles (bonos, horas extra)</label><input id="calcOtrosImp" class="form-control" type="text" inputmode="numeric"></div>
+   <div class="calc-campo"><label for="calcNoImp">Haberes no imponibles (colación, movilización)</label><input id="calcNoImp" class="form-control" type="text" inputmode="numeric"></div>
+   <div class="calc-campo"><label for="calcAfp">AFP</label><select id="calcAfp" class="form-control"></select></div>
+   <div class="calc-campo"><label for="calcSalud">Salud</label><select id="calcSalud" class="form-control"><option value="fonasa">Fonasa (7 %)</option><option value="isapre">Isapre</option></select></div>
+   <div class="calc-campo" id="calcPlanFila" hidden><label for="calcPlanUf">Plan Isapre (UF)</label><input id="calcPlanUf" class="form-control" type="text" inputmode="decimal"></div>
+   <div class="calc-campo"><label for="calcContrato">Contrato</label><select id="calcContrato" class="form-control"><option value="indefinido">Indefinido</option><option value="plazoFijo">Plazo fijo u obra</option><option value="once">Indefinido con más de 11 años</option></select></div>
+   <div class="calc-campo"><label for="calcOtrosDesc">Otros descuentos (anticipos, préstamos)</label><input id="calcOtrosDesc" class="form-control" type="text" inputmode="numeric"></div>
+  </fieldset>
+  <fieldset>
+   <legend>Parámetros · <span id="calcPeriodo"></span></legend>
+   <div class="calc-campo"><label for="parUf">UF</label><input id="parUf" class="form-control" type="text" inputmode="decimal"></div>
+   <div class="calc-campo"><label for="parUtm">UTM</label><input id="parUtm" class="form-control" type="text" inputmode="numeric"></div>
+   <div class="calc-campo"><label for="parImm">Ingreso mínimo mensual</label><input id="parImm" class="form-control" type="text" inputmode="numeric"></div>
+   <div class="calc-campo"><label for="parTopeAfp">Tope imponible AFP y salud (UF)</label><input id="parTopeAfp" class="form-control" type="text" inputmode="decimal"></div>
+   <div class="calc-campo"><label for="parTopeAfc">Tope seguro de cesantía (UF)</label><input id="parTopeAfc" class="form-control" type="text" inputmode="decimal"></div>
+   <p class="calc-nota">Valores para remuneraciones de octubre 2026: UF al 30/09/2026, UTM y tabla de impuesto único del SII, tasas AFP y aportes de la Ley 21.735 vigentes desde agosto 2026. El cálculo ocurre en este navegador; con el servidor PHP puedes guardar la liquidación en la base de datos.</p>
+  </fieldset>
+ </div>
+ <div class="calc-col">
+  <div class="calc-liquido" role="status" aria-live="polite"><span>Sueldo líquido</span><span id="resLiquido"></span></div>
+  <table><caption>Haberes</caption><tbody id="resHaberes"></tbody></table>
+  <table><caption>Descuentos</caption><tbody id="resDescuentos"></tbody></table>
+  <table><caption>Aportes del empleador</caption><tbody id="resEmpleador"></tbody></table>
+  <fieldset id="calcGuardar">
+   <legend>Guardar liquidación</legend>
+   <div class="calc-campo"><label for="calcTrabajador">Trabajador</label><input id="calcTrabajador" class="form-control" type="text" maxlength="120"></div>
+   <div class="calc-campo"><label for="calcMes">Período</label><input id="calcMes" class="form-control" type="month"></div>
+   <div class="calc-campo"><span class="calc-nota" id="calcGuardarMsg" role="status"></span><button type="button" id="calcGuardarBtn" class="btn-minimalist btn-minimalist-royal">Guardar</button></div>
+   <p class="calc-nota" id="calcSinServidor">Para guardar liquidaciones en la base de datos inicia la copia con <code>npm run start:php</code>.</p>
+  </fieldset>
+  <table id="calcGuardadas" hidden><caption>Liquidaciones guardadas</caption><thead><tr><th>Período</th><th>Trabajador</th><th class="text-right">Imponible</th><th class="text-right">Líquido</th><th></th></tr></thead><tbody id="resGuardadas"></tbody></table>
+ </div>
+</form>
 </div>
-</div>
+
 
 <div class="modal fade" id="modalPortalEmpresa" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md"> <div class="modal-content b-radius-10 shadow-lg border-0">
@@ -678,498 +725,7 @@
             </div>
         </div>
     </div> 
-</div>                </div><div id="ui-id-70" aria-live="polite" aria-labelledby="tabH2" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;"><div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 padding_0px">
-    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-        <h2 class="ic-modulo-titulo-clean margin_top_5px">Personal</h2>
-    </div>
-    <div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 padding_0px text-right">
-        <div class="ic-actions-align-right margin_top_5px">
-            <label class="ic-label-period-royal label-minimalist-lineal">
-                <i class="fa fa-check-circle" aria-hidden="true"></i> Estado Empleado
-            </label>
-            <div class="ic-period-select-group">
-                <div class="input-group-royal">
-                    <select name="estEmp" id="estEmp" class="form-control input-minimalist ic-select-mes-royal">
-                        <option value="demo">Opción de ejemplo</option>
-                        <option value="demo">Opción de ejemplo</option>
-                        <option value="demo">Todos</option>
-                    </select>
-                    <a href="#" type="button" tabindex="3" class="btn-search-royal js_crgEmpsEst" id="bt-search-empleados" name="bt-search-empleados" style="margin-top: -1px; z-index: 10 !important;">
-                        <i class="fa fa-search"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="ic-btn-back-wrapper">
-                <div class="barr-actions-container">
-                    <div class="ic-actions-mobile-trigger">
-                        <a href="#" class="ic-act-mobile-btn">
-                            <span class="ic-act-mobile-text">Acciones del Módulo</span>
-                            <span class="ic-act-mobile-icon"><i class="fa fa-bars"></i></span>
-                        </a>
-                    </div>
-                    <ul class="ic-actions-list">
-                         
-                        <li><a data-local-action="js_cAEP" href="remuneraciones-empleado-crear.html" class="ic-btn-action-nav seg-plano-azulado ic-btn-action-sm"> <i class="fa fa-plus" aria-hidden="true"></i>&#160; Crear Empleado</a></li>
-                        <li><a data-local-action="js_impFicEmp" href="remuneraciones-empleados-importar.html" class="ic-btn-action-nav seg-plano-azulado ic-btn-action-sm"><i class="fa fa-file-excel-o" aria-hidden="true"></i> &#160;Importar Empleados</a></li>
-                        <li><a data-local-action="js_zynemp" href="#" class="ic-btn-action-nav seg-plano-azulado ic-btn-action-sm"> <span class="glyphicon glyphicon-refresh"></span> Sincronizar Emplead.</a></li>
-                        <li class="ic-act-has-dropdown">
-                            <a href="#" class="ic-btn-action-nav seg-plano-azulado ic-btn-action-sm">
-                                <span class="glyphicon glyphicon-trash"></span> Informes <span class="caret"></span>
-                            </a>
-                            <ul class="ic-act-dropdown-menu ic-act-dropdown-log">
-                                <li><a data-local-action="js_expFicEmp" href="#"><i class="fa fa-file-excel-o" aria-hidden="true"></i> Excel Empleados</a></li>
-                                <li><a data-local-action="js_expFicEmp" href="#"><i class="fa fa-file-excel-o" aria-hidden="true"></i> CSV Empleados (rápido)</a></li>
-                                <li><a data-local-action="js_expFicEmp" href="#"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF Empleados</a></li>
-                                <li><a data-local-action="void" id="js_rpEmpVac" href="remuneraciones-vacaciones.html"><i class="fa fa-certificate" aria-hidden="true"></i> Inf. Vacaciones</a></li>
-                                <li><a data-local-action="void" id="js_rpEmpLicMed" href="remuneraciones-licencias.html"><i class="fa fa-medkit" aria-hidden="true"></i> Inf. Licencias Médicas</a></li>
-                            </ul>
-                        </li>
-                                            </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="border_sepmodulos"></div>
-<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 padding_0px">
-    <div id="lstEMPL">
-        <div class="table-container">
-            
-
-<div class="col-md-12 padding_0px">
-    <div id="tbPersonal_wrapper" class="dataTables_wrapper"><div class="dataTables_length" id="tbPersonal_length"><label>Mostrar <select name="tbPersonal_length" aria-controls="tbPersonal"><option value="demo">10</option><option value="demo">25</option><option value="demo">50</option><option value="demo">100</option></select> registros</label></div><div id="tbPersonal_filter" class="dataTables_filter"><label>Buscar:<input type="search" placeholder="" aria-controls="tbPersonal"></label></div><div id="tbPersonal_processing" class="dataTables_processing" style="display: none;">Procesando...</div><table id="tbPersonal" class="display tableempre dataTable" cellspacing="0" width="100%" role="grid" aria-describedby="tbPersonal_info" style="width: 100%;">
-        <thead>
-            <tr role="row"><th class="control sorting_asc" rowspan="1" colspan="1" style="width: 113px;">Apellidos</th><th class="sorting" tabindex="-1" aria-controls="tbPersonal" rowspan="1" colspan="1" style="width: 110px;">Nombres</th><th class="sorting" tabindex="-1" aria-controls="tbPersonal" rowspan="1" colspan="1" style="width: 57px;">Rut</th><th class="sorting" tabindex="-1" aria-controls="tbPersonal" rowspan="1" colspan="1" style="width: 91px;">Ciudad</th><th class="sorting" tabindex="-1" aria-controls="tbPersonal" rowspan="1" colspan="1" style="width: 150px;">Centro Costo</th><th class="sorting" tabindex="-1" aria-controls="tbPersonal" rowspan="1" colspan="1" style="width: 218px;">Última Actualización</th><th class="texto_centrado tam-min-150px sorting_disabled" rowspan="1" colspan="1" style="width: 273px;">Acciones</th></tr>
-        </thead>
-        <tfoot>
-            <tr><th class="control" rowspan="1" colspan="1">Apellidos</th><th rowspan="1" colspan="1">Nombres</th><th rowspan="1" colspan="1">Rut</th><th rowspan="1" colspan="1">Ciudad</th><th rowspan="1" colspan="1">Centro Costo</th><th rowspan="1" colspan="1">Última Actualización</th><th class="texto_centrado tam-min-150px" rowspan="1" colspan="1">Acciones</th></tr>
-        </tfoot>
-        <tbody class="letra-mayuscula">
-
-        <tr class="odd"><td valign="top" colspan="7" class="dataTables_empty"><b>Ningún dato disponible en esta tabla</b></td></tr></tbody>
-    </table><div class="dataTables_info" id="tbPersonal_info" role="status" aria-live="polite">Mostrando registros del 0 al 0 de un total de 0 registros</div><div class="dataTables_paginate paging_simple_numbers" id="tbPersonal_paginate"><a href="#" class="paginate_button previous disabled" aria-controls="tbPersonal" tabindex="-1" id="tbPersonal_previous">Anterior</a><span></span><a href="#" class="paginate_button next disabled" aria-controls="tbPersonal" tabindex="-1" id="tbPersonal_next">Siguiente</a></div></div>
-    <div class="espacio_vacio"></div>
-</div>        </div>
-        
-    </div>
-</div>
-
-</div><div id="ui-id-71" aria-live="polite" aria-labelledby="tabH3" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;">
-
-<form id="paramRemuneraciones_form" name="paramRemuneraciones_form">
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 padding_0px">
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <h2 class="ic-modulo-titulo-clean margin_top_5px">Parametros</h2>
-        </div>
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <div class="msg-moderno msg-info">
-                <div class="media">
-                    <div class="media-body">
-                        <i class="fa fa-calendar" aria-hidden="true"></i> <b>Última Actualización</b> por <b></b> con fecha <b></b>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="ms-error-parRem" class="col-lg-12 col-md-12 col-sm-12 col-xs-12"></div>
-            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            
-                <div class="royal-card-step border-royal-blue margin_bottom_20px">
-                    <div class="royal-card-head">
-                        <h4><i class="fa fa-calculator text-royal-blue"></i> Cálculo de Gratificación</h4>
-                        <span class="royal-card-subtitle">Reglas de pago periódico y horas extra asociadas</span>
-                    </div>
-                    <div class="royal-card-body">
-                        <div class="row">
-                            <div class="col-md-5 col-xs-12 margin_bottom_10px">
-                                <div class="form-group">
-                                    <label class="label-minimalist">Tipo de Gratificación</label>
-                                    <select name="idGratif" id="idGratif" class="input-minimalist form-control">
-                                        <option value="demo">Seleccione</option>
-                                                                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                            </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-xs-12 margin_bottom_10px flex-align-center">
-                                <div class="form-group">
-                                    <label class="label-minimalist">Horas Extras</label>
-                                    <label class="check-royal-container" style="padding: 0px !important;">
-                                        <input type="checkbox" name="incHoExt" id="incHoExt">
-                                        <span class="checkmark-royal"></span>
-                                        <span class="text-check-royal">Incluye Horas Extra</span>
-                                    </label>
-                                    
-                                </div>
-                            </div>
-                            <div class="col-md-4 col-xs-12 margin_bottom_10px">
-                                <div class="form-group">
-                                    <label class="label-minimalist">Modalidad Proporcionalidad</label>
-                                    <select name="grtPrp" id="grtPrp" class="input-minimalist form-control">
-                                        <option value="demo">Opción de ejemplo</option>
-                                        <option value="demo">Opción de ejemplo</option>
-                                        <option value="demo">Opción de ejemplo</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            
-            <div class="royal-card-step border-royal-gold margin_bottom_20px">
-                <div class="royal-card-head">
-                    <h4><i class="fa fa-university text-royal-gold"></i> Ahorro Previsional Colectivo (APVC)</h4>
-                    <span class="royal-card-subtitle">Asignación de institución previsional y número de convenio/contrato</span>
-                </div>
-                <div class="royal-card-body">
-                    <div class="row">
-                        <div class="col-md-5 col-xs-12 margin_bottom_10px flex-align-center">
-                            <div class="form-group">
-                                <label class="label-minimalist">Ahorro Previsional Voluntario Colectivo</label>
-                                <label class="check-royal-container" style="padding: 0px !important;">
-                                    <input type="checkbox" name="tAhoPreVolCol" id="tAhoPreVolCol">
-                                    <span class="checkmark-royal"></span>
-                                    <span class="text-check-royal">Aplicar Ahorro Previsional </span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-xs-12 margin_bottom_10px">
-                            <div class="form-group">
-                                <label class="label-minimalist-sm">N° Contrato</label>
-                                <input id="numCon" class="form-control input-minimalist" type="text" name="numCon" maxlength="20" placeholder="Ingrese número de contrato">
-                            </div>
-                        </div>
-                        <div class="col-md-4 col-xs-12 margin_bottom_10px">
-                            <div class="form-group">
-                                <label class="label-minimalist-sm">Institución / AFP</label>
-                                <select name="insAhoPre" id="insAhoPre" class="js-select2 form-control select2-royal select2-hidden-accessible" style="width: 100%;" tabindex="-1" aria-hidden="true">
-                                    <option value="demo">Seleccione</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                    
-                                                                                                                                                                                                                                                                                                                                                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                                                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                                                                                                                                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                                                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                                                                                                                                                                                                                                                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                                                                                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                                                                                                                                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                                                                                                                                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                                                                    <option value="demo">Opción de ejemplo</option>
-                                                                    </select><span class="select2 select2-container select2-container--default" dir="ltr" style="width: 100%;"><span class="selection"><span class="select2-selection select2-selection--single" role="combobox" aria-haspopup="true" aria-expanded="false" tabindex="0" aria-disabled="false" aria-labelledby="select2-insAhoPre-container"><span class="select2-selection__rendered" id="select2-insAhoPre-container" role="textbox" aria-readonly="true">Seleccione</span><span class="select2-selection__arrow" role="presentation"><b role="presentation"></b></span></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <div class="royal-card-step border-royal-blue margin_bottom_20px">
-                <div class="royal-card-head">
-                    <h4><i class="fa fa-percent text-royal-blue"></i> Recargos, Horas Extras</h4>
-                    <span class="royal-card-subtitle">Porcentajes extraordinarios</span>
-                </div>
-                <div class="royal-card-body">
-                    <div class="row">
-                        <div class="col-md-3 col-xs-12 margin_bottom_10px">
-                            <div class="form-group">
-                                <label class="label-minimalist">%  Recargo horas extra día domingo </label>
-                                <input id="recHeDom" class="form-control input-minimalist text-right" type="text" name="recHeDom" maxlength="20" placeholder="000,00">
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-xs-12 margin_bottom_10px">
-                            <div class="form-group">
-                                <label class="label-minimalist"><i class="fa fa-question-circle"></i> % Recargo horas extra día festivo</label>
-                                <input id="recHeFestivo" class="form-control input-minimalist text-right" type="text" name="recHeFestivo" maxlength="20" placeholder="000,00">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <div class="royal-card-step border-royal-gold margin_bottom_20px">
-                <div class="royal-card-head">
-                    <h4><i class="fa fa-minus-circle text-royal-gold"></i> Descuentos por Atraso</h4>
-                    <span class="royal-card-subtitle">Parámetros para calcular automáticamente descuentos por atrasos en la liquidación de remuneraciones.</span>
-                </div>
-                <div class="royal-card-body">
-                    <div class="row">
-                        <div class="col-md-12 col-xs-12 margin_bottom_10px flex-align-center">
-                            <div class="form-group">
-                                <label class="label-minimalist">Incluye haberes imponibles (Si no está marcado se considera sobre sueldo base)</label>
-                                <label class="check-royal-container" style="padding: 0px !important;">
-                                    <input type="checkbox" name="incHbImp" id="incHbImp">
-                                    <span class="checkmark-royal"></span>
-                                    <span class="text-check-royal">Aplicar Descuento por Atraso</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <div class="royal-card-step border-royal-blue margin_bottom_20px">
-                <div class="royal-card-head">
-                    <h4><i class="fa fa-money text-royal-blue"></i> Exención Pago AFP</h4>
-                    <span class="royal-card-subtitle"> Aplicar la exención del pago de AFP a trabajadores que cumplan los requisitos establecidos.</span>
-                </div>
-                <div class="royal-card-body">
-                    <div class="row">
-                        <div class="col-md-12 col-xs-12 margin_bottom_10px flex-align-center">
-                            <div class="form-group">
-                                <label class="label-minimalist">Aplica Exención Pago Cotización Obligatoria AFP (Ley Nº 100.000)</label>
-                                <label class="check-royal-container" style="padding: 0px !important;">
-                                    <input type="checkbox" name="exPgAFP" id="exPgAFP">
-                                    <span class="checkmark-royal"></span>
-                                    <span class="text-check-royal">Aplicar Exención Pago</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        
-        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-
-            
-        </div>
-
-        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 top-sep-bloque">
-            
-        </div>
-    </div>
-    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 margin_bottom_20px">
-                    <div class="encap_auto posic_der margin_der_4px">
-                <input type="button" class="btn-minimalist btn-minimalist-sm">
-            </div>
-            <div class="encap_auto posic_der margin_der_4px">
-                <input type="button" class="btn-minimalist btn-minimalist-sm">
-            </div>
-            </div>
-</form>
-</div><div id="ui-id-72" aria-live="polite" aria-labelledby="tabH4" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="false" style="display: block;">
-<form id="ccafMutual_form" name="ccafMutual_form">
-            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <h2 class="ic-modulo-titulo-clean margin_top_5px">Previsión Empresas</h2>
-        </div>
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <div class="msg-moderno msg-info">
-                <div class="media">
-                    <div class="media-body">
-                        <i class="fa fa-calendar" aria-hidden="true"></i> <b>Última Actualización</b> por <b></b> con fecha <b></b>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <div class="royal-card-step border-royal-blue margin_bottom_20px">
-                <div class="royal-card-head">
-                    <h4><i class="fa fa-shield text-royal-blue"></i> Mutual de Seguridad</h4>
-                    <span class="royal-card-subtitle">Asignación de la mutualidad a la que se encuentra adherida la empresa y administración de sus datos.</span>
-                </div>
-                <div class="royal-card-body">
-                    <div class="row">
-                        <div class="col-md-3 col-sm-12 margin_bottom_10px">
-                            <div class="form-group">
-                                <label class="label-minimalist">Aplicar Mutual</label>
-                                <label class="check-royal-container" style="padding: 0px !important;">
-                                    <input type="checkbox" name="tMutual" id="tMutual">
-                                    <span class="checkmark-royal"></span>
-                                    <span class="text-check-royal">Incluye Mutual Seguridad</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-xs-12 margin_bottom_10px">
-                            <div class="form-group">
-                                <label class="label-minimalist">Mutual Seguridad</label>
-                                                                <select name="idMutual" id="idMutual" class="select2-royal js-select2 form-control select2-hidden-accessible" style="width: 100%" disabled tabindex="-1" aria-hidden="true">
-                                    <option value="demo">Seleccione</option>
-                                                                                                                <option value="demo">Opción de ejemplo</option>
-                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                    </select><span class="select2 select2-container select2-container--default select2-container--disabled" dir="ltr" style="width: 100%;"><span class="selection"><span class="select2-selection select2-selection--single" role="combobox" aria-haspopup="true" aria-expanded="false" tabindex="-1" aria-disabled="true" aria-labelledby="select2-idMutual-container"><span class="select2-selection__rendered" id="select2-idMutual-container" role="textbox" aria-readonly="true">Seleccione</span><span class="select2-selection__arrow" role="presentation"><b role="presentation"></b></span></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-xs-12 margin_bottom_10px">
-                            <div class="form-group">
-                                <label class="label-minimalist">Cód. Empleador</label>
-                                <input id="codEmpl" class="form-control input-minimalist" type="text" name="codEmpl">                             </div>
-                        </div>
-                        <div class="col-md-3 col-xs-12 margin_bottom_10px">
-                            <div class="form-group">
-                                <label class="label-minimalist">Cargo Empl. T. Adicional</label>
-                                <input id="caEmpTaAdic" class="form-control input-minimalist text-right" type="text" name="caEmpTaAdic">                             </div>
-                        </div>
-                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 padding_0px margin_top_15px">
-                            <div class="msg-moderno msg-verde">
-                                <div class="media">
-                                    <div class="media-body">
-                                        <i class="fa fa-info-circle" aria-hidden="true"></i> La tasa base de la <b>mutual ya se encuentra incorporada</b>. Ver en Módulo <a data-local-action="js_cargarConceptosGlobales" class="link_rojo" href="globales.html">Parámetros Globales</a>.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <div class="royal-card-step border-royal-gold margin_bottom_20px">
-                <div class="royal-card-head">
-                    <h4><i class="fa fa-university text-royal-gold"></i> Caja Compensación</h4>
-                    <span class="royal-card-subtitle">Selección de la Caja de Compensación afiliada a la empresa para la administración de beneficios y aportes de los trabajadores.</span>
-                </div>
-                <div class="royal-card-body">
-                    <div class="row">
-                        <div class="col-md-3 col-xs-12 margin_bottom_10px">
-                            <div class="form-group">
-                                <label class="label-minimalist">Aplicar CCAF</label>
-                                <label class="check-royal-container" style="padding: 0px !important;">
-                                    <input type="checkbox" name="tCajaComp" id="tCajaComp">
-                                    <span class="checkmark-royal"></span>
-                                    <span class="text-check-royal">Incluye CCAF</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-xs-12 margin_bottom_10px">
-                            <div class="form-group">
-                                <label class="label-minimalist">Caja de Compensación de Asig. Fam.</label>
-                                                                <select name="idCajaComp" id="idCajaComp" class="form-control input-minimalist" disabled="disabled">
-                                    <option value="demo">Seleccione</option>
-                                                                                                                <option value="demo">Opción de ejemplo</option>
-                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                            <option value="demo">Opción de ejemplo</option>
-                                                                    </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-xs-12 margin_bottom_10px">
-                            <div class="form-group">
-                                <label class="label-minimalist">N° Asociado</label>
-                                <input id="numAsoc" class="form-control input-minimalist" type="text" name="numAsoc" disabled="disabled"> 
-                            </div>
-                        </div>
-                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 margin_top_15px">
-                            <label class="label-minimalist"><a class="quepago link-azul" href="#"><i class="fa fa-question-circle" aria-hidden="true"></i> Ver Cajas que tienen actualmente convenio con Previred</a></label> 
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 margin_bottom_20px margin_top_15px">
-                    <div class="encap_auto posic_der margin_der_4px">
-                <input type="button" class="btn-minimalist btn-minimalist-sm">
-            </div>
-            <div class="encap_auto posic_der margin_der_4px">
-                <input type="button" class="btn-minimalist btn-minimalist-sm">
-            </div>
-            </div>
-</form>
-
-<div id="tab_info_caja" style="display: none;">
-    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 padding_0px margin_bottom_20px margin_top_15px letra_14px">
-        <b>Convenios con Previred</b>
-    </div>
-    <table class="table_dis camb_fila border_tab"> 
-        <thead>
-            <tr>
-                <th style="text-align: left !important;">Caja Compensación</th> 
-                <th style="text-align: center !important;">Créditos Personales</th>    
-                <th style="text-align: center !important;">Descuentos Dentales</th>
-                <th style="text-align: center !important;">Descuentos Leasing</th> 
-                <th style="text-align: center !important;">Descuentos Seguro Vida</th> 
-                <th style="text-align: center !important;">Otros Descuentos</th> 
-            </tr>                   
-        </thead> 
-        <tbody>
-            <tr>
-                <td><b>Caja 18 de Septiembre</b> </td>
-                <td class="text-center ico-clr-verde letra_18px"><i class="fa fa-check-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-rojo letra_18px"><i class="fa fa-times-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-verde letra_18px"><i class="fa fa-check-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-verde letra_18px"><i class="fa fa-check-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-rojo letra_18px"><i class="fa fa-times-circle" aria-hidden="true"></i></td>
-            </tr>
-
-            <tr>
-                <td><b>Caja los Andes</b></td>
-                <td class="text-center ico-clr-verde letra_18px"><i class="fa fa-check-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-rojo letra_18px"><i class="fa fa-times-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-verde letra_18px"><i class="fa fa-check-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-verde letra_18px"><i class="fa fa-check-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-rojo letra_18px"><i class="fa fa-times-circle" aria-hidden="true"></i></td>
-            </tr>
-            <tr>
-                <td><b>Caja Los Heroes</b></td>
-                <td class="text-center ico-clr-verde letra_18px"><i class="fa fa-check-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-verde letra_18px"><i class="fa fa-check-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-verde letra_18px"><i class="fa fa-check-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-verde letra_18px"><i class="fa fa-check-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-verde letra_18px"><i class="fa fa-check-circle" aria-hidden="true"></i></td>
-            </tr>
-            <tr>
-                <td><b>La Araucana</b></td>
-                <td class="text-center ico-clr-verde letra_18px"><i class="fa fa-check-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-rojo letra_18px"><i class="fa fa-times-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-verde letra_18px"><i class="fa fa-check-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-rojo letra_18px"><i class="fa fa-times-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-rojo letra_18px"><i class="fa fa-times-circle" aria-hidden="true"></i></td>
-            </tr>
-            <tr>
-                <td><b>Pensionados </b></td>
-                <td class="text-center ico-clr-rojo letra_18px"><i class="fa fa-times-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-rojo letra_18px"><i class="fa fa-times-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-rojo letra_18px"><i class="fa fa-times-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-rojo letra_18px"><i class="fa fa-times-circle" aria-hidden="true"></i></td>
-                <td class="text-center ico-clr-rojo letra_18px"><i class="fa fa-times-circle" aria-hidden="true"></i></td>
-            </tr>
-        </tbody>
-    </table>
-    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 padding_0px text-center margin_top_15px">
-        *** <b>Nota:</b> Las cajas que no tienen convenio con previred deben realizar el pago en forma presencial en las CCAF correspondientes.
-    </div>
-</div>
-</div><div id="ui-id-73" aria-live="polite" aria-labelledby="tabH5" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;"></div><div id="ui-id-74" aria-live="polite" aria-labelledby="tabH6" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;"></div><div id="ui-id-75" aria-live="polite" aria-labelledby="tabH7" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;"></div><div id="ui-id-76" aria-live="polite" aria-labelledby="tabH8" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;"></div>
+</div>                </div><div id="ui-id-70" aria-live="polite" aria-labelledby="tabH2" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;"></div><div id="ui-id-71" aria-live="polite" aria-labelledby="tabH3" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;"></div><div id="ui-id-72" aria-live="polite" aria-labelledby="tabH4" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;"></div><div id="ui-id-73" aria-live="polite" aria-labelledby="tabH5" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;"></div><div id="ui-id-74" aria-live="polite" aria-labelledby="tabH6" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;"></div><div id="ui-id-75" aria-live="polite" aria-labelledby="tabH7" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;"></div><div id="ui-id-76" aria-live="polite" aria-labelledby="tabH8" role="tabpanel" class="ui-tabs-panel ui-corner-bottom ui-widget-content" aria-hidden="true" style="display: none;"></div>
             </div>
         </div>
         <div class="col-lg-1 col-md-1 col-sm-1 hidden-xs"></div>
@@ -1213,23 +769,23 @@
                         
                         
                     <tr role="row" class="odd">
-                            <td>3</td>
+                            <td>2</td>
                             <td>Ejemplo 2</td>
                             <td>Ejemplo 3</td> 
                         </tr><tr role="row" class="even">
+                            <td>3</td>
+                            <td>Ejemplo 2</td>
+                            <td>Ejemplo 3</td>
+                        </tr><tr role="row" class="odd">
                             <td>4</td>
                             <td>Ejemplo 2</td>
                             <td>Ejemplo 3</td>
-                        </tr><tr role="row" class="odd">
-                            <td>5</td>
-                            <td>Ejemplo 2</td>
-                            <td>Ejemplo 3</td>
                         </tr><tr role="row" class="even">
-                            <td>6</td>
+                            <td>5</td>
                             <td>Ejemplo 2</td>
                             <td>Ejemplo 3</td> 
                         </tr><tr role="row" class="odd">
-                            <td>7</td>
+                            <td>6</td>
                             <td>Ejemplo 2</td>
                             <td class="puntero">Ejemplo 3</td>
                         </tr></tbody>

@@ -709,6 +709,12 @@
     "sourceLength": 183793
   },
   {
+    "name": "Remuneraciones · Calculadora de liquidación",
+    "file": "views/remuneraciones-calculadora.html",
+    "scope": "page",
+    "completeHtml": true
+  },
+  {
     "name": "Parámetros · Importar proveedores",
     "file": "views/parametros-proveedores-importar.html",
     "scope": "dialog",
