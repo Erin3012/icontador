@@ -1,7 +1,7 @@
 <?php
 // Pruebas de la lógica contable en PHP con una base SQLite en memoria: php tools/test-api.php
 declare(strict_types=1);
-require dirname(__DIR__) . '/api/lib.php';
+require dirname(__DIR__) . '/api/lib/vouchers.php';
 
 $fallas = 0;
 function comprobar(bool $ok, string $mensaje): void
@@ -20,7 +20,8 @@ function errores(callable $f): array
     return [];
 }
 
-$pdo = conectar(['dsn' => 'sqlite::memory:']);
+$pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+crearEsquema($pdo);
 comprobar(count(planCuentas($pdo)) === count(PLAN_BASE), 'plan de cuentas inicial cargado');
 
 $venta = ['tipo' => 'I', 'fecha' => '2026-10-01', 'registro' => 'Ambos', 'glosa' => 'Venta al contado', 'lineas' => [

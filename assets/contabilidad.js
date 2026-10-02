@@ -31,9 +31,9 @@ class ErrorApi extends Error{constructor(errores){super(errores.join(' '));this.
 async function api(ruta,opciones={}){
  let respuesta;
  try{respuesta=await fetch(API+ruta,{...opciones,headers:{'Content-Type':'application/json',...opciones.headers}});}
- catch{throw new ErrorApi(['No se pudo conectar con la API PHP. Inicie el servidor con "npm run php" o use Apache/XAMPP.']);}
+ catch{throw new ErrorApi(['No se pudo conectar con la API PHP. Inicie el servidor con "npm run start:php" o use Apache/XAMPP.']);}
  const datos=await respuesta.json().catch(()=>null);
- if(!datos)throw new ErrorApi(['La API PHP no respondió. Inicie el servidor con "npm run php" o use Apache/XAMPP (el servidor de "npm start" no ejecuta PHP).']);
+ if(!datos)throw new ErrorApi(['La API PHP no respondió. Inicie el servidor con "npm run start:php" o use Apache/XAMPP (el servidor de "npm start" no ejecuta PHP).']);
  if(!respuesta.ok)throw new ErrorApi(datos.errores||['Error '+respuesta.status]);
  return datos;
 }

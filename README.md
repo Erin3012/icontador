@@ -17,13 +17,13 @@ Abre http://127.0.0.1:4173. El servidor escucha únicamente en tu equipo. No nec
 Las pantallas **Voucher**, **Crear Voucher**, **Libro Diario** y **Libro Mayor** funcionan con una base de datos en PHP (`api/`). Para usarlas inicie el servidor PHP en lugar de `npm start`:
 
 ```powershell
-npm run php
+npm run start:php
 ```
 
-Esto ejecuta `php -S 127.0.0.1:4173 tools/router.php` (requiere PHP 8.1 o superior con PDO). También funciona copiando la carpeta en Apache/XAMPP.
+Esto ejecuta `php -S 127.0.0.1:4173 tools/php-router.php` (requiere PHP 8.1 o superior con PDO). También funciona copiando la carpeta en Apache/XAMPP.
 
-- Por defecto los datos se guardan en SQLite (`data/icontador.sqlite`, se crea solo). Para MySQL/MariaDB copie `api/config.php` como `api/config.local.php` y cambie el DSN, usuario y clave; las tablas se crean al primer uso.
-- Un voucher solo se guarda si Debe = Haber, tiene al menos dos líneas y cada línea usa una cuenta del plan con un monto en Debe o en Haber. La validación se hace en PHP (`api/lib.php`).
+- La conexión es la compartida de `api/db.php`: sin configuración usa SQLite (`data/icontador.sqlite`, se crea solo). Para MySQL/MariaDB copie `api/config.example.php` como `api/config.php` con sus datos (o use `ICONTADOR_DB_DSN`, `ICONTADOR_DB_USER` e `ICONTADOR_DB_PASS`); las tablas se crean al primer uso.
+- Un voucher solo se guarda si Debe = Haber, tiene al menos dos líneas y cada línea usa una cuenta del plan con un monto en Debe o en Haber. La validación se hace en PHP (`api/lib/vouchers.php`).
 - El número de comprobante es correlativo por tipo (Ingreso, Egreso, Traspaso) y mes.
 - Libro Diario y Libro Mayor se generan desde la base de datos con filtros de fecha y tipo de contabilidad (Tributario/IFRS). PDF imprime el reporte; EXCEL y CSV descargan un CSV.
 - API: `api/vouchers.php` (GET, POST, PUT, DELETE), `api/cuentas.php` (plan de cuentas) y `api/libros.php?libro=diario|mayor`.

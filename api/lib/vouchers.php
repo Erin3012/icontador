@@ -1,6 +1,8 @@
 <?php
-// Lógica contable compartida por los endpoints de la API: esquema, vouchers y libros.
+// Vouchers, Libro Diario y Libro Mayor: esquema, validación y consultas. Conexión en api/db.php.
 declare(strict_types=1);
+
+require_once dirname(__DIR__) . '/db.php';
 
 const TIPOS = ['I' => 'Ingreso', 'E' => 'Egreso', 'T' => 'Traspaso'];
 const REGISTROS = ['Ambos', 'IFRS', 'Tributario'];
@@ -24,19 +26,9 @@ class ErrorValidacion extends Exception
     }
 }
 
-function conectar(?array $config = null): PDO
+function conectar(): PDO
 {
-    $config ??= require __DIR__ . '/config.php';
-    if (str_starts_with($config['dsn'], 'sqlite:') && $config['dsn'] !== 'sqlite::memory:') {
-        $dir = dirname(substr($config['dsn'], 7));
-        if (!is_dir($dir)) {
-            mkdir($dir, 0775, true);
-        }
-    }
-    $pdo = new PDO($config['dsn'], $config['user'] ?? null, $config['pass'] ?? null, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    ]);
+    $pdo = icontador_db();
     crearEsquema($pdo);
     return $pdo;
 }

@@ -5,7 +5,7 @@
 // PUT    vouchers.php?id=N                    reemplaza
 // DELETE vouchers.php?id=N                    elimina
 declare(strict_types=1);
-require __DIR__ . '/lib.php';
+require __DIR__ . '/lib/vouchers.php';
 
 ejecutar(function (PDO $pdo) {
     $id = isset($_GET['id']) ? (int) $_GET['id'] : null;
