@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "start": "node tools/serve.cjs",
-    "test": "node tools/verify.cjs && node tools/test-liquidacion.cjs",
+    "start:php": "php -S 127.0.0.1:4173 tools/php-router.php",
+    "test": "node tools/verify.cjs && node tools/test-rcv.cjs && node tools/test-liquidacion.cjs",
+    "test:php": "php tools/test-rcv-api.php && php tools/test-liquidaciones-api.php",
     "prepare-local": "node tools/prepare.cjs"
   },
   "keywords": [],

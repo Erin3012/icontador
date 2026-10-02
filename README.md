@@ -12,6 +12,16 @@ npm start
 
 Abre http://127.0.0.1:4173. El servidor escucha únicamente en tu equipo. No necesitas instalar dependencias para consultar la copia. También puedes abrir `index.html` directamente.
 
+## RCV con base de datos (PHP)
+
+La pantalla RCV importa los CSV de detalle de compras y ventas que se descargan del SII, arma ambos libros y calcula el IVA del mes. Para guardar los libros en la base de datos, inicia la copia con PHP 8.1 o superior:
+
+```powershell
+npm run start:php
+```
+
+Sin configuración usa SQLite en `data/icontador.sqlite`. Para MySQL, copia `api/config.example.php` como `api/config.php` con tus datos de conexión (o usa las variables `ICONTADOR_DB_DSN`, `ICONTADOR_DB_USER` e `ICONTADOR_DB_PASS`); la tabla está en `api/schema/rcv.mysql.sql` y se crea sola. Con `npm start` la importación funciona igual, pero no guarda nada. Hay CSV ficticios en `samples/`; `npm test` y `npm run test:php` comprueban el cálculo y el guardado.
+
 ## Trabajar con los archivos
 
 - `views/`: pantallas HTML editables recuperadas del navegador.

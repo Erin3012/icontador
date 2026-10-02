@@ -82,8 +82,48 @@
   $('calcSueldo').value='1000000';
   for(const [id,key] of [['parUf','uf'],['parUtm','utm'],['parImm','imm'],['parTopeAfp','topeAfpUf'],['parTopeAfc','topeAfcUf']])$(id).value=String(PARAMETROS[key]).replace('.',',');
   $('calcPeriodo').textContent=PARAMETROS.periodo;
-  form.addEventListener('input',actualizar);form.addEventListener('change',actualizar);
+  form.addEventListener('input',e=>{if(!e.target.closest('#calcGuardar'))actualizar();});form.addEventListener('change',e=>{if(!e.target.closest('#calcGuardar'))actualizar();});
   actualizar();
+  iniciarGuardado();
+ }
+
+ // Con el servidor PHP (api/liquidaciones.php) las liquidaciones se guardan en la base de datos.
+ const API='../api/liquidaciones.php';
+ let ultimo=null;
+ async function pedir(method,query,body){
+  const res=await fetch(API+(query||''),{method,headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});
+  const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||('Error '+res.status+' del servidor.'));return data;
+ }
+ async function iniciarGuardado(){
+  $('calcMes').value='2026-10';
+  $('calcGuardarBtn').disabled=true;
+  $('calcGuardarBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();guardar();});
+  $('resGuardadas').addEventListener('click',e=>{const b=e.target.closest('[data-borrar]');if(!b)return;e.preventDefault();e.stopPropagation();borrar(b.dataset.borrar);});
+  try{await listar();$('calcSinServidor').hidden=true;$('calcGuardarBtn').disabled=false;}catch{$('calcGuardarBtn').hidden=true;}
+ }
+ async function listar(){
+  const {liquidaciones}=await pedir('GET');
+  const t=$('resGuardadas');t.replaceChildren();$('calcGuardadas').hidden=!liquidaciones.length;
+  for(const l of liquidaciones){
+   const tr=document.createElement('tr');
+   for(const [texto,clase] of [[l.periodo,''],[l.trabajador,''],[clp(l.imponible),'text-right'],[clp(l.liquido),'text-right']]){const td=document.createElement('td');td.textContent=texto;if(clase)td.className=clase;tr.append(td);}
+   const td=document.createElement('td');td.className='text-right';const b=document.createElement('button');b.type='button';b.className='calc-borrar';b.dataset.borrar=l.id;b.textContent='Borrar';b.setAttribute('aria-label','Borrar liquidación de '+l.trabajador);td.append(b);tr.append(td);t.append(tr);
+  }
+ }
+ async function guardar(){
+  const msg=$('calcGuardarMsg');
+  if(!$('calcTrabajador').value.trim()){msg.textContent='Indica el nombre del trabajador.';return;}
+  const x=ultimo.resultado;
+  try{
+   await pedir('POST','',{periodo:$('calcMes').value,trabajador:$('calcTrabajador').value,sueldoBase:x.sueldo,gratificacion:x.gratificacion,imponible:x.imponible,
+    totalHaberes:x.totalHaberes,afp:x.afp,salud:x.salud,afc:x.afc,impuesto:x.impuesto,totalDescuentos:x.totalDescuentos,liquido:x.liquido,costoEmpresa:x.costoEmpresa,
+    detalle:{entrada:ultimo.entrada,parametros:{uf:ultimo.parametros.uf,utm:ultimo.parametros.utm,imm:ultimo.parametros.imm,topeAfpUf:ultimo.parametros.topeAfpUf,topeAfcUf:ultimo.parametros.topeAfcUf},
+     otros:x.otros,noImponibles:x.noImponibles,adicionalIsapre:x.adicionalIsapre,baseTributable:x.baseTributable,otrosDescuentos:x.otrosDescuentos,empleador:x.empleador}});
+   msg.textContent='Liquidación guardada.';await listar();
+  }catch(e){msg.textContent=e.message;}
+ }
+ async function borrar(id){
+  try{await pedir('DELETE','?id='+encodeURIComponent(id));$('calcGuardarMsg').textContent='Liquidación borrada.';await listar();}catch(e){$('calcGuardarMsg').textContent=e.message;}
  }
  function fila(tabla,concepto,detalle,monto,clase){
   const tr=document.createElement('tr');if(clase)tr.className=clase;
@@ -93,9 +133,10 @@
  function actualizar(){
   $('calcPlanFila').hidden=$('calcSalud').value!=='isapre';
   const p={...PARAMETROS,uf:num($('parUf')),utm:num($('parUtm')),imm:num($('parImm')),topeAfpUf:num($('parTopeAfp')),topeAfcUf:num($('parTopeAfc'))};
-  const x=calcular({sueldoBase:num($('calcSueldo')),gratificacion:$('calcGratificacion').checked,otrosImponibles:num($('calcOtrosImp')),
+  const entrada={sueldoBase:num($('calcSueldo')),gratificacion:$('calcGratificacion').checked,otrosImponibles:num($('calcOtrosImp')),
    noImponibles:num($('calcNoImp')),afp:$('calcAfp').value,salud:$('calcSalud').value,planUf:num($('calcPlanUf')),contrato:$('calcContrato').value,
-   otrosDescuentos:num($('calcOtrosDesc'))},p);
+   otrosDescuentos:num($('calcOtrosDesc'))};
+  const x=calcular(entrada,p);ultimo={entrada,parametros:p,resultado:x};
   const h=$('resHaberes'),d=$('resDescuentos'),e=$('resEmpleador');h.replaceChildren();d.replaceChildren();e.replaceChildren();
   fila(h,'Sueldo base','',clp(x.sueldo));
   if(x.gratificacion)fila(h,'Gratificación legal','25 % con tope de '+clp(x.topeGratificacion)+' (4,75 IMM / 12)',clp(x.gratificacion));

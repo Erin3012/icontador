@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<html lang="en"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
         
         <meta name="description" content="Contabilidad, remuneraciones Icontador, Programa contable, Software de remuneraciones, contable. Plan de cuentas en Contabilidad online.">
         <meta name="keywords" content="Software contable, Software de remuneraciones, remuneraciones, contabilidad, sistema contable, contabilidad online, programa contable, plan de cuentas">
@@ -555,6 +555,8 @@
 #calcLiquidacion .calc-liquido{display:flex;justify-content:space-between;align-items:center;background:#173759;color:#fff;border-radius:6px;padding:14px 16px;margin-bottom:16px;font-size:18px;font-weight:700}
 #calcLiquidacion .calc-nota{font-size:12px;color:#526579}
 #calcLiquidacion [hidden]{display:none}
+#calcLiquidacion #calcGuardadas td:nth-child(2){color:inherit;font-size:inherit}
+#calcLiquidacion .calc-borrar{color:#b4232c;cursor:pointer;background:none;border:0;padding:0}
 </style>
 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 padding_0px">
 <form id="calcLiquidacion" autocomplete="off">
@@ -578,7 +580,7 @@
    <div class="calc-campo"><label for="parImm">Ingreso mínimo mensual</label><input id="parImm" class="form-control" type="text" inputmode="numeric"></div>
    <div class="calc-campo"><label for="parTopeAfp">Tope imponible AFP y salud (UF)</label><input id="parTopeAfp" class="form-control" type="text" inputmode="decimal"></div>
    <div class="calc-campo"><label for="parTopeAfc">Tope seguro de cesantía (UF)</label><input id="parTopeAfc" class="form-control" type="text" inputmode="decimal"></div>
-   <p class="calc-nota">Valores para remuneraciones de octubre 2026: UF al 30/09/2026, UTM y tabla de impuesto único del SII, tasas AFP y aportes de la Ley 21.735 vigentes desde agosto 2026. El cálculo ocurre en este navegador y no se guarda.</p>
+   <p class="calc-nota">Valores para remuneraciones de octubre 2026: UF al 30/09/2026, UTM y tabla de impuesto único del SII, tasas AFP y aportes de la Ley 21.735 vigentes desde agosto 2026. El cálculo ocurre en este navegador; con el servidor PHP puedes guardar la liquidación en la base de datos.</p>
   </fieldset>
  </div>
  <div class="calc-col">
@@ -586,6 +588,14 @@
   <table><caption>Haberes</caption><tbody id="resHaberes"></tbody></table>
   <table><caption>Descuentos</caption><tbody id="resDescuentos"></tbody></table>
   <table><caption>Aportes del empleador</caption><tbody id="resEmpleador"></tbody></table>
+  <fieldset id="calcGuardar">
+   <legend>Guardar liquidación</legend>
+   <div class="calc-campo"><label for="calcTrabajador">Trabajador</label><input id="calcTrabajador" class="form-control" type="text" maxlength="120"></div>
+   <div class="calc-campo"><label for="calcMes">Período</label><input id="calcMes" class="form-control" type="month"></div>
+   <div class="calc-campo"><span class="calc-nota" id="calcGuardarMsg" role="status"></span><button type="button" id="calcGuardarBtn" class="btn-minimalist btn-minimalist-royal">Guardar</button></div>
+   <p class="calc-nota" id="calcSinServidor">Para guardar liquidaciones en la base de datos inicia la copia con <code>npm run start:php</code>.</p>
+  </fieldset>
+  <table id="calcGuardadas" hidden><caption>Liquidaciones guardadas</caption><thead><tr><th>Período</th><th>Trabajador</th><th class="text-right">Imponible</th><th class="text-right">Líquido</th><th></th></tr></thead><tbody id="resGuardadas"></tbody></table>
  </div>
 </form>
 </div>
