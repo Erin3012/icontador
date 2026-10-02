@@ -22,6 +22,16 @@ npm run start:php
 
 Sin configuración usa SQLite en `data/icontador.sqlite`. Para MySQL, copia `api/config.example.php` como `api/config.php` con tus datos de conexión (o usa las variables `ICONTADOR_DB_DSN`, `ICONTADOR_DB_USER` e `ICONTADOR_DB_PASS`); la tabla está en `api/schema/rcv.mysql.sql` y se crea sola. Con `npm start` la importación funciona igual, pero no guarda nada. Hay CSV ficticios en `samples/`; `npm test` y `npm run test:php` comprueban el cálculo y el guardado.
 
+## Vouchers y libros contables (PHP)
+
+Las pantallas **Voucher**, **Crear Voucher**, **Libro Diario** y **Libro Mayor** guardan y leen la misma base de datos que el RCV, así que también necesitan `npm run start:php` (o Apache/XAMPP); con `npm start` muestran un aviso.
+
+- Las tablas `cuentas`, `vouchers` y `voucher_lineas` se crean al primer uso, con un plan de cuentas base.
+- Un voucher solo se guarda si Debe = Haber, tiene al menos dos líneas y cada línea usa una cuenta del plan con un monto en Debe o en Haber. La validación se hace en PHP (`api/lib/vouchers.php`).
+- El número de comprobante es correlativo por tipo (Ingreso, Egreso, Traspaso) y mes.
+- Libro Diario y Libro Mayor se generan desde la base de datos con filtros de fecha y tipo de contabilidad (Tributario/IFRS). PDF imprime el reporte; EXCEL y CSV descargan un CSV.
+- API: `api/vouchers.php` (GET, POST, PUT, DELETE), `api/cuentas.php` (plan de cuentas) y `api/libros.php?libro=diario|mayor`.
+
 ## Trabajar con los archivos
 
 - `views/`: pantallas HTML editables recuperadas del navegador.

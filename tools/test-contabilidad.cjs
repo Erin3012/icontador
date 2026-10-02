@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict');
+const c=require('../assets/contabilidad.js');
+assert.deepEqual(c.totales({lineas:[{debe:'1000',haber:0},{debe:0,haber:'1000'}]}),{debe:1000,haber:1000,diferencia:0});
+assert.equal(c.totales({lineas:[{debe:500},{haber:300}]}).diferencia,200);
+assert.equal(c.fechaCorta('2026-10-02'),'02/10/2026');
+assert.equal(c.formato(1234567),'1.234.567');
+const libro={asientos:[{fecha:'2026-10-01',tipoNombre:'Ingreso',numero:1,glosa:'Venta; contado',lineas:[{cuenta:'1.1.01',nombre:'Caja',glosa:'',debe:119000,haber:0},{cuenta:'4.1.01',nombre:'Ventas',glosa:'',debe:0,haber:119000}]}],debe:119000,haber:119000};
+const texto=c.csv(c.filasDiario(libro));
+assert(texto.startsWith('﻿Fecha;Tipo'));assert(texto.includes('"Venta; contado"'));assert(texto.trim().endsWith('Total;119000;119000'));
+const mayor=c.csv(c.filasMayor([{codigo:'1.1.01',nombre:'Caja',saldoAnterior:0,movimientos:[{fecha:'2026-10-01',tipoNombre:'Ingreso',numero:1,glosa:'Venta',debe:119000,haber:0,saldo:119000}],debe:119000,haber:0,saldo:119000}]));
+assert.equal(mayor.split('\r\n').length,4);
+console.log('contabilidad.js: pruebas superadas');
