@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "start": "node tools/serve.cjs",
-    "test": "node tools/verify.cjs",
+    "test": "node tools/verify.cjs && node tools/test-liquidacion.cjs",
     "prepare-local": "node tools/prepare.cjs"
   },
   "keywords": [],

@@ -7,7 +7,7 @@ for(const item of catalog){const full=path.join(root,item.file);const html=fs.re
  for(const e of document.querySelectorAll('style,[style]'))assert(!/url\(\s*['"]?(?:https?:|\/\/)/i.test(e.textContent||e.getAttribute('style')||''),'URL externa en CSS inline');
  assert(document.querySelector('meta[http-equiv="Content-Security-Policy"]').content.includes("connect-src 'none'"));
  for(const e of document.querySelectorAll('[src],[href]')){const u=e.getAttribute('src')||e.getAttribute('href');if(!u||u==='#'||u.startsWith('data:'))continue;assert(!/^(?:https?:|javascript:|\/\/)/i.test(u),'Referencia externa '+u);const p=path.resolve(path.dirname(full),u.split('#')[0]);assert(fs.existsSync(p),'Falta recurso '+u);references++;}
- for(const script of document.querySelectorAll('script'))assert(script.getAttribute('src')==='../assets/offline.js','Script original ejecutable');
+ const scripts=['../assets/offline.js','../assets/liquidacion.js'];for(const script of document.querySelectorAll('script'))assert(scripts.includes(script.getAttribute('src'))&&!script.textContent.trim(),'Script original ejecutable');
  assert(!document.querySelector('input[type=hidden]'));assert(!document.querySelector('iframe'));assert(!document.querySelector('[data-id-emp]'));
 }
 for(const file of fs.readdirSync(path.join(root,'assets')).filter(f=>f.endsWith('.css'))){const css=fs.readFileSync(path.join(root,'assets',file),'utf8');for(const m of css.matchAll(/url\(\s*['"]?([^)'"\s]+)['"]?\s*\)/g)){if(m[1].startsWith('#')||m[1].startsWith('data:'))continue;assert(!/https?:|^\/\//i.test(m[1]));assert(fs.existsSync(path.join(root,'assets',m[1])),'Falta recurso CSS '+m[1]);}}

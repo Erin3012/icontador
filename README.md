@@ -30,6 +30,10 @@ npm run prepare-local
 npm test
 ```
 
+## Calculadora de liquidación
+
+`views/remuneraciones-calculadora.html` (botón **Calculadora** del módulo Remuneraciones) calcula en el navegador una liquidación de sueldo a partir del sueldo bruto: gratificación legal, total imponible, AFP, salud (Fonasa o Isapre), seguro de cesantía, base tributable, impuesto único, sueldo líquido y aportes del empleador. Los parámetros de octubre 2026 están en `assets/liquidacion.js` y se pueden editar en pantalla; los casos de prueba están en `tools/test-liquidacion.cjs`.
+
 ## Cobertura y límites
 
 Activos Fijos, Tributario y Cont. Express muestran avisos de servicio no contratado; se conservan esos avisos. Contratos, finiquitos y cargas familiares dependen de guardar un empleado. El detalle de una cartola bancaria necesita una cartola creada. No se crearon registros ni se cambiaron permisos, datos contables o credenciales.
