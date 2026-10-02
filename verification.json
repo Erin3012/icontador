@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "views": 128,
+  "localReferences": 4235,
+  "checks": [
+    "referencias locales existentes",
+    "CSP sin conexiones ni formularios externos",
+    "sin scripts originales activos",
+    "sin iframe ni inputs ocultos",
+    "fixture de privacidad y sanitización"
+  ]
+}

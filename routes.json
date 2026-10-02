@@ -1,0 +1,41 @@
+{
+  "modules": {
+    "js_icargarModuloPlanCuenta": "plan-cuenta.html",
+    "js_icargarModuloVoucher": "voucher.html",
+    "js_icargarModuloCompras": "compras.html",
+    "js_icargarModuloVentas": "ventas.html",
+    "js_icargarModuloHonorarios": "honorarios.html",
+    "js_icargarModuloBancos": "banco.html",
+    "js_icargarModuloRemuneraciones": "remuneraciones.html",
+    "js_icargarModuloActivosFijos": "activos-fijos.html",
+    "js_icargarModuloIfrs": "ifrs.html",
+    "js_icargarModuloParametros": "parametros.html",
+    "js_icargarModuloReportes": "reportes.html",
+    "js_icargarModuloTesoreria": "tesoreria.html",
+    "js_icargarModuloTributario": "tributario.html",
+    "js_icargarModuloRCV": "rcv.html",
+    "js_icargarModuloAnalitica": "analitica.html",
+    "js_icargarCotabilidadExpress": "cont-express.html",
+    "js_cargarIntefazTrabajoEmpresa": "panel.html"
+  },
+  "actions": {
+    "js_cAVOU": "voucher-crear",
+    "js_cAVEN": "ventas-crear",
+    "js_cACOM": "compras-crear",
+    "js_cAHON": "honorarios-crear",
+    "js_cIMCOM": "compras-importacion-detallada",
+    "js_cIMCOMSIM": "compras-importacion-directa",
+    "js_cIMVEN": "ventas-importacion-detallada",
+    "js_cIMVENSIMP": "ventas-importacion-directa",
+    "js_cIMHON": "honorarios-importacion",
+    "js_cVBOL": "ventas-boletas",
+    "js_cAEP": "remuneraciones-empleado-crear",
+    "js_impFicEmp": "remuneraciones-empleados-importar",
+    "js_cargarGestionAdministracion": "usuarios",
+    "js_cargarGestionEmpresa": "empresas",
+    "js_cargarDatosContador": "perfil",
+    "js_cargarConceptosGlobales": "globales",
+    "js_cargarAuditoria": "control",
+    "js_CmbrEmprSlcnd": "inicio-cuenta"
+  }
+}

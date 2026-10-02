@@ -1,0 +1,43 @@
+# iContador local
+
+Copia del HTML renderizado, estilos, imágenes y fuentes servidos al navegador el 2 de octubre de 2026. Se revisaron los 16 módulos del menú de esta cuenta. Consulta `index.html` para recorrer las capturas y `inventory.json` para conocer la cobertura y las exclusiones.
+
+## Abrir
+
+Desde esta carpeta, con Node.js instalado:
+
+```powershell
+npm start
+```
+
+Abre http://127.0.0.1:4173. El servidor escucha únicamente en tu equipo. No necesitas instalar dependencias para consultar la copia. También puedes abrir `index.html` directamente.
+
+## Trabajar con los archivos
+
+- `views/`: pantallas HTML editables recuperadas del navegador.
+- `assets/`: CSS, imágenes, fuentes y comportamiento visual local en `offline.js`.
+- `catalog.json`: relación de pantallas capturadas.
+- `inventory.json` y `coverage-notes.json`: recursos no recuperados y límites por pantalla.
+- `reference/javascript/`: cuatro paquetes JavaScript originales para estudiar el frontend. Nunca se ejecutan en la copia y el servidor local bloquea esta carpeta.
+- `reference/styles/`: estilos originales de referencia; los CSS activos usan rutas locales.
+- `tools/`: servidor, sanitización, preparación y verificación. Para ejecutar estas utilidades de edición: `npm ci`.
+
+Después de editar la navegación o el catálogo:
+
+```powershell
+node tools/finalize.cjs
+npm run prepare-local
+npm test
+```
+
+## Cobertura y límites
+
+Activos Fijos, Tributario y Cont. Express muestran avisos de servicio no contratado; se conservan esos avisos. Contratos, finiquitos y cargas familiares dependen de guardar un empleado. El detalle de una cartola bancaria necesita una cartola creada. No se crearon registros ni se cambiaron permisos, datos contables o credenciales.
+
+Los formularios y filtros son referencias visuales. No hay PHP, base de datos, autenticación local, generación de documentos ni operaciones contables. Guardar, borrar, enviar, pagar, sincronizar e importar archivos están desactivados. Los reportes conservan sus pantallas de configuración; sus resultados no se generaron. Tampoco se descargaron informes con registros reales.
+
+Las tablas contienen ejemplos; los campos personales y contraseñas están vacíos; las series de gráficos fueron sustituidas por barras ficticias. Los scripts originales, eventos inline, enlaces externos y llamadas al servidor se eliminan de las vistas activas. Una política CSP bloquea conexiones y envíos de formularios. No se guardan cookies, tokens ni contraseñas.
+
+Se conserva la estructura y el estilo recibido. Las diferencias visuales incluyen el aviso superior de copia local, diálogos colocados dentro de la página, opciones genéricas, gráficos ficticios y algunos recursos decorativos omitidos. Las ayudas en vídeo, la paginación remota y listas dinámicas no funcionan sin backend. Los recursos que el navegador no recibió y los archivos con HTTP 404 aparecen en el inventario.
+
+La navegación usa el índice y enlaces locales entre módulos, pestañas y formularios capturados. Las operaciones no disponibles muestran un aviso. Las verificaciones están en `verification.json` y `verification/`.

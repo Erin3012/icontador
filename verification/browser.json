@@ -1,0 +1,797 @@
+{
+  "date": "2026-10-02",
+  "views": [
+    {
+      "view": "views/inicio-cuenta.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/empresas.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/panel.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/plan-cuenta.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/plan-cuenta-subtipo.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/voucher.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/voucher-crear.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/voucher-importacion.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/voucher-comprobantes.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/compras.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/compras-crear.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/compras-importacion-detallada.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/compras-importacion-directa.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/ventas.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/ventas-crear.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/ventas-importacion-detallada.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/ventas-importacion-directa.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/ventas-boletas.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/honorarios.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/honorarios-crear.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/honorarios-importacion.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/banco.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/banco-cartola.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-personal.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-parametros.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-prevision.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-haberes.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-cuentas.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-previred.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-globales.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-empleado-crear.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/empleado-laborales.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/empleado-prevision.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/empleado-apv.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/empleado-haberes.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/empleado-descuentos.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/empleado-contratos.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-empleados-importar.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/activos-fijos.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/ifrs.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/ifrs-tipo-1.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/ifrs-tipo-2.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/ifrs-tipo-3.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/ifrs-tipo-4.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/ifrs-tipo-5.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/ifrs-tipo-6.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/parametros.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/parametros-centro-costo.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/parametros-proveedores.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/parametros-clientes.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/parametros-honorarios.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/parametros-remuneracion.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/parametros-generales.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/parametros-apertura-bancaria.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/parametros-cierre-periodos.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-foliar.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-voucher.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-analisis-mayor.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-banco.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-ifrs.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-certificados.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-cuenta-corriente.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-cheques.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-iva.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-caja-14ter.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-caja-pyme.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-resultados.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-configuracion.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-libro-balance.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-libro-diario.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-libro-mayor.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-libro-compras.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-libro-ventas.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-libro-honorarios.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-libro-remuneraciones.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/reportes-libro-inventario.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/tesoreria.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/tesoreria-crear.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/tributario.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/cont-express.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/rcv.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/rcv-credenciales.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/analitica.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/analitica-ventas.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/analitica-compras.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/analitica-comparacion.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/plan-cuenta-agregar.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-vacaciones.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-licencias.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/voucher-descuadrados.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/usuarios.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/usuarios-crear.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/perfil.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/perfil-facturas.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/perfil-clave.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/globales.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/globales-leyes.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/globales-impuestos.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/globales-indices.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/globales-afp.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/globales-regimen.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/globales-anuales.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-globales-agregar.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-laborales-lote.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-laborales-lote-agregar.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/remuneraciones-liquidacion-lote.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/parametros-proveedores-importar.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/parametros-clientes-importar.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/parametros-honorarios-importar.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-rem-0.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-rem-1.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-rem-2.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-rem-3.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-rem-4.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-rem-5.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-rem-6.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-rem-7.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-rem-8.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-rem-9.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-voucher.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-eliminaciones.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-general-0.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-general-1.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-general-2.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    },
+    {
+      "view": "views/control-general-3.html",
+      "banner": true,
+      "external": [],
+      "script": true
+    }
+  ],
+  "httpRequests": 1650,
+  "externalHttpRequests": [],
+  "failedHttpResponses": [],
+  "eventsTruncated": false,
+  "externalBlocking": "HTTPS externo bloqueado mediante CDP; CSP bloquea conexiones y formularios; referencias activas exclusivamente locales",
+  "interactions": [
+    "Panel → Remuneraciones → Personal → Crear Empleado → Laborales",
+    "Reportes → Libros Oficiales → Balance General",
+    "Finalizar empleado muestra operación desactivada"
+  ],
+  "formSaveBlocked": true,
+  "visualReview": [
+    "Panel principal: menú, estilos, iconos y gráficos ficticios visibles",
+    "Agregar Cuenta: formulario y botones conservados; diálogo dentro de página",
+    "Empleado Laborales: pestaña seleccionada y campos visibles"
+  ],
+  "differences": [
+    "Banner de copia local",
+    "Tablas y datos personales ficticios",
+    "Gráficos con valores ficticios",
+    "Diálogos dentro de la página",
+    "Opciones dinámicas genéricas",
+    "Recursos no recuperados omitidos"
+  ]
+}

@@ -1,0 +1,3 @@
+const fs=require('node:fs');const path=require('node:path');const root=path.resolve(__dirname,'..');const file=path.join(root,'assets-map.json');const map=JSON.parse(fs.readFileSync(file,'utf8'));
+for(const key of Object.keys(map)){if(!key.startsWith('inline-svg:')&&!key.startsWith('chrome-extension:'))continue;const target=path.resolve(root,map[key].replace('../',''));if(!target.startsWith(path.join(root,'assets')+path.sep))throw new Error('Ruta fuera de assets');if(fs.existsSync(target))fs.unlinkSync(target);delete map[key];}
+fs.writeFileSync(file,JSON.stringify(map,null,2));console.log('Retirados gráficos originales y recursos de extensiones.');

@@ -1,0 +1,844 @@
+[
+  {
+    "name": "Inicio de la cuenta",
+    "file": "views/inicio-cuenta.html"
+  },
+  {
+    "name": "Empresas",
+    "file": "views/empresas.html"
+  },
+  {
+    "name": "Panel principal",
+    "file": "views/panel.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 141981
+  },
+  {
+    "name": "Plan de Cuenta",
+    "file": "views/plan-cuenta.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 238215
+  },
+  {
+    "name": "Plan de Cuenta · Agregar subtipo",
+    "file": "views/plan-cuenta-subtipo.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 46073
+  },
+  {
+    "name": "Voucher",
+    "file": "views/voucher.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 113575
+  },
+  {
+    "name": "Voucher · Crear voucher",
+    "file": "views/voucher-crear.html",
+    "scope": "dialog"
+  },
+  {
+    "name": "Voucher · Importación masiva",
+    "file": "views/voucher-importacion.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 46534
+  },
+  {
+    "name": "Voucher · Comprobantes",
+    "file": "views/voucher-comprobantes.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 114189
+  },
+  {
+    "name": "Compras",
+    "file": "views/compras.html",
+    "scope": "page"
+  },
+  {
+    "name": "Compras · Crear compra",
+    "file": "views/compras-crear.html",
+    "scope": "dialog"
+  },
+  {
+    "name": "Compras · Importación detallada",
+    "file": "views/compras-importacion-detallada.html",
+    "scope": "dialog"
+  },
+  {
+    "name": "Compras · Importación directa",
+    "file": "views/compras-importacion-directa.html",
+    "scope": "dialog"
+  },
+  {
+    "name": "Ventas",
+    "file": "views/ventas.html",
+    "scope": "page"
+  },
+  {
+    "name": "Ventas · Crear factura",
+    "file": "views/ventas-crear.html",
+    "scope": "dialog"
+  },
+  {
+    "name": "Ventas · Importación detallada",
+    "file": "views/ventas-importacion-detallada.html",
+    "scope": "dialog"
+  },
+  {
+    "name": "Ventas · Importación directa",
+    "file": "views/ventas-importacion-directa.html",
+    "scope": "dialog"
+  },
+  {
+    "name": "Ventas · Boletas",
+    "file": "views/ventas-boletas.html",
+    "scope": "dialog"
+  },
+  {
+    "name": "Honorarios",
+    "file": "views/honorarios.html",
+    "scope": "page"
+  },
+  {
+    "name": "Honorarios · Crear honorario",
+    "file": "views/honorarios-crear.html",
+    "scope": "dialog"
+  },
+  {
+    "name": "Honorarios · Importación",
+    "file": "views/honorarios-importacion.html",
+    "scope": "dialog"
+  },
+  {
+    "name": "Banco",
+    "file": "views/banco.html",
+    "scope": "page"
+  },
+  {
+    "name": "Banco · Crear o importar cartola",
+    "file": "views/banco-cartola.html",
+    "scope": "dialog"
+  },
+  {
+    "name": "Remuneraciones · Liquidación",
+    "file": "views/remuneraciones.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 132171
+  },
+  {
+    "name": "Remuneraciones · Personal",
+    "file": "views/remuneraciones-personal.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 141658
+  },
+  {
+    "name": "Remuneraciones · Parámetros",
+    "file": "views/remuneraciones-parametros.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 166216
+  },
+  {
+    "name": "Remuneraciones · Previsión Empresa",
+    "file": "views/remuneraciones-prevision.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 181669
+  },
+  {
+    "name": "Remuneraciones · Haberes | Descuentos",
+    "file": "views/remuneraciones-haberes.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 199860
+  },
+  {
+    "name": "Remuneraciones · Asignación Cuentas",
+    "file": "views/remuneraciones-cuentas.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 387419
+  },
+  {
+    "name": "Remuneraciones · Cotizaciones | Previred",
+    "file": "views/remuneraciones-previred.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 414291
+  },
+  {
+    "name": "Remuneraciones · C. Globales",
+    "file": "views/remuneraciones-globales.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 446533
+  },
+  {
+    "name": "Remuneraciones · Crear empleado",
+    "file": "views/remuneraciones-empleado-crear.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 347507
+  },
+  {
+    "name": "Empleado · Laborales",
+    "file": "views/empleado-laborales.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 347561
+  },
+  {
+    "name": "Empleado · Prevision y Salud",
+    "file": "views/empleado-prevision.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 347561
+  },
+  {
+    "name": "Empleado · APV (I-C)",
+    "file": "views/empleado-apv.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 347561
+  },
+  {
+    "name": "Empleado · Haberes",
+    "file": "views/empleado-haberes.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 347561
+  },
+  {
+    "name": "Empleado · Descuentos",
+    "file": "views/empleado-descuentos.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 347561
+  },
+  {
+    "name": "Empleado · Contratos y Finiquitos",
+    "file": "views/empleado-contratos.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 347561
+  },
+  {
+    "name": "Remuneraciones · Importar empleados",
+    "file": "views/remuneraciones-empleados-importar.html",
+    "scope": "dialog"
+  },
+  {
+    "name": "Activos Fijos",
+    "file": "views/activos-fijos.html",
+    "scope": "page"
+  },
+  {
+    "name": "IFRS",
+    "file": "views/ifrs.html",
+    "scope": "page"
+  },
+  {
+    "name": "IFRS · Activos corrientes",
+    "file": "views/ifrs-tipo-1.html",
+    "scope": "page"
+  },
+  {
+    "name": "IFRS · Activos no corrientes",
+    "file": "views/ifrs-tipo-2.html",
+    "scope": "page"
+  },
+  {
+    "name": "IFRS · Pasivos corrientes",
+    "file": "views/ifrs-tipo-3.html",
+    "scope": "page"
+  },
+  {
+    "name": "IFRS · Pasivos no corrientes",
+    "file": "views/ifrs-tipo-4.html",
+    "scope": "page"
+  },
+  {
+    "name": "IFRS · Patrimonio",
+    "file": "views/ifrs-tipo-5.html",
+    "scope": "page"
+  },
+  {
+    "name": "IFRS · Estado de resultado",
+    "file": "views/ifrs-tipo-6.html",
+    "scope": "page"
+  },
+  {
+    "name": "Parámetros · Código Análisis",
+    "file": "views/parametros.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 526296
+  },
+  {
+    "name": "Parámetros · Centro Costo",
+    "file": "views/parametros-centro-costo.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 526305
+  },
+  {
+    "name": "Parámetros · Proveedores",
+    "file": "views/parametros-proveedores.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 526305
+  },
+  {
+    "name": "Parámetros · Clientes",
+    "file": "views/parametros-clientes.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 526304
+  },
+  {
+    "name": "Parámetros · Honorarios",
+    "file": "views/parametros-honorarios.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 526304
+  },
+  {
+    "name": "Parámetros · Remuneracion",
+    "file": "views/parametros-remuneracion.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 526295
+  },
+  {
+    "name": "Parámetros · Generales",
+    "file": "views/parametros-generales.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 526295
+  },
+  {
+    "name": "Parámetros · Apertura Bancaria",
+    "file": "views/parametros-apertura-bancaria.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 526295
+  },
+  {
+    "name": "Parámetros · Cierre de Períodos",
+    "file": "views/parametros-cierre-periodos.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 526295
+  },
+  {
+    "name": "Reportes",
+    "file": "views/reportes.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 111133
+  },
+  {
+    "name": "Reportes · Foliar Hojas para impresión de libros",
+    "file": "views/reportes-foliar.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 113054
+  },
+  {
+    "name": "Reportes · Voucher",
+    "file": "views/reportes-voucher.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 120261
+  },
+  {
+    "name": "Reportes · Análisis Cuentas de Mayor",
+    "file": "views/reportes-analisis-mayor.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 145702
+  },
+  {
+    "name": "Reportes · Banco (Conciliación Bancaria)",
+    "file": "views/reportes-banco.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 116896
+  },
+  {
+    "name": "Reportes · IFRS - Estado Financiero",
+    "file": "views/reportes-ifrs.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 119368
+  },
+  {
+    "name": "Reportes · Certificados",
+    "file": "views/reportes-certificados.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 119074
+  },
+  {
+    "name": "Reportes · Análisis de Cta Corriente",
+    "file": "views/reportes-cuenta-corriente.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 118524
+  },
+  {
+    "name": "Reportes · Análisis Cheques",
+    "file": "views/reportes-cheques.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 118524
+  },
+  {
+    "name": "Reportes · Calculo IVA Proporcional",
+    "file": "views/reportes-iva.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 112683
+  },
+  {
+    "name": "Reportes · Libro Caja (14 TER)",
+    "file": "views/reportes-caja-14ter.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 119486
+  },
+  {
+    "name": "Reportes · Libro Caja (Pro Pyme General 14D N°3 / Pro Pyme Transparente 14D N°8)",
+    "file": "views/reportes-caja-pyme.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 120633
+  },
+  {
+    "name": "Reportes · Estado Resultado (EE.RR)",
+    "file": "views/reportes-resultados.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 118166
+  },
+  {
+    "name": "Reportes · Configuración",
+    "file": "views/reportes-configuracion.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 114964
+  },
+  {
+    "name": "Reportes · Balance General",
+    "file": "views/reportes-libro-balance.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 123617
+  },
+  {
+    "name": "Reportes · Libro Diario",
+    "file": "views/reportes-libro-diario.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 122491
+  },
+  {
+    "name": "Reportes · Libro Mayor",
+    "file": "views/reportes-libro-mayor.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 122401
+  },
+  {
+    "name": "Reportes · Libro Compras",
+    "file": "views/reportes-libro-compras.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 130062
+  },
+  {
+    "name": "Reportes · Libro Ventas",
+    "file": "views/reportes-libro-ventas.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 127238
+  },
+  {
+    "name": "Reportes · Libro Honorarios",
+    "file": "views/reportes-libro-honorarios.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 127238
+  },
+  {
+    "name": "Reportes · Libro Remuneraciones",
+    "file": "views/reportes-libro-remuneraciones.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 134673
+  },
+  {
+    "name": "Reportes · Libro Inventario y Balance",
+    "file": "views/reportes-libro-inventario.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 118115
+  },
+  {
+    "name": "Tesoreria · Ingresos y egresos",
+    "file": "views/tesoreria.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 110618
+  },
+  {
+    "name": "Tesoreria · Crear movimiento",
+    "file": "views/tesoreria-crear.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 94910
+  },
+  {
+    "name": "Tributario",
+    "file": "views/tributario.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 104268
+  },
+  {
+    "name": "Cont. Express",
+    "file": "views/cont-express.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 113747
+  },
+  {
+    "name": "RCV",
+    "file": "views/rcv.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 119969
+  },
+  {
+    "name": "RCV · Configuración de credenciales",
+    "file": "views/rcv-credenciales.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 46689
+  },
+  {
+    "name": "Analítica",
+    "file": "views/analitica.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 117903
+  },
+  {
+    "name": "Analítica · Ventas",
+    "file": "views/analitica-ventas.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 129724
+  },
+  {
+    "name": "Analítica · Compras",
+    "file": "views/analitica-compras.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 120125
+  },
+  {
+    "name": "Analítica · Ventas vs Compras",
+    "file": "views/analitica-comparacion.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 123327
+  },
+  {
+    "name": "Plan de Cuenta · Agregar cuenta",
+    "file": "views/plan-cuenta-agregar.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 60086
+  },
+  {
+    "name": "Remuneraciones · Informe Vacaciones",
+    "file": "views/remuneraciones-vacaciones.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 46021
+  },
+  {
+    "name": "Remuneraciones · Informe Licencias Médicas",
+    "file": "views/remuneraciones-licencias.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 45177
+  },
+  {
+    "name": "Voucher · Descuadrados",
+    "file": "views/voucher-descuadrados.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 121290
+  },
+  {
+    "name": "Cuenta · Usuarios",
+    "file": "views/usuarios.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 104368
+  },
+  {
+    "name": "Cuenta · Crear usuario",
+    "file": "views/usuarios-crear.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 97271
+  },
+  {
+    "name": "Cuenta · Mi Perfil",
+    "file": "views/perfil.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 390636
+  },
+  {
+    "name": "Cuenta ·  Facturas Emitidas",
+    "file": "views/perfil-facturas.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 390645
+  },
+  {
+    "name": "Cuenta · Cambiar tu clave",
+    "file": "views/perfil-clave.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 390654
+  },
+  {
+    "name": "Cuenta · Parámetros Globales",
+    "file": "views/globales.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 120491
+  },
+  {
+    "name": "Globales · Leyes Sociales",
+    "file": "views/globales-leyes.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 130365
+  },
+  {
+    "name": "Globales · Tabla de Impuestos",
+    "file": "views/globales-impuestos.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 148398
+  },
+  {
+    "name": "Globales · UF | UTM | IPC | IPC 14B",
+    "file": "views/globales-indices.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 167190
+  },
+  {
+    "name": "Globales · AFP",
+    "file": "views/globales-afp.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 182616
+  },
+  {
+    "name": "Globales · Régimen Antiguo",
+    "file": "views/globales-regimen.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 217331
+  },
+  {
+    "name": "Globales · Parámetros Anuales",
+    "file": "views/globales-anuales.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 226736
+  },
+  {
+    "name": "Cuenta · Control",
+    "file": "views/control.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 222179
+  },
+  {
+    "name": "Remuneraciones · Agregar Haber o Descuento Global",
+    "file": "views/remuneraciones-globales-agregar.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 91293
+  },
+  {
+    "name": "Remuneraciones · Configuración Datos Laborales por Lote",
+    "file": "views/remuneraciones-laborales-lote.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 183792
+  },
+  {
+    "name": "Remuneraciones · Agregar Datos Laborales por Lote",
+    "file": "views/remuneraciones-laborales-lote-agregar.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 127791
+  },
+  {
+    "name": "Remuneraciones · Liquidación por Lote",
+    "file": "views/remuneraciones-liquidacion-lote.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 183793
+  },
+  {
+    "name": "Parámetros · Importar proveedores",
+    "file": "views/parametros-proveedores-importar.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 46108
+  },
+  {
+    "name": "Parámetros · Importar clientes",
+    "file": "views/parametros-clientes-importar.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 46705
+  },
+  {
+    "name": "Parámetros · Importar honorarios",
+    "file": "views/parametros-honorarios-importar.html",
+    "scope": "dialog",
+    "completeHtml": true,
+    "sourceLength": 47312
+  },
+  {
+    "name": "Control · Empleados Liquidados",
+    "file": "views/control-rem-0.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229072
+  },
+  {
+    "name": "Control · Historial Ficha Empleados",
+    "file": "views/control-rem-1.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229072
+  },
+  {
+    "name": "Control · Historial Envío Liquidaciones",
+    "file": "views/control-rem-2.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229072
+  },
+  {
+    "name": "Control · Historial Haberes",
+    "file": "views/control-rem-3.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229072
+  },
+  {
+    "name": "Control · Historial Hab. Eliminados",
+    "file": "views/control-rem-4.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229072
+  },
+  {
+    "name": "Control · Historial Descuentos",
+    "file": "views/control-rem-5.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229072
+  },
+  {
+    "name": "Control · Historial Desc. Eliminados",
+    "file": "views/control-rem-6.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229072
+  },
+  {
+    "name": "Control · Historial Previsión Empresa",
+    "file": "views/control-rem-7.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229085
+  },
+  {
+    "name": "Control · Registros Global",
+    "file": "views/control-rem-8.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229044
+  },
+  {
+    "name": "Control · Liquidaciones Eliminadas",
+    "file": "views/control-rem-9.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229059
+  },
+  {
+    "name": "Control · Listado Voucher",
+    "file": "views/control-voucher.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229068
+  },
+  {
+    "name": "Control · Eliminaciones Masivas",
+    "file": "views/control-eliminaciones.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229075
+  },
+  {
+    "name": "Control · Historial Ficha Empresa",
+    "file": "views/control-general-0.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229075
+  },
+  {
+    "name": "Control · Historial Deshabilitación y Habilitación Empresa",
+    "file": "views/control-general-1.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229084
+  },
+  {
+    "name": "Control · Historial Desactivación y Activación Usuario",
+    "file": "views/control-general-2.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229084
+  },
+  {
+    "name": "Control · Historial Ficha Usuario",
+    "file": "views/control-general-3.html",
+    "scope": "page",
+    "completeHtml": true,
+    "sourceLength": 229084
+  }
+]

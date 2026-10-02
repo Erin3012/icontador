@@ -1,0 +1,39 @@
+[
+  {
+    "module": "Remuneraciones",
+    "view": "Contratos, finiquitos y cargas familiares",
+    "reason": "La ficha nueva exige guardar al trabajador para generar documentos o abrir opciones dependientes; no se crearon registros."
+  },
+  {
+    "module": "Voucher",
+    "view": "Reordenar Comprobantes",
+    "reason": "Operación que modifica registros; se conserva el submenú sin ejecutarla."
+  },
+  {
+    "module": "Activos Fijos",
+    "reason": "La interfaz indica que el servicio Tributario no está contratado. Se capturó el aviso; no se envió solicitud comercial."
+  },
+  {
+    "module": "Tributario",
+    "reason": "Servicio no contratado; aviso capturado y solicitud comercial no enviada."
+  },
+  {
+    "module": "Cont. Express",
+    "reason": "La interfaz indica que Tributario no está contratado; aviso capturado."
+  },
+  {
+    "module": "Banco",
+    "view": "Detalle y conciliación de cartola",
+    "reason": "No había una cartola disponible en la vista revisada. Avanzar requiere crear o importar una cartola; no se crearon registros."
+  },
+  {
+    "module": "General",
+    "view": "Resultados de reportes y exportaciones",
+    "reason": "Se conservan las pantallas de configuración. No se generaron ni descargaron informes con registros reales."
+  },
+  {
+    "module": "General",
+    "view": "Operaciones por registro y estados dependientes de datos",
+    "reason": "La copia incluye las vistas enumeradas en el catálogo; no reproduce cada registro ni cada combinación posible de filtros. Formularios de edición dependientes de registros y resultados del servidor quedan como limitaciones."
+  }
+]

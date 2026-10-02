@@ -1,0 +1,28 @@
+{
+  "status": "captured-with-limitations",
+  "sourceDate": "2026-10-02",
+  "surveyedModules": [
+    "Plan de Cuenta",
+    "Voucher",
+    "Compras",
+    "Ventas",
+    "Honorarios",
+    "Banco",
+    "Remuneraciones",
+    "Activos Fijos",
+    "IFRS",
+    "Parámetros",
+    "Reportes",
+    "Tesoreria",
+    "Tributario",
+    "Cont. Express",
+    "RCV",
+    "Analítica"
+  ],
+  "unlicensedModules": [
+    "Activos Fijos",
+    "Tributario",
+    "Cont. Express"
+  ],
+  "views": 128
+}

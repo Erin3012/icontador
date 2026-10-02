@@ -1,0 +1,1145 @@
+{
+  "status": "captured-with-limitations",
+  "sourceDate": "2026-10-02",
+  "surveyedModules": [
+    "Plan de Cuenta",
+    "Voucher",
+    "Compras",
+    "Ventas",
+    "Honorarios",
+    "Banco",
+    "Remuneraciones",
+    "Activos Fijos",
+    "IFRS",
+    "Parámetros",
+    "Reportes",
+    "Tesoreria",
+    "Tributario",
+    "Cont. Express",
+    "RCV",
+    "Analítica"
+  ],
+  "unlicensedModules": [
+    "Activos Fijos",
+    "Tributario",
+    "Cont. Express"
+  ],
+  "views": [
+    {
+      "name": "Inicio de la cuenta",
+      "file": "views/inicio-cuenta.html"
+    },
+    {
+      "name": "Empresas",
+      "file": "views/empresas.html"
+    },
+    {
+      "name": "Panel principal",
+      "file": "views/panel.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 141981
+    },
+    {
+      "name": "Plan de Cuenta",
+      "file": "views/plan-cuenta.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 238215
+    },
+    {
+      "name": "Plan de Cuenta · Agregar subtipo",
+      "file": "views/plan-cuenta-subtipo.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 46073
+    },
+    {
+      "name": "Voucher",
+      "file": "views/voucher.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 113575
+    },
+    {
+      "name": "Voucher · Crear voucher",
+      "file": "views/voucher-crear.html",
+      "scope": "dialog"
+    },
+    {
+      "name": "Voucher · Importación masiva",
+      "file": "views/voucher-importacion.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 46534
+    },
+    {
+      "name": "Voucher · Comprobantes",
+      "file": "views/voucher-comprobantes.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 114189
+    },
+    {
+      "name": "Compras",
+      "file": "views/compras.html",
+      "scope": "page"
+    },
+    {
+      "name": "Compras · Crear compra",
+      "file": "views/compras-crear.html",
+      "scope": "dialog"
+    },
+    {
+      "name": "Compras · Importación detallada",
+      "file": "views/compras-importacion-detallada.html",
+      "scope": "dialog"
+    },
+    {
+      "name": "Compras · Importación directa",
+      "file": "views/compras-importacion-directa.html",
+      "scope": "dialog"
+    },
+    {
+      "name": "Ventas",
+      "file": "views/ventas.html",
+      "scope": "page"
+    },
+    {
+      "name": "Ventas · Crear factura",
+      "file": "views/ventas-crear.html",
+      "scope": "dialog"
+    },
+    {
+      "name": "Ventas · Importación detallada",
+      "file": "views/ventas-importacion-detallada.html",
+      "scope": "dialog"
+    },
+    {
+      "name": "Ventas · Importación directa",
+      "file": "views/ventas-importacion-directa.html",
+      "scope": "dialog"
+    },
+    {
+      "name": "Ventas · Boletas",
+      "file": "views/ventas-boletas.html",
+      "scope": "dialog"
+    },
+    {
+      "name": "Honorarios",
+      "file": "views/honorarios.html",
+      "scope": "page"
+    },
+    {
+      "name": "Honorarios · Crear honorario",
+      "file": "views/honorarios-crear.html",
+      "scope": "dialog"
+    },
+    {
+      "name": "Honorarios · Importación",
+      "file": "views/honorarios-importacion.html",
+      "scope": "dialog"
+    },
+    {
+      "name": "Banco",
+      "file": "views/banco.html",
+      "scope": "page"
+    },
+    {
+      "name": "Banco · Crear o importar cartola",
+      "file": "views/banco-cartola.html",
+      "scope": "dialog"
+    },
+    {
+      "name": "Remuneraciones · Liquidación",
+      "file": "views/remuneraciones.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 132171
+    },
+    {
+      "name": "Remuneraciones · Personal",
+      "file": "views/remuneraciones-personal.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 141658
+    },
+    {
+      "name": "Remuneraciones · Parámetros",
+      "file": "views/remuneraciones-parametros.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 166216
+    },
+    {
+      "name": "Remuneraciones · Previsión Empresa",
+      "file": "views/remuneraciones-prevision.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 181669
+    },
+    {
+      "name": "Remuneraciones · Haberes | Descuentos",
+      "file": "views/remuneraciones-haberes.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 199860
+    },
+    {
+      "name": "Remuneraciones · Asignación Cuentas",
+      "file": "views/remuneraciones-cuentas.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 387419
+    },
+    {
+      "name": "Remuneraciones · Cotizaciones | Previred",
+      "file": "views/remuneraciones-previred.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 414291
+    },
+    {
+      "name": "Remuneraciones · C. Globales",
+      "file": "views/remuneraciones-globales.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 446533
+    },
+    {
+      "name": "Remuneraciones · Crear empleado",
+      "file": "views/remuneraciones-empleado-crear.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 347507
+    },
+    {
+      "name": "Empleado · Laborales",
+      "file": "views/empleado-laborales.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 347561
+    },
+    {
+      "name": "Empleado · Prevision y Salud",
+      "file": "views/empleado-prevision.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 347561
+    },
+    {
+      "name": "Empleado · APV (I-C)",
+      "file": "views/empleado-apv.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 347561
+    },
+    {
+      "name": "Empleado · Haberes",
+      "file": "views/empleado-haberes.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 347561
+    },
+    {
+      "name": "Empleado · Descuentos",
+      "file": "views/empleado-descuentos.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 347561
+    },
+    {
+      "name": "Empleado · Contratos y Finiquitos",
+      "file": "views/empleado-contratos.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 347561
+    },
+    {
+      "name": "Remuneraciones · Importar empleados",
+      "file": "views/remuneraciones-empleados-importar.html",
+      "scope": "dialog"
+    },
+    {
+      "name": "Activos Fijos",
+      "file": "views/activos-fijos.html",
+      "scope": "page"
+    },
+    {
+      "name": "IFRS",
+      "file": "views/ifrs.html",
+      "scope": "page"
+    },
+    {
+      "name": "IFRS · Activos corrientes",
+      "file": "views/ifrs-tipo-1.html",
+      "scope": "page"
+    },
+    {
+      "name": "IFRS · Activos no corrientes",
+      "file": "views/ifrs-tipo-2.html",
+      "scope": "page"
+    },
+    {
+      "name": "IFRS · Pasivos corrientes",
+      "file": "views/ifrs-tipo-3.html",
+      "scope": "page"
+    },
+    {
+      "name": "IFRS · Pasivos no corrientes",
+      "file": "views/ifrs-tipo-4.html",
+      "scope": "page"
+    },
+    {
+      "name": "IFRS · Patrimonio",
+      "file": "views/ifrs-tipo-5.html",
+      "scope": "page"
+    },
+    {
+      "name": "IFRS · Estado de resultado",
+      "file": "views/ifrs-tipo-6.html",
+      "scope": "page"
+    },
+    {
+      "name": "Parámetros · Código Análisis",
+      "file": "views/parametros.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 526296
+    },
+    {
+      "name": "Parámetros · Centro Costo",
+      "file": "views/parametros-centro-costo.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 526305
+    },
+    {
+      "name": "Parámetros · Proveedores",
+      "file": "views/parametros-proveedores.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 526305
+    },
+    {
+      "name": "Parámetros · Clientes",
+      "file": "views/parametros-clientes.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 526304
+    },
+    {
+      "name": "Parámetros · Honorarios",
+      "file": "views/parametros-honorarios.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 526304
+    },
+    {
+      "name": "Parámetros · Remuneracion",
+      "file": "views/parametros-remuneracion.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 526295
+    },
+    {
+      "name": "Parámetros · Generales",
+      "file": "views/parametros-generales.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 526295
+    },
+    {
+      "name": "Parámetros · Apertura Bancaria",
+      "file": "views/parametros-apertura-bancaria.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 526295
+    },
+    {
+      "name": "Parámetros · Cierre de Períodos",
+      "file": "views/parametros-cierre-periodos.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 526295
+    },
+    {
+      "name": "Reportes",
+      "file": "views/reportes.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 111133
+    },
+    {
+      "name": "Reportes · Foliar Hojas para impresión de libros",
+      "file": "views/reportes-foliar.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 113054
+    },
+    {
+      "name": "Reportes · Voucher",
+      "file": "views/reportes-voucher.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 120261
+    },
+    {
+      "name": "Reportes · Análisis Cuentas de Mayor",
+      "file": "views/reportes-analisis-mayor.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 145702
+    },
+    {
+      "name": "Reportes · Banco (Conciliación Bancaria)",
+      "file": "views/reportes-banco.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 116896
+    },
+    {
+      "name": "Reportes · IFRS - Estado Financiero",
+      "file": "views/reportes-ifrs.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 119368
+    },
+    {
+      "name": "Reportes · Certificados",
+      "file": "views/reportes-certificados.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 119074
+    },
+    {
+      "name": "Reportes · Análisis de Cta Corriente",
+      "file": "views/reportes-cuenta-corriente.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 118524
+    },
+    {
+      "name": "Reportes · Análisis Cheques",
+      "file": "views/reportes-cheques.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 118524
+    },
+    {
+      "name": "Reportes · Calculo IVA Proporcional",
+      "file": "views/reportes-iva.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 112683
+    },
+    {
+      "name": "Reportes · Libro Caja (14 TER)",
+      "file": "views/reportes-caja-14ter.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 119486
+    },
+    {
+      "name": "Reportes · Libro Caja (Pro Pyme General 14D N°3 / Pro Pyme Transparente 14D N°8)",
+      "file": "views/reportes-caja-pyme.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 120633
+    },
+    {
+      "name": "Reportes · Estado Resultado (EE.RR)",
+      "file": "views/reportes-resultados.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 118166
+    },
+    {
+      "name": "Reportes · Configuración",
+      "file": "views/reportes-configuracion.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 114964
+    },
+    {
+      "name": "Reportes · Balance General",
+      "file": "views/reportes-libro-balance.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 123617
+    },
+    {
+      "name": "Reportes · Libro Diario",
+      "file": "views/reportes-libro-diario.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 122491
+    },
+    {
+      "name": "Reportes · Libro Mayor",
+      "file": "views/reportes-libro-mayor.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 122401
+    },
+    {
+      "name": "Reportes · Libro Compras",
+      "file": "views/reportes-libro-compras.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 130062
+    },
+    {
+      "name": "Reportes · Libro Ventas",
+      "file": "views/reportes-libro-ventas.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 127238
+    },
+    {
+      "name": "Reportes · Libro Honorarios",
+      "file": "views/reportes-libro-honorarios.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 127238
+    },
+    {
+      "name": "Reportes · Libro Remuneraciones",
+      "file": "views/reportes-libro-remuneraciones.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 134673
+    },
+    {
+      "name": "Reportes · Libro Inventario y Balance",
+      "file": "views/reportes-libro-inventario.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 118115
+    },
+    {
+      "name": "Tesoreria · Ingresos y egresos",
+      "file": "views/tesoreria.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 110618
+    },
+    {
+      "name": "Tesoreria · Crear movimiento",
+      "file": "views/tesoreria-crear.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 94910
+    },
+    {
+      "name": "Tributario",
+      "file": "views/tributario.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 104268
+    },
+    {
+      "name": "Cont. Express",
+      "file": "views/cont-express.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 113747
+    },
+    {
+      "name": "RCV",
+      "file": "views/rcv.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 119969
+    },
+    {
+      "name": "RCV · Configuración de credenciales",
+      "file": "views/rcv-credenciales.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 46689
+    },
+    {
+      "name": "Analítica",
+      "file": "views/analitica.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 117903
+    },
+    {
+      "name": "Analítica · Ventas",
+      "file": "views/analitica-ventas.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 129724
+    },
+    {
+      "name": "Analítica · Compras",
+      "file": "views/analitica-compras.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 120125
+    },
+    {
+      "name": "Analítica · Ventas vs Compras",
+      "file": "views/analitica-comparacion.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 123327
+    },
+    {
+      "name": "Plan de Cuenta · Agregar cuenta",
+      "file": "views/plan-cuenta-agregar.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 60086
+    },
+    {
+      "name": "Remuneraciones · Informe Vacaciones",
+      "file": "views/remuneraciones-vacaciones.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 46021
+    },
+    {
+      "name": "Remuneraciones · Informe Licencias Médicas",
+      "file": "views/remuneraciones-licencias.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 45177
+    },
+    {
+      "name": "Voucher · Descuadrados",
+      "file": "views/voucher-descuadrados.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 121290
+    },
+    {
+      "name": "Cuenta · Usuarios",
+      "file": "views/usuarios.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 104368
+    },
+    {
+      "name": "Cuenta · Crear usuario",
+      "file": "views/usuarios-crear.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 97271
+    },
+    {
+      "name": "Cuenta · Mi Perfil",
+      "file": "views/perfil.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 390636
+    },
+    {
+      "name": "Cuenta ·  Facturas Emitidas",
+      "file": "views/perfil-facturas.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 390645
+    },
+    {
+      "name": "Cuenta · Cambiar tu clave",
+      "file": "views/perfil-clave.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 390654
+    },
+    {
+      "name": "Cuenta · Parámetros Globales",
+      "file": "views/globales.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 120491
+    },
+    {
+      "name": "Globales · Leyes Sociales",
+      "file": "views/globales-leyes.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 130365
+    },
+    {
+      "name": "Globales · Tabla de Impuestos",
+      "file": "views/globales-impuestos.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 148398
+    },
+    {
+      "name": "Globales · UF | UTM | IPC | IPC 14B",
+      "file": "views/globales-indices.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 167190
+    },
+    {
+      "name": "Globales · AFP",
+      "file": "views/globales-afp.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 182616
+    },
+    {
+      "name": "Globales · Régimen Antiguo",
+      "file": "views/globales-regimen.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 217331
+    },
+    {
+      "name": "Globales · Parámetros Anuales",
+      "file": "views/globales-anuales.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 226736
+    },
+    {
+      "name": "Cuenta · Control",
+      "file": "views/control.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 222179
+    },
+    {
+      "name": "Remuneraciones · Agregar Haber o Descuento Global",
+      "file": "views/remuneraciones-globales-agregar.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 91293
+    },
+    {
+      "name": "Remuneraciones · Configuración Datos Laborales por Lote",
+      "file": "views/remuneraciones-laborales-lote.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 183792
+    },
+    {
+      "name": "Remuneraciones · Agregar Datos Laborales por Lote",
+      "file": "views/remuneraciones-laborales-lote-agregar.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 127791
+    },
+    {
+      "name": "Remuneraciones · Liquidación por Lote",
+      "file": "views/remuneraciones-liquidacion-lote.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 183793
+    },
+    {
+      "name": "Parámetros · Importar proveedores",
+      "file": "views/parametros-proveedores-importar.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 46108
+    },
+    {
+      "name": "Parámetros · Importar clientes",
+      "file": "views/parametros-clientes-importar.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 46705
+    },
+    {
+      "name": "Parámetros · Importar honorarios",
+      "file": "views/parametros-honorarios-importar.html",
+      "scope": "dialog",
+      "completeHtml": true,
+      "sourceLength": 47312
+    },
+    {
+      "name": "Control · Empleados Liquidados",
+      "file": "views/control-rem-0.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229072
+    },
+    {
+      "name": "Control · Historial Ficha Empleados",
+      "file": "views/control-rem-1.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229072
+    },
+    {
+      "name": "Control · Historial Envío Liquidaciones",
+      "file": "views/control-rem-2.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229072
+    },
+    {
+      "name": "Control · Historial Haberes",
+      "file": "views/control-rem-3.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229072
+    },
+    {
+      "name": "Control · Historial Hab. Eliminados",
+      "file": "views/control-rem-4.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229072
+    },
+    {
+      "name": "Control · Historial Descuentos",
+      "file": "views/control-rem-5.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229072
+    },
+    {
+      "name": "Control · Historial Desc. Eliminados",
+      "file": "views/control-rem-6.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229072
+    },
+    {
+      "name": "Control · Historial Previsión Empresa",
+      "file": "views/control-rem-7.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229085
+    },
+    {
+      "name": "Control · Registros Global",
+      "file": "views/control-rem-8.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229044
+    },
+    {
+      "name": "Control · Liquidaciones Eliminadas",
+      "file": "views/control-rem-9.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229059
+    },
+    {
+      "name": "Control · Listado Voucher",
+      "file": "views/control-voucher.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229068
+    },
+    {
+      "name": "Control · Eliminaciones Masivas",
+      "file": "views/control-eliminaciones.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229075
+    },
+    {
+      "name": "Control · Historial Ficha Empresa",
+      "file": "views/control-general-0.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229075
+    },
+    {
+      "name": "Control · Historial Deshabilitación y Habilitación Empresa",
+      "file": "views/control-general-1.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229084
+    },
+    {
+      "name": "Control · Historial Desactivación y Activación Usuario",
+      "file": "views/control-general-2.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229084
+    },
+    {
+      "name": "Control · Historial Ficha Usuario",
+      "file": "views/control-general-3.html",
+      "scope": "page",
+      "completeHtml": true,
+      "sourceLength": 229084
+    }
+  ],
+  "javascript": [
+    "jsGbls.js",
+    "jsLibs.js",
+    "jsMdlsASDwerFWDsSrDoS.js",
+    "jsMdlsEwBN6tyuNo.js"
+  ],
+  "assets": 95,
+  "missingCssResources": [
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/border-radius.htc",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/inp_buscar.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_usuario.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_pass.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_empresa.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_plancuenta.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/text_frase.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/bton_agregar.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/bton_crearplan.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/bton_eliminar.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/bton_cargar.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/bton_agregar_2n.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/bton_eliminar_2n.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_plancuenta.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_atras_m.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_voucher_m.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_compra_m.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_ventas_m.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_banco_m.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_parametro_m.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_reporte_m.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_tributacion_m.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_activo_m.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_billetera_m.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_honorario_m.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/modulo_icon_honorario.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/modulo_icon_plancuenta.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/modulo_icon_voucher.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/modulo_icon_compras.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/modulo_icon_ventas.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/modulo_icon_parametro.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/modulo_icon_reportes.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/modulo_icon_banco.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/modulo_icon_activofijos.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/modulo_icon_remuneraciones.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/modulo_icon_tributarios.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/modulo_icon_administrador.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/tiquet_li.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/tiquet_no_li.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/img_advertencia.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/acceso_denegado.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/new-proximo-remuneracion-pr.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/new-proximo-ifrs-pr.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/new-proximo-actfijos-pr.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/new-proximo-banco-pr.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_desac_empresa.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_perfil.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_parametro_glob.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modulo_cuota_soc.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_desactivar_usuario.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_activar_usuario.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_cambiar_empresa.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/num_3.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/num_4.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/modulo_icon_ayuda.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_video.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_video_b.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_video_nodispon.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_dscg.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/fondo-estre.png",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/fonts/glyphicons-halflings-regular.eot",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/fonts/glyphicons-halflings-regular.eot?#iefix",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/nueva_nov.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-14-a.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-14-b.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-14-ter.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-dj-1941.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-form-22.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-exceso.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-retiro.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-cpt.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-rli.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-rre.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-ddjj.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-otros.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-form-29.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-configuracion.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-ppg.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-ppt.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-rg.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-sir.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-bi.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-1970.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-rai.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-rz.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icono-manual.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/img-error-novedades.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/img-atencion-novedades.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/img-informacion-novedades.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/img-nuevo-novedades.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/img-otro-novedades.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/img-fnd-grafico-dev.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_usuario_externo_b.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_usuario_externo.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_usuario_interno_b.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_modmenu_usuario_interno.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/bton_seleder.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/bton_seleizq.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/ok_correo.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/bton_guardar.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/bton_cancelar.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/bton_guardar_inv.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/bton_cerrar.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/bton_atras.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/pasos_1.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/pasos_2.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/pasos_3.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_victo.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_busca.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_imprimir.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_activar.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_plan.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_info_empresa.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_bv_empresa.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/nomas_empresas.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_excel2007.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_excel2003.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_pdf.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_descarga.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/num_1.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/num_2.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/o.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_agragar_vou.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_busca_vou.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_masiva.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_previred.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_subir_csv.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/icon_descarg_csv.png",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/logo.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/nav.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/nav-mod.png",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/fonts/fontawesome-webfont.eot",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/fonts/fontawesome-webfont.woff",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/fonts/fontawesome-webfont.ttf",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/fonts/fontawesome-webfont.svg#fontawesomeregular",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/img-presupuesto.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/cs_temauijquery/images/ui-icons_777620_256x240.png",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/cs_temauijquery/images/ui-icons_cc0000_256x240.png",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/images/sort_desc.png",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/images/sort_asc_disabled.png",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/images/sort_desc_disabled.png",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/fonts/glyphicons-halflings-regular.woff2",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/fonts/glyphicons-halflings-regular.woff",
+    "https://www.icontador.cl/app/lay_client/lc_css.icontador/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/accion-social.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-contacto.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/img-pantalla.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-tributario.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-iemp.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-registrate.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-contabilidad.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-facturacion.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-landing/fondo-laning-2.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-landing/img-tablas.png",
+    "https://www.icontador.cl/app/lay_client/fonts/fontawesome-webfont.eot",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/img-fondo-mensaje.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-ico-col.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/img-fondo-tributario.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-colegio-contadores.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-index-bx.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-sii.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-icontador-presupuesto.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-presupuesto-ini.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-pago-link.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-nuevo-tribut.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-index-vc.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-nuevo-solidaridad.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-index-b.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-navid.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-img-tributario-index.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-img-contab-index.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-img-fact-index.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-icontador-gr.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-promo-dic.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-md.png",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/fondo-academico.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/img-portada.jpg",
+    "https://www.icontador.cl/app/lay_client/lc_images.icontador/images-web/img-icontador-genera.jpg",
+    "https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm459WRhyzbi.woff2",
+    "https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm459W1hyzbi.woff2",
+    "https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm459WZhyzbi.woff2",
+    "https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm459Wdhyzbi.woff2",
+    "https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zwmhduz8A.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zwkxduz8A.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zwmxduz8A.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zwlBduz8A.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zwmBduz8A.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zwmRduz8A.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zwlxdu.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ig4vwmhduz8A.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ig4vwkxduz8A.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ig4vwmxduz8A.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ig4vwlBduz8A.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ig4vwmBduz8A.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ig4vwmRduz8A.woff2",
+    "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ig4vwlxdu.woff2",
+    "https://fonts.gstatic.com/s/karla/v33/qkBIXvYC6trAT55ZBi1ueQVIjQTD-JqaHUlKd7c.woff2",
+    "https://fonts.gstatic.com/s/karla/v33/qkBIXvYC6trAT55ZBi1ueQVIjQTD-JqaE0lK.woff2"
+  ],
+  "unavailableResources": [
+    {
+      "name": "favicon.ico",
+      "reason": "HTTP 404 en el sitio original"
+    },
+    {
+      "name": "icon-error-modal.png",
+      "reason": "HTTP 404 en el sitio original"
+    },
+    {
+      "name": "icon-envio-exito.png",
+      "reason": "HTTP 404 en el sitio original"
+    },
+    {
+      "name": "icon-altoparlante.png",
+      "reason": "HTTP 404 en el sitio original"
+    }
+  ],
+  "exclusions": [
+    {
+      "module": "Remuneraciones",
+      "view": "Contratos, finiquitos y cargas familiares",
+      "reason": "La ficha nueva exige guardar al trabajador para generar documentos o abrir opciones dependientes; no se crearon registros."
+    },
+    {
+      "module": "Voucher",
+      "view": "Reordenar Comprobantes",
+      "reason": "Operación que modifica registros; se conserva el submenú sin ejecutarla."
+    },
+    {
+      "module": "Activos Fijos",
+      "reason": "La interfaz indica que el servicio Tributario no está contratado. Se capturó el aviso; no se envió solicitud comercial."
+    },
+    {
+      "module": "Tributario",
+      "reason": "Servicio no contratado; aviso capturado y solicitud comercial no enviada."
+    },
+    {
+      "module": "Cont. Express",
+      "reason": "La interfaz indica que Tributario no está contratado; aviso capturado."
+    },
+    {
+      "module": "Banco",
+      "view": "Detalle y conciliación de cartola",
+      "reason": "No había una cartola disponible en la vista revisada. Avanzar requiere crear o importar una cartola; no se crearon registros."
+    },
+    {
+      "module": "General",
+      "view": "Resultados de reportes y exportaciones",
+      "reason": "Se conservan las pantallas de configuración. No se generaron ni descargaron informes con registros reales."
+    },
+    {
+      "module": "General",
+      "view": "Operaciones por registro y estados dependientes de datos",
+      "reason": "La copia incluye las vistas enumeradas en el catálogo; no reproduce cada registro ni cada combinación posible de filtros. Formularios de edición dependientes de registros y resultados del servidor quedan como limitaciones."
+    }
+  ],
+  "limitations": [
+    "No incluye backend PHP ni base de datos",
+    "Scripts originales archivados y nunca ejecutados; no se sirven por HTTP",
+    "Se sustituyen tablas, datos personales y series de gráficos por ejemplos ficticios",
+    "Formularios estáticos: guardar, eliminar, enviar, pagar, sincronizar y generar informes están desactivados",
+    "Recursos CSS no observados o no recuperables se omiten",
+    "Listas desplegables dinámicas, paginación y ayudas que dependen del servidor se simplifican"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "icontador",
+  "version": "1.0.0",
+  "description": "Copia parcial de referencia del frontend servido por iContador",
+  "private": true,
+  "scripts": {
+    "start": "node tools/serve.cjs",
+    "test": "node tools/verify.cjs",
+    "prepare-local": "node tools/prepare.cjs"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "commonjs",
+  "devDependencies": {
+    "linkedom": "^0.18.13"
+  }
+}
