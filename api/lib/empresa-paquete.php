@@ -8,7 +8,10 @@ require_once __DIR__ . '/rcv.php';
 require_once __DIR__ . '/liquidaciones.php';
 
 const PAQUETE_FORMATO = 'icontador-empresa';
-const EMPRESA_CAMPOS = ['rut' => 12, 'giro' => 120, 'regimen' => 60, 'telefono' => 30, 'email' => 120];
+// Campos de la ficha guardados en datos_json (largo máximo). Los últimos vienen de la Ficha de Empresas de iContador (CSV).
+const EMPRESA_CAMPOS = ['rut' => 12, 'giro' => 120, 'regimen' => 60, 'telefono' => 30, 'email' => 120,
+    'tipo_contribuyente' => 80, 'comuna' => 60, 'direccion' => 160, 'ciudad' => 60, 'telefono_fijo' => 30, 'tributacion' => 60,
+    'transa_bolsa' => 10, 'actividad' => 160, 'rut_representante' => 12, 'representante' => 120, 'estado' => 10];
 // Columnas que viajan en el paquete, sin id ni empresa_id (se asignan al importar).
 const PAQUETE_COLUMNAS = [
     'vouchers' => ['tipo', 'periodo', 'numero', 'fecha', 'registro', 'glosa', 'creado', 'modificado'],

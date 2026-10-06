@@ -38,15 +38,16 @@ function iniciar(){
    <div class="empresas-botones"><button type="submit" class="btn-minimalist btn-minimalist-royal">Crear empresa</button> <button type="button" class="btn-minimalist empresas-cancelar">Cancelar</button></div>
   </form>
   <div class="empresas-importar"><span>¿Tiene una empresa exportada desde otra copia (por ejemplo, desde su equipo)?</span>
-   <label class="btn-minimalist btn-minimalist-royal">Importar empresa desde archivo<input type="file" accept=".json,application/json" hidden></label></div>`;
+   <label class="btn-minimalist btn-minimalist-royal">Importar empresa desde archivo<input type="file" accept=".json,application/json" hidden></label>
+   <label class="btn-minimalist btn-minimalist-royal" title="Archivo CSV exportado desde Empresas &gt; Ficha de Empresas en icontador.cl. Crea las empresas nuevas y actualiza la ficha de las existentes (por RUT) sin tocar sus datos contables.">Importar ficha de empresas (CSV)<input type="file" name="ficha_csv" accept=".csv,text/csv" hidden></label></div>`;
  contenedor.before(panel);
- const crear=$('.empresas-crear',panel),archivo=$('input[type=file]',panel);
+ const crear=$('.empresas-crear',panel),archivo=$('input[type=file]:not([name])',panel),fichaCsv=$('input[name=ficha_csv]',panel);
 
  const pintar=async()=>{
   try{empresas=(await api('')).empresas;}catch(e){cuerpo.innerHTML=`<tr><td colspan="6" class="dataTables_empty">${esc(e.message)}</td></tr>`;if(info)info.textContent='';return;}
   const actual=empresaSeleccionada()?.id;
   cuerpo.innerHTML=empresas.length?empresas.map((e,i)=>`<tr class="${i%2?'even':'odd'}${e.id===actual?' empresas-actual':''}" data-id="${e.id}">
-   <td class="td-empresa-corta">${esc(e.razon_social)}${e.id===actual?' <span class="empresas-etiqueta">seleccionada</span>':''}</td><td>${esc(e.rut)}</td><td class="texto_izq">${esc(e.regimen)}</td><td>${esc(e.telefono)}</td><td>${esc(e.email)}</td>
+   <td class="td-empresa-corta">${esc(e.razon_social)}${e.id===actual?' <span class="empresas-etiqueta">seleccionada</span>':''}${e.estado==='Inactiva'?' <span class="empresas-etiqueta empresas-inactiva">inactiva</span>':''}</td><td>${esc(e.rut)}</td><td class="texto_izq">${esc(e.regimen)}</td><td>${esc(e.telefono)}</td><td>${esc(e.email)}</td>
    <td class="texto_centrado"><button type="button" class="empresas-accion" data-accion="seleccionar">Seleccionar</button> <a class="empresas-accion" href="${API}?exportar=${e.id}" download>Exportar</a></td></tr>`).join('')
    :'<tr><td colspan="6" class="dataTables_empty">No hay empresas. Use “Crear Empresa” o importe una desde archivo.</td></tr>';
   if(info)info.textContent=`Mostrando ${empresas.length} ${empresas.length===1?'empresa':'empresas'}`;
@@ -66,6 +67,13 @@ function iniciar(){
   try{const r=await api('',{method:'POST',body:await f.text()});const n=r.importado;
    aviso(`Empresa ${r.empresa.razon_social} importada: ${n.cuentas} cuentas, ${n.vouchers} vouchers, ${n.rcv} documentos RCV, ${n.liquidaciones} liquidaciones.`);await pintar();}
   catch(err){aviso(err.message);}finally{archivo.value='';}});
+ // El CSV va tal cual (suele venir en Windows-1252); el servidor detecta la codificación.
+ fichaCsv.addEventListener('change',async()=>{const f=fichaCsv.files[0];if(!f)return;
+  try{const respuesta=await fetch(API+'?importar=ficha-csv',{method:'POST',headers:{Accept:'application/json','Content-Type':'text/csv'},body:f});
+   const r=await respuesta.json().catch(()=>null);if(!r)throw new Error('La API PHP no respondió.');
+   if(!respuesta.ok)throw new Error((r.errores||[r.error||'Error '+respuesta.status]).join(' '));
+   aviso(`Ficha de empresas cargada: ${r.creadas} nuevas, ${r.actualizadas} actualizadas`+(r.errores.length?`, ${r.errores.length} omitidas (${r.errores.join(' ')})`:'.'));await pintar();}
+  catch(err){aviso(err.message);}finally{fichaCsv.value='';}});
  pintar();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciar);else iniciar();

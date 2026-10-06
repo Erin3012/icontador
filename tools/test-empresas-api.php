@@ -4,7 +4,7 @@ declare(strict_types=1);
 require __DIR__ . '/base-prueba.php';
 require dirname(__DIR__) . '/api/lib/vouchers.php';
 require dirname(__DIR__) . '/api/lib/rcv.php';
-require dirname(__DIR__) . '/api/lib/empresa-paquete.php';
+require dirname(__DIR__) . '/api/lib/empresas-csv.php';
 function check(bool $ok, string $msg): void { if (!$ok) { fwrite(STDERR, "FALLA: $msg\n"); exit(1); } }
 function base(): PDO { return base_prueba(); }
 
@@ -106,4 +106,28 @@ foreach ([['formato' => 'otro'], ['formato' => 'icontador-empresa', 'empresa' =>
     try { empresa_importar($destino, $malo); check(false, 'debió rechazar ' . json_encode($malo)); } catch (ErrorValidacion) {}
 }
 check(count(empresas_listar($destino)) === 2, 'un archivo con errores no deja datos a medias');
-echo "Empresas PHP: separación de datos, migración, creación y exportación verificadas\n";
+
+// Ficha de Empresas de iContador (CSV en Windows-1252, con fila de título): crea o actualiza por RUT sin tocar datos contables.
+$ficha = ";\"Ficha de Empresas - icontador.cl\";\n"
+    . "\"Tipo Contribuyente\";\"Razón Social\";RUT;Comuna;Dirección;Ciudad;\"Teléfono Móvil\";\"Teléfono Fijo\";E-Mail;Tributación;\"Transa en la Bolsa\";\"Régimen Tributario Actual\";\"Código Actividad Económica\";\"Giro o Actividad\";\"RUT Representante\";\"Nombre Representante\";Estado\n"
+    . "\"Sociedad por Acciones - SpA\";\"ENYEL SPA NUEVO NOMBRE\";76.086.428-5;Coyhaique;;COYHAIQUE;;;;\"Primera Categoria\";No;\"Pro Pyme General (Art. 14D N°3)\";\"855000 - CAPACITACIÓN\";CAPACITACION;12.575.089-3;\"ANA PÉREZ\";Activa\n"
+    . "\"Fundaci&oacute;n o Coorporaci&oacute;n\";\"FUNDACIÓN UNO\";65.237.643-6;\"San Pedro de la Paz\";\"LOS FRESNOS 1\";\"San Pedro\";;968439587;f@x.cl;\"Primera Categoria\";No;;;;;;Inactiva\n"
+    . "\"Sociedad por Acciones - SpA\";\"MERCADO SANTO SPA\";77.160.468-4;Independencia;\"CALLE 1\";SANTIAGO;;;m@x.cl;\"Primera Categoria\";No;\"Pro Pyme General (Art. 14D N°3)\";;;;;Activa\n"
+    . "\"Sociedad por Acciones - SpA\";\"MERCADO SANTO SPA\";77.160.468-4;Independencia;\"CALLE 2\";SANTIAGO;;;m@x.cl;\"Primera Categoria\";No;\"Pro Pyme Transparente (Art. 14D N°8)\";;;;;Activa\n"
+    . "\"Empresario Individual\";\"OTRA\";11.111.111-1;;;;;;;;;;;;;;Activa\n"
+    . "\"Empresario Individual\";\"MALA\";11.111.111-K;;;;;;;;;;;;;;Activa\n\n";
+$antes = count(listarVouchers($destino, [], $nid));
+$r = empresas_importar_ficha_csv($destino, mb_convert_encoding($ficha, 'Windows-1252', 'UTF-8'));
+check($r['creadas'] === 2 && $r['actualizadas'] === 2 && count($r['errores']) === 1 && str_contains($r['errores'][0], 'MALA'), 'ficha CSV: 2 nuevas, 2 actualizadas, 1 RUT inválido ' . json_encode($r, JSON_UNESCAPED_UNICODE));
+$lista = array_column(empresas_listar($destino), null, 'rut');
+check(count(empresas_listar($destino)) === 4, 'ficha CSV no duplica empresas');
+$enyel = $lista['76086428-5'];
+check($enyel['id'] === $nid && $enyel['razon_social'] === 'ENYEL SPA NUEVO NOMBRE' && $enyel['representante'] === 'ANA PÉREZ' && $enyel['rut_representante'] === '12575089-3' && $enyel['comuna'] === 'Coyhaique', 'ficha CSV actualiza por RUT');
+check(count(listarVouchers($destino, [], $nid)) === $antes && count(planCuentas($destino, $nid)) === count(PLAN_EJEMPLO) && count(liq_listar($destino, null, $nid)) === 1, 'ficha CSV no toca vouchers, plan ni liquidaciones');
+check($lista['65237643-6']['tipo_contribuyente'] === 'Fundación o Coorporación' && $lista['65237643-6']['estado'] === 'Inactiva' && $lista['65237643-6']['razon_social'] === 'FUNDACIÓN UNO', 'ficha CSV decodifica tildes y entidades HTML');
+check($lista['77160468-4']['direccion'] === 'CALLE 2' && str_contains($lista['77160468-4']['regimen'], '14D N°8'), 'RUT repetido: gana la última fila');
+check($lista['11111111-1']['razon_social'] === 'OTRA' && $lista['11111111-1']['cuentas'] === 0, 'empresa sin RUT se completa por razón social y sin plan de ejemplo');
+check($lista['77160468-4']['cuentas'] === 0, 'empresa nueva sin plan de cuentas de ejemplo');
+check(empresas_importar_ficha_csv($destino, $ficha)['actualizadas'] === 4 && count(empresas_listar($destino)) === 4, 'reimportar la ficha (también en UTF-8) no duplica');
+try { empresas_importar_ficha_csv($destino, "a;b\n1;2\n"); check(false, 'debió rechazar un CSV sin encabezado'); } catch (ErrorValidacion) {}
+echo "Empresas PHP: separación de datos, migración, creación, exportación e importación de la ficha CSV verificadas\n";
