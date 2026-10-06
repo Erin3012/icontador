@@ -1,5 +1,11 @@
 'use strict';
 const EMPRESA_LOCAL_KEY='icontador.empresaSeleccionada';
+const EMPRESA_LOCAL_STATE_KEY='icontador.empresas.local';
+
+function estadoEmpresasLocal(){
+ try{return JSON.parse(localStorage.getItem(EMPRESA_LOCAL_STATE_KEY)||'{}');}catch{return {};}
+}
+function guardarEstadoEmpresasLocal(estado){localStorage.setItem(EMPRESA_LOCAL_STATE_KEY,JSON.stringify(estado));}
 
 function empresaSeleccionada(){
  try{return JSON.parse(localStorage.getItem(EMPRESA_LOCAL_KEY)||'null');}catch{return null;}
@@ -21,19 +27,60 @@ function crearSelectorEmpresa(empresas){
  const titulo=document.createElement('h2');titulo.id='empresa-local-titulo';titulo.textContent='Seleccionar empresa';
  const ayuda=document.createElement('p');ayuda.textContent='Elige la empresa con la que deseas trabajar en esta copia local.';
  const lista=document.createElement('div');lista.className='empresa-local-lista';
- empresas.forEach(empresa=>{
-  const boton=document.createElement('button');boton.type='button';boton.className='empresa-local-opcion';
-  const nombre=document.createElement('strong');nombre.textContent=empresa.razon_social;
-  const detalle=document.createElement('span');detalle.textContent=empresa.vistas+' vistas · '+empresa.registros+' registros importados';
-  boton.append(nombre,detalle);boton.addEventListener('click',()=>{
-   localStorage.setItem(EMPRESA_LOCAL_KEY,JSON.stringify(empresa));
-   window.location.href='panel.html';
-  });lista.append(boton);
- });
- if(!empresas.length){const vacio=document.createElement('p');vacio.className='empresa-local-vacio';vacio.textContent='No hay empresas importadas en la base local.';lista.append(vacio);}
+ const estado=estadoEmpresasLocal();
+ const filtro=document.createElement('select');filtro.className='empresa-local-filtro';filtro.setAttribute('aria-label','Filtrar empresas');
+ [['activas','Empresas activas'],['inactivas','Empresas desactivadas localmente'],['todas','Todas las empresas']].forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;filtro.append(o);});
+ const renderLista=()=>{
+  lista.replaceChildren();
+  const visibles=empresas.filter(e=>{const inactiva=Boolean(estado[e.id]?.inactiva);return filtro.value==='todas'||(filtro.value==='inactivas'?inactiva:!inactiva);});
+  visibles.forEach(empresa=>{
+   const ficha=estado[empresa.id]||{};const fila=document.createElement('article');fila.className='empresa-local-fila'+(ficha.inactiva?' es-inactiva':'');
+   const elegir=document.createElement('button');elegir.type='button';elegir.className='empresa-local-opcion';
+   const nombre=document.createElement('strong');nombre.textContent=ficha.nombre||empresa.razon_social;
+   const detalle=document.createElement('span');detalle.textContent=empresa.vistas+' vistas · '+empresa.registros+' registros importados'+(ficha.inactiva?' · Desactivada en este navegador':'');
+   elegir.append(nombre,detalle);elegir.disabled=Boolean(ficha.inactiva);elegir.setAttribute('aria-label','Seleccionar '+nombre.textContent);elegir.addEventListener('click',()=>{
+    localStorage.setItem(EMPRESA_LOCAL_KEY,JSON.stringify({...empresa,razon_social:nombre.textContent}));
+    window.location.href='panel.html';
+   });
+   const acciones=document.createElement('div');acciones.className='empresa-local-acciones';
+   const ver=crearBotonEmpresa('Ver','fa-eye',()=>mostrarDetalleEmpresa(empresa,ficha));
+   const editar=crearBotonEmpresa('Editar','fa-pencil',()=>editarEmpresaLocal(empresa,ficha,()=>{renderLista();}));
+   const activar=crearBotonEmpresa(ficha.inactiva?'Activar':'Desactivar',ficha.inactiva?'fa-check':'fa-ban',()=>{
+    const nuevo=estadoEmpresasLocal();nuevo[empresa.id]={...nuevo[empresa.id],inactiva:!ficha.inactiva};guardarEstadoEmpresasLocal(nuevo);Object.assign(estado,nuevo);renderLista();
+   });
+   acciones.append(ver,editar,activar);fila.append(elegir,acciones);lista.append(fila);
+  });
+  if(!visibles.length){const vacio=document.createElement('p');vacio.className='empresa-local-vacio';vacio.textContent=empresas.length?'No hay empresas en este filtro.':'No hay empresas disponibles en la base local.';lista.append(vacio);}
+ };
+ filtro.value='activas';filtro.addEventListener('change',renderLista);renderLista();
  const cerrar=document.createElement('button');cerrar.type='button';cerrar.className='empresa-local-cerrar';cerrar.textContent='Cerrar';cerrar.addEventListener('click',()=>overlay.remove());
- dialog.append(titulo,ayuda,lista,cerrar);overlay.append(dialog);document.body.append(overlay);
- dialog.querySelector('button')?.focus();
+ dialog.append(titulo,ayuda,filtro,lista,cerrar);overlay.append(dialog);document.body.append(overlay);
+ dialog.querySelector('.empresa-local-opcion:not(:disabled)')?.focus();
+}
+function crearBotonEmpresa(etiqueta,icono,accion){
+ const boton=document.createElement('button');boton.type='button';boton.className='empresa-local-accion';boton.title=etiqueta;boton.setAttribute('aria-label',etiqueta);
+ const i=document.createElement('i');i.className='fa '+icono;i.setAttribute('aria-hidden','true');const texto=document.createElement('span');texto.textContent=etiqueta;boton.append(i,texto);boton.addEventListener('click',accion);return boton;
+}
+function mostrarDetalleEmpresa(empresa,ficha){
+ const modal=crearDialogoEmpresa('Ver empresa');
+ const datos=[['Razón social',ficha.nombre||empresa.razon_social],['Vistas importadas',String(empresa.vistas)],['Registros importados',String(empresa.registros)],['Estado local',ficha.inactiva?'Desactivada':'Activa']];
+ datos.forEach(([label,valor])=>{const p=document.createElement('p');p.className='empresa-local-dato';const b=document.createElement('strong');b.textContent=label+': ';p.append(b,document.createTextNode(valor));modal.contenido.append(p);});
+ modal.abrir();
+}
+function editarEmpresaLocal(empresa,ficha,alGuardar){
+ const modal=crearDialogoEmpresa('Editar empresa');const label=document.createElement('label');label.textContent='Nombre visible en esta copia local';
+ const input=document.createElement('input');input.type='text';input.maxLength=191;input.required=true;input.value=ficha.nombre||empresa.razon_social;input.className='empresa-local-campo';label.append(input);
+ const nota=document.createElement('p');nota.className='empresa-local-nota';nota.textContent='Este cambio solo modifica el nombre mostrado en este navegador; no altera los datos contables ni la base importada.';
+ const guardar=document.createElement('button');guardar.type='button';guardar.className='empresa-local-cerrar';guardar.textContent='Guardar nombre local';guardar.addEventListener('click',()=>{
+  const nombre=input.value.trim();if(!nombre){input.focus();return;}const estado=estadoEmpresasLocal();estado[empresa.id]={...estado[empresa.id],nombre};guardarEstadoEmpresasLocal(estado);modal.cerrar();alGuardar();
+ });
+ modal.contenido.append(label,nota,guardar);modal.abrir();input.focus();input.select?.();
+}
+function crearDialogoEmpresa(titulo){
+ const overlay=document.createElement('div');overlay.className='empresa-local-modal';overlay.setAttribute('role','presentation');const caja=document.createElement('section');caja.className='empresa-local-modal-caja';caja.setAttribute('role','dialog');caja.setAttribute('aria-modal','true');
+ const encabezado=document.createElement('div');encabezado.className='empresa-local-modal-encabezado';const h=document.createElement('h3');h.textContent=titulo;const x=document.createElement('button');x.type='button';x.className='empresa-local-modal-x';x.setAttribute('aria-label','Cerrar');x.textContent='×';encabezado.append(h,x);
+ const contenido=document.createElement('div');contenido.className='empresa-local-modal-contenido';const cerrar=()=>overlay.remove();x.addEventListener('click',cerrar);overlay.addEventListener('click',e=>{if(e.target===overlay)cerrar();});caja.append(encabezado,contenido);overlay.append(caja);
+ return{contenido,abrir(){document.querySelector('.empresa-local-modal')?.remove();document.body.append(overlay);x.focus();},cerrar};
 }
 async function mostrarSelectorEmpresa(){
  try{

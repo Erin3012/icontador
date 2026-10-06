@@ -29,7 +29,7 @@ function empresas_esquema_completo(PDO $db): void
 function empresas_listar(PDO $db): array
 {
     $filas = $db->query(
-        'SELECT e.id, e.origen_id, e.razon_social, e.datos_json,
+        'SELECT e.id, e.origen_id, e.razon_social, e.datos_json, e.estado,
                 (SELECT COUNT(*) FROM importacion_vistas v WHERE v.empresa_id = e.id) AS vistas,
                 (SELECT COUNT(*) FROM importacion_registros r WHERE r.empresa_id = e.id) AS registros,
                 (SELECT COUNT(*) FROM cuentas c WHERE c.empresa_id = e.id) AS cuentas,
@@ -38,7 +38,7 @@ function empresas_listar(PDO $db): array
     )->fetchAll();
     return array_map(function ($f) {
         $datos = json_decode((string) $f['datos_json'], true) ?: [];
-        $empresa = ['id' => (int) $f['id'], 'origen_id' => $f['origen_id'], 'razon_social' => $f['razon_social']];
+        $empresa = ['id' => (int) $f['id'], 'origen_id' => $f['origen_id'], 'razon_social' => $f['razon_social'], 'estado' => $f['estado']];
         foreach (array_keys(EMPRESA_CAMPOS) as $campo) {
             $empresa[$campo] = is_scalar($datos[$campo] ?? null) ? (string) $datos[$campo] : '';
         }
@@ -102,6 +102,56 @@ function empresa_crear(PDO $db, array $datos): array
     $agregadas = !empty($datos['plan_ejemplo']) ? cargarPlanEjemplo($db, $id) : 0;
     $empresa = array_values(array_filter(empresas_listar($db), fn($e) => $e['id'] === $id))[0];
     return ['empresa' => $empresa, 'cuentas_agregadas' => $agregadas];
+}
+
+function empresa_actualizar(PDO $db, int $id, array $datos): array
+{
+    $buscar = $db->prepare('SELECT razon_social, datos_json FROM empresas WHERE id = ?');
+    $buscar->execute([$id]);
+    $actual = $buscar->fetch();
+    if (!$actual) throw new ErrorValidacion(['La empresa no existe.']);
+
+    $razon = trim((string) ($datos['razon_social'] ?? ''));
+    $ficha = json_decode((string) $actual['datos_json'], true) ?: [];
+    $errores = [];
+    if ($razon === '') $errores[] = 'Ingrese la razón social.';
+    foreach (EMPRESA_CAMPOS as $campo => $largo) {
+        $ficha[$campo] = mb_substr(trim(is_scalar($datos[$campo] ?? null) ? (string) $datos[$campo] : ''), 0, $largo);
+    }
+    if ($ficha['rut'] !== '') {
+        $rut = normalizarRut($ficha['rut']);
+        if ($rut === null) {
+            $errores[] = 'El RUT no es válido; revise el dígito verificador.';
+        } else {
+            $ficha['rut'] = $rut;
+            foreach (empresas_listar($db) as $otra) {
+                if ($otra['id'] !== $id && $otra['rut'] === $rut) {
+                    $errores[] = "Ya existe una empresa con el RUT $rut.";
+                    break;
+                }
+            }
+        }
+    }
+    if ($ficha['email'] !== '' && !filter_var($ficha['email'], FILTER_VALIDATE_EMAIL)) $errores[] = 'El e-mail no es válido.';
+    if ($errores) throw new ErrorValidacion($errores);
+
+    $ficha['razon_social'] = $razon;
+    $db->prepare('UPDATE empresas SET razon_social = ?, datos_json = ?, actualizado = ? WHERE id = ?')
+        ->execute([mb_substr($razon, 0, 191), json_encode($ficha, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), gmdate('c'), $id]);
+    return array_values(array_filter(empresas_listar($db), fn($empresa) => $empresa['id'] === $id))[0];
+}
+
+function empresa_cambiar_estado(PDO $db, int $id, string $estado): array
+{
+    if (!in_array($estado, ['activo', 'inactivo'], true)) throw new ErrorValidacion(['Estado de empresa inválido.']);
+    $actualizar = $db->prepare('UPDATE empresas SET estado = ?, actualizado = ? WHERE id = ?');
+    $actualizar->execute([$estado, gmdate('c'), $id]);
+    if ($actualizar->rowCount() === 0) {
+        $existe = $db->prepare('SELECT 1 FROM empresas WHERE id = ?');
+        $existe->execute([$id]);
+        if (!$existe->fetchColumn()) throw new ErrorValidacion(['La empresa no existe.']);
+    }
+    return array_values(array_filter(empresas_listar($db), fn($empresa) => $empresa['id'] === $id))[0];
 }
 
 function filas_empresa(PDO $db, string $tabla, int $empresa): array

@@ -8,8 +8,12 @@ function empresas_schema(PDO $db): void {
     $id = $mysql ? 'INT AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
     $texto = $mysql ? 'VARCHAR(191)' : 'TEXT';
     $largo = $mysql ? 'LONGTEXT' : 'TEXT';
+    $estado = $mysql ? 'VARCHAR(12)' : 'TEXT';
     $motor = $mysql ? ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4' : '';
-    $db->exec("CREATE TABLE IF NOT EXISTS empresas (id $id, origen_id $texto NOT NULL UNIQUE, razon_social $texto NOT NULL, datos_json $largo NOT NULL, actualizado $texto NOT NULL)$motor");
+    $db->exec("CREATE TABLE IF NOT EXISTS empresas (id $id, origen_id $texto NOT NULL UNIQUE, razon_social $texto NOT NULL, datos_json $largo NOT NULL, actualizado $texto NOT NULL, estado $estado NOT NULL DEFAULT 'activo')$motor");
+    if (!columna_existe($db, 'empresas', 'estado')) {
+        $db->exec("ALTER TABLE empresas ADD COLUMN estado $estado NOT NULL DEFAULT 'activo'");
+    }
     $db->exec("CREATE TABLE IF NOT EXISTS importacion_vistas (id $id, empresa_id INTEGER NOT NULL, vista $texto NOT NULL, datos_json $largo NOT NULL, actualizado $texto NOT NULL, UNIQUE(empresa_id,vista), FOREIGN KEY(empresa_id) REFERENCES empresas(id))$motor");
     $db->exec("CREATE TABLE IF NOT EXISTS importacion_registros (id $id, empresa_id INTEGER NOT NULL, vista $texto NOT NULL, tabla $texto NOT NULL, huella CHAR(64) NOT NULL, datos_json $largo NOT NULL, UNIQUE(empresa_id,vista,tabla,huella), FOREIGN KEY(empresa_id) REFERENCES empresas(id))$motor");
 }
