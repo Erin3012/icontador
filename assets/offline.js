@@ -14,11 +14,16 @@ function empresaSeleccionada(){
 function cabeceraEmpresa(){
  const empresa=empresaSeleccionada();return empresa?.id?{'X-Empresa-Id':String(empresa.id)}:{};
 }
-function actualizarCabeceraEmpresa(){
- const empresa=empresaSeleccionada();if(!empresa)return;
- document.querySelectorAll('a.link_blanco').forEach(enlace=>{
-  if(/USUARIO TITULAR:/i.test(enlace.textContent))enlace.textContent='USUARIO TITULAR: USUARIO LOCAL · '+empresa.razon_social;
- });
+async function actualizarCabeceraEmpresa(){
+ try{
+  const respuesta=await fetch('../api/usuario.php',{headers:{Accept:'application/json'}});
+  if(!respuesta.ok)throw new Error();
+  const usuario=await respuesta.json(),empresa=empresaSeleccionada();
+  const texto='USUARIO TITULAR: '+String(usuario.nombre||usuario.email||'').toUpperCase()+(empresa?' · '+empresa.razon_social:'');
+  document.querySelectorAll('a.link_blanco').forEach(enlace=>{
+   if(/USUARIO TITULAR:/i.test(enlace.textContent))enlace.textContent=texto;
+  });
+ }catch{}
 }
 function crearSelectorEmpresa(empresas){
  document.querySelector('.empresa-local-overlay')?.remove();
@@ -89,17 +94,7 @@ async function mostrarSelectorEmpresa(){
   crearSelectorEmpresa(datos.empresas||[]);
  }catch(error){notify(error.message||'No se pudo cargar la empresa local.');}
 }
-// Página de inicio: nombre de la cuenta con sesión en la cabecera, fecha del día y pestañas de avisos.
-async function mostrarUsuarioInicio(){
- try{
-  const respuesta=await fetch('../api/usuario.php',{headers:{Accept:'application/json'}});
-  if(!respuesta.ok)return;
-  const usuario=await respuesta.json(),empresa=empresaSeleccionada();
-  document.querySelectorAll('a.link_blanco').forEach(enlace=>{
-   if(/USUARIO TITULAR:/i.test(enlace.textContent))enlace.textContent='USUARIO TITULAR: '+String(usuario.nombre||usuario.email||'').toUpperCase()+(empresa?' · '+empresa.razon_social:'');
-  });
- }catch{}
-}
+// Página de inicio: actualizar cabecera, mostrar fecha del día y pestañas de avisos.
 function iniciarPaginaInicio(){
  const fecha=document.getElementById('fecha-hoy');
  if(fecha){const texto=new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'}).replace(/ de /g,' ');fecha.textContent=texto.replace(/(^|\s)\p{Ll}/u,l=>l.toUpperCase());}
@@ -108,7 +103,7 @@ function iniciarPaginaInicio(){
   document.querySelectorAll('.tabs a[data-tab]').forEach(otra=>otra.classList.toggle('active',otra===pestana));
   document.querySelectorAll('.secciones > article').forEach(articulo=>{articulo.style.display=articulo.id===pestana.dataset.tab?'block':'none';});
  }));
- mostrarUsuarioInicio();
+ actualizarCabeceraEmpresa();
 }
 function iniciarEmpresaLocal(){
  actualizarCabeceraEmpresa();
