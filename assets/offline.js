@@ -147,7 +147,7 @@ function mostrarCambiarEmpresa(){const li=document.getElementById('CmbrEmprSlcnd
 // Campos de fecha: el calendario del original (jQuery UI) no viene en la copia; se usa el calendario del navegador.
 function activarCalendarios(){
  document.querySelectorAll('input.hasDatepicker').forEach(input=>{
-  const m=/^(d{2})[-/](d{2})[-/](d{4})$/.exec(input.value.trim());
+  const m=/^(\d{2})[-/](\d{2})[-/](\d{4})$/.exec(input.value.trim());
   input.type='date';input.removeAttribute('maxlength');input.classList.remove('hasDatepicker');
   if(m)input.value=`${m[3]}-${m[2]}-${m[1]}`;
  });
