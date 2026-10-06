@@ -42,6 +42,6 @@ foreach (auth_listar($pdo) as $u) {
         . '<td><span class="chip ' . auth_h($u['estado']) . '">' . auth_h($u['estado']) . '</span>' . ($u['rol'] === 'admin' ? ' <span class="chip">admin</span>' : '') . '</td>'
         . '<td><small>' . auth_h($u['creado_en']) . '</small></td><td><small>' . auth_h($u['ultimo_acceso'] ?? '—') . '</small></td><td>' . $acciones . '</td></tr>';
 }
-auth_pagina('Usuarios', '<nav><a href="/index.html">Volver a iContador</a> · <a href="/auth/salir.php">Cerrar sesión</a></nav>' . $mensaje
+auth_pagina('Usuarios', '<nav><a href="/index.html">Volver a Cifrax</a> · <a href="/auth/salir.php">Cerrar sesión</a></nav>' . $mensaje
     . '<p>' . ($pendientes ? "<strong>$pendientes</strong> " . ($pendientes === 1 ? 'cuenta espera' : 'cuentas esperan') . ' tu aprobación.' : 'No hay cuentas pendientes.') . '</p>'
     . '<table><thead><tr><th>Nombre</th><th>Correo</th><th>Estado</th><th>Registro</th><th>Último acceso</th><th></th></tr></thead><tbody>' . $filas . '</tbody></table>', true);

@@ -25,7 +25,7 @@ function empresas_esquema_completo(PDO $db): void
     liq_schema($db);
 }
 
-// Los datos de la ficha (RUT, régimen, contacto) vienen del importador de iContador o de "Crear Empresa".
+// Los datos de la ficha (RUT, régimen, contacto) vienen del importador de Cifrax o de "Crear Empresa".
 function empresas_listar(PDO $db): array
 {
     $filas = $db->query(
@@ -224,7 +224,7 @@ function insertar_filas(PDO $db, string $tabla, int $empresa, array $filas): voi
 function empresa_importar(PDO $db, array $paquete): array
 {
     if (($paquete['formato'] ?? null) !== PAQUETE_FORMATO || !is_array($paquete['empresa'] ?? null)) {
-        throw new ErrorValidacion(['El archivo no es una exportación de empresa de iContador local.']);
+        throw new ErrorValidacion(['El archivo no es una exportación de empresa de Cifrax local.']);
     }
     $origen = trim((string) ($paquete['empresa']['origen_id'] ?? ''));
     $razon = trim((string) ($paquete['empresa']['razon_social'] ?? ''));

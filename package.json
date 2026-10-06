@@ -1,7 +1,7 @@
 {
   "name": "icontador",
   "version": "1.0.0",
-  "description": "Copia parcial de referencia del frontend servido por iContador",
+  "description": "Copia parcial de referencia del frontend de Cifrax – plataforma contable",
   "private": true,
   "scripts": {
     "start": "node tools/serve.cjs",

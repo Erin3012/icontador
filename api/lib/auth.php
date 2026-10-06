@@ -183,7 +183,7 @@ function auth_exigir_api(bool $soloAdmin = false): array
     try {
         $usuario = auth_actual();
     } catch (Throwable $e) {
-        error_log('iContador auth: ' . $e);
+        error_log('Cifrax auth: ' . $e);
         auth_json(500, ['error' => 'No se pudo comprobar la sesión.', 'errores' => ['No se pudo comprobar la sesión.']]);
     }
     if (!$usuario) auth_json(401, ['error' => 'Debes iniciar sesión.', 'errores' => ['Debes iniciar sesión.']]);
@@ -243,7 +243,7 @@ function auth_pagina(string $titulo, string $cuerpo, bool $ancho = false): void
     header('X-Content-Type-Options: nosniff');
     $max = $ancho ? '980px' : '420px';
     echo '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
-        . '<title>' . auth_h($titulo) . ' · iContador</title><style>'
+        . '<title>' . auth_h($titulo) . ' · Cifrax</title><link rel="icon" type="image/png" href="/assets/cifrax-favicon.png"><style>'
         . "body{font:16px system-ui,sans-serif;margin:0;padding:48px 16px;color:#24354a;background:#f5f7fa}"
         . "main{max-width:$max;margin:0 auto;background:#fff;border:1px solid #d9e0e8;border-radius:8px;padding:24px 28px}"
         . 'h1{color:#173759;font-size:24px;margin:0 0 16px}a{color:#1467b3}label{display:block;margin:12px 0 4px;font-weight:600}'

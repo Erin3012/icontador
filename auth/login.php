@@ -49,14 +49,14 @@ echo '<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Iniciar sesión · iContador</title>
+  <title>Iniciar sesión · Cifrax</title>
   <link rel="stylesheet" href="/assets/21263fddaaf430bd-original.css">
   <link rel="stylesheet" href="/assets/acceso.css">
-</head>
+<link rel="icon" type="image/png" href="/assets/cifrax-favicon.png"><link rel="apple-touch-icon" href="/assets/cifrax-apple-touch-icon.png"></head>
 <body class="acceso-local">
   <header class="acceso-nav">
-    <a class="acceso-logo" href="/" aria-label="iContador, inicio">
-      <img src="/assets/12c59c8f88292232-logo_trasparente.png" alt="iContador">
+    <a class="acceso-logo" href="/" aria-label="Cifrax, inicio">
+      <img src="/assets/cifrax-logo-blanco.png" alt="Cifrax">
     </a>
     <nav aria-label="Navegación">
       <a href="/">INICIO</a>
@@ -83,11 +83,11 @@ echo '<!doctype html>
     <section class="panel-login" aria-labelledby="login-heading">
       <div class="login-wrapper">
         <div class="login-brand">
-          <a class="login-brand-link" href="/" aria-label="iContador, inicio">
-            <img src="/assets/ad1631e6695da949-isotipo-grande-clr.png" class="img-responsive login-brand-isotipo" alt="">
+          <a class="login-brand-link" href="/" aria-label="Cifrax, inicio">
+            <img src="/assets/cifrax-isotipo.png" class="img-responsive login-brand-isotipo" alt="">
           </a>
-          <div class="login-brand-name"><span class="brand-i">i</span>Contador</div>
-          <div class="login-brand-slogan">CONTABILIDAD EN LA NUBE</div>
+          <div class="login-brand-name">Cifrax</div>
+          <div class="login-brand-slogan">PLATAFORMA CONTABLE</div>
         </div>
 
         <div class="login-divider"></div>

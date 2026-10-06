@@ -139,5 +139,13 @@ function agregarBotonSugerencias(){
  enlace.href='sugerencias.html?'+new URLSearchParams({origen:pagina.replace(/\.html$/,''),desde:pagina});
  document.body.append(enlace);
 }
-function iniciarPagina(){iniciarEmpresaLocal();agregarBotonSugerencias();}
+// Logo de Cifrax al inicio de la barra superior de cada pantalla.
+function agregarMarca(){
+ const barra=document.querySelector(".navbar-inverse .navbar-header");
+ if(!barra||document.querySelector(".cifrax-marca"))return;
+ const enlace=document.createElement("a");enlace.className="cifrax-marca";enlace.href="inicio-cuenta.html";enlace.setAttribute("aria-label","Cifrax, inicio");
+ const logo=document.createElement("img");logo.src="../assets/cifrax-logo-blanco.png";logo.alt="Cifrax";
+ enlace.append(logo);barra.prepend(enlace);
+}
+function iniciarPagina(){agregarMarca();iniciarEmpresaLocal();agregarBotonSugerencias();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciarPagina);else iniciarPagina();

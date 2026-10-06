@@ -1,31 +1,31 @@
 @font-face{font-family:FontAwesome;src:url('./c93048d38de5fbf8-fontawesome-webfont.woff2') format('woff2');font-weight:normal;font-style:normal;font-display:block}
 .acceso-local{margin:0!important;padding:0!important;min-width:320px;overflow-x:hidden;background:#fff;color:#172033;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
 .acceso-local *{box-sizing:border-box}
-.acceso-nav{height:70px;padding:0 clamp(18px,4vw,64px);display:flex;align-items:center;gap:32px;background:#173759;color:#fff;position:relative;z-index:20;box-shadow:0 2px 8px rgba(15,23,42,.12)}
+.acceso-nav{height:70px;padding:0 clamp(18px,4vw,64px);display:flex;align-items:center;gap:32px;background:#10233f;color:#fff;position:relative;z-index:20;box-shadow:0 2px 8px rgba(15,23,42,.12)}
 .acceso-logo{display:flex;align-items:center;flex:0 0 190px;height:100%}
 .acceso-logo img{display:block;width:180px;max-height:58px;object-fit:contain;object-position:left center}
 .acceso-nav nav{display:flex;align-items:center;gap:28px;height:100%}
 .acceso-nav nav a{color:#fff;text-decoration:none;font-size:13px;font-weight:700;letter-spacing:.4px;transition:color .18s ease}
-.acceso-nav nav a:hover,.acceso-nav nav a:focus{color:#8ce2ef}
+.acceso-nav nav a:hover,.acceso-nav nav a:focus{color:#7fd8e3}
 .acceso-contacto{margin-left:auto;text-align:right;color:#d8e7f3;font-size:11px;font-weight:700;letter-spacing:1px}
 .acceso-local .icontador-split-container{width:100%;min-height:calc(100vh - 70px);margin:0;overflow:hidden}
 .acceso-local .panel-hero{min-width:0;background-image:linear-gradient(135deg,rgba(15,23,42,.64),rgba(30,41,59,.72)),url('./d5666179ae37fec8-img-fondo-ofic.jpg');background-position:center;background-size:cover}
 .acceso-local .hero-main-title{max-width:650px}
 .acceso-local .hero-highlight-badge{padding:0;margin:22px 0 14px;font-size:15px}
-.hero-badge-inner{display:inline-block;padding:11px 20px;border-radius:5px;background:#ea520d;color:#fff;font-weight:700;text-decoration:none;box-shadow:0 5px 16px rgba(15,23,42,.18)}
-.hero-badge-inner:hover,.hero-badge-inner:focus{color:#fff;background:#d94a09;text-decoration:none}
+.hero-badge-inner{display:inline-block;padding:11px 20px;border-radius:5px;background:#ec9124;color:#fff;font-weight:700;text-decoration:none;box-shadow:0 5px 16px rgba(15,23,42,.18)}
+.hero-badge-inner:hover,.hero-badge-inner:focus{color:#fff;background:#d27c12;text-decoration:none}
 .login-flash{margin:0 0 14px;padding:10px 12px;border-radius:6px;font-size:12px;line-height:1.5}
 .acceso-local .hero-subtitle-text{max-width:620px}
-.acceso-local .feature-item-pill i{color:#51c5d8}
+.acceso-local .feature-item-pill i{color:#3fc1d2}
 .acceso-local .panel-login{width:460px;min-width:400px;padding:32px 54px;box-shadow:-10px 0 35px rgba(15,23,42,.09)}
 .acceso-local .login-wrapper{max-width:350px}
 .acceso-local .login-brand{margin:0 0 12px}
 .acceso-local .login-brand-isotipo{width:76px;max-height:78px;object-fit:contain}
 .acceso-local .login-subtitle{display:block;font-size:14px}
 .acceso-local .login-input-group{display:table}
-.acceso-local .login-input-group .input-group-addon{width:46px;background:#2aa7ca;border-color:#2aa7ca;color:#fff}
+.acceso-local .login-input-group .input-group-addon{width:46px;background:#0f95a8;border-color:#0f95a8;color:#fff}
 .acceso-local .login-input-group .form-control{height:44px;font-size:13px!important;border-color:#d5dee8;box-shadow:none}
-.acceso-local .login-input-group .form-control:focus{border-color:#2aa7ca;box-shadow:0 0 0 3px rgba(42,167,202,.15)}
+.acceso-local .login-input-group .form-control:focus{border-color:#0f95a8;box-shadow:0 0 0 3px rgba(15,149,168,.15)}
 .acceso-local .login-password-row{margin-top:16px}
 .acceso-local .login-show-password{white-space:nowrap;width:auto!important;padding:0 9px!important;font-size:11px}
 .acceso-local .login-show-password input{vertical-align:middle;margin:0 3px 0 0}
@@ -34,8 +34,8 @@
 .acceso-local .link-recuperar{font-size:12px}
 .acceso-local .btn-login-main{min-height:46px}
 .login-local-note{margin-top:15px;padding:10px 12px;border:1px solid #d7e9ef;border-radius:6px;background:#f4fbfd;color:#587080;font-size:11px;line-height:1.5;text-align:center}
-.login-panel-link{display:block;margin-top:13px;color:#176e93;text-align:center;font-size:12px;font-weight:700;text-decoration:none}
-.login-panel-link:hover,.login-panel-link:focus{color:#ea520d;text-decoration:underline}
+.login-panel-link{display:block;margin-top:13px;color:#1b6fbf;text-align:center;font-size:12px;font-weight:700;text-decoration:none}
+.login-panel-link:hover,.login-panel-link:focus{color:#ec9124;text-decoration:underline}
 .acceso-local .login-brand-footer{margin-top:22px;padding-top:15px}
 .acceso-local .login-benefits{margin-bottom:14px}
 .acceso-local .login-brand-footer .footer-text{font-family:'Segoe UI',sans-serif}
@@ -49,3 +49,8 @@
 @media(max-width:992px){.acceso-local .icontador-split-container{flex-direction:column-reverse;min-height:calc(100vh - 62px)}.acceso-local .panel-login{width:100%;min-width:0;margin:0;padding:32px 24px 38px;box-shadow:0 -8px 26px rgba(15,23,42,.08)}.acceso-local .panel-hero{min-height:440px;padding:46px 28px}.acceso-local .hero-main-title{font-size:34px}.acceso-local .hero-features-list{grid-template-columns:repeat(2,minmax(0,1fr))}.acceso-local .acceso-contacto{display:none}}
 @media(max-width:560px){.acceso-nav{height:62px;padding:0 16px;gap:12px}.acceso-logo{flex:0 0 118px}.acceso-logo img{width:118px}.acceso-nav nav{margin-left:auto;gap:0}.acceso-nav nav a:first-child{display:none}.acceso-nav nav a{font-size:11px}.acceso-local .panel-hero{min-height:410px;padding:38px 22px}.acceso-local .hero-main-title{font-size:30px}.acceso-local .hero-subtitle-text{font-size:15px}.acceso-local .hero-features-list{gap:13px 9px}.acceso-local .feature-item-pill{font-size:13px;gap:8px}.acceso-local .panel-login{padding:28px 22px 34px}.acceso-local .login-wrapper{max-width:390px}.acceso-local .login-benefit{padding:0 4px}.acceso-local .login-benefit-title{font-size:7px;letter-spacing:0}}
 @media(prefers-reduced-motion:reduce){.acceso-local *,.acceso-local *::before,.acceso-local *::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+/* Marca Cifrax */
+.acceso-local .login-brand-name{color:#10233f;letter-spacing:-.5px}
+.acceso-local .btn-login-main{background-color:#1b6fbf;box-shadow:0 5px 14px rgba(27,111,191,.25)}
+.acceso-local .btn-login-main:hover,.acceso-local .btn-login-main:focus{background-color:#10233f;box-shadow:0 7px 18px rgba(16,35,63,.3)}
+.hero-badge-inner{color:#10233f}.hero-badge-inner:hover,.hero-badge-inner:focus{color:#10233f}
