@@ -1,7 +1,9 @@
 <?php
-// Administración de cuentas: aprobar registros pendientes, deshabilitar y dar o quitar rol de administrador.
+// Administración de cuentas: aprobar registros pendientes, deshabilitar, dar o quitar rol de administrador
+// y elegir qué empresas ve cada usuario (en /auth/usuario-empresas.php).
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/api/lib/auth.php';
+require_once dirname(__DIR__) . '/api/lib/empresas.php';
 
 $admin = auth_exigir_pagina(true);
 $pdo = auth_db();
@@ -27,8 +29,14 @@ $boton = fn(int $id, string $accion, string $texto, string $clase = 'sec') =>
     . '<input type="hidden" name="accion" value="' . $accion . '"><button class="' . $clase . '" type="submit">' . $texto . '</button></form> ';
 $filas = '';
 $pendientes = 0;
+empresas_schema($pdo);
+$asignadas = [];
+foreach ($pdo->query('SELECT usuario_id, COUNT(*) AS n FROM empresa_usuarios GROUP BY usuario_id') as $f) $asignadas[(int) $f['usuario_id']] = (int) $f['n'];
 foreach (auth_listar($pdo) as $u) {
     $id = (int) $u['id'];
+    $n = $asignadas[$id] ?? 0;
+    $empresas = $u['rol'] === 'admin' ? '<small>Todas</small>'
+        : '<a href="/auth/usuario-empresas.php?id=' . $id . '">' . ($n === 0 ? 'Ninguna' : ($n === 1 ? '1 empresa' : "$n empresas")) . '</a>';
     $pendientes += $u['estado'] === 'pendiente' ? 1 : 0;
     $acciones = '';
     if ($id === (int) $admin['id']) {
@@ -40,8 +48,9 @@ foreach (auth_listar($pdo) as $u) {
     }
     $filas .= '<tr><td>' . auth_h($u['nombre']) . '</td><td>' . auth_h($u['email']) . '</td>'
         . '<td><span class="chip ' . auth_h($u['estado']) . '">' . auth_h($u['estado']) . '</span>' . ($u['rol'] === 'admin' ? ' <span class="chip">admin</span>' : '') . '</td>'
-        . '<td><small>' . auth_h($u['creado_en']) . '</small></td><td><small>' . auth_h($u['ultimo_acceso'] ?? '—') . '</small></td><td>' . $acciones . '</td></tr>';
+        . '<td>' . $empresas . '</td><td><small>' . auth_h($u['creado_en']) . '</small></td><td><small>' . auth_h($u['ultimo_acceso'] ?? '—') . '</small></td><td>' . $acciones . '</td></tr>';
 }
 auth_pagina('Usuarios', '<nav><a href="/index.html">Volver a Cifrax</a> · <a href="/auth/salir.php">Cerrar sesión</a></nav>' . $mensaje
     . '<p>' . ($pendientes ? "<strong>$pendientes</strong> " . ($pendientes === 1 ? 'cuenta espera' : 'cuentas esperan') . ' tu aprobación.' : 'No hay cuentas pendientes.') . '</p>'
-    . '<table><thead><tr><th>Nombre</th><th>Correo</th><th>Estado</th><th>Registro</th><th>Último acceso</th><th></th></tr></thead><tbody>' . $filas . '</tbody></table>', true);
+    . '<p><small>Cada usuario ve solo las empresas que crea y las que le asignes. Los administradores ven todas.</small></p>'
+    . '<table><thead><tr><th>Nombre</th><th>Correo</th><th>Estado</th><th>Empresas</th><th>Registro</th><th>Último acceso</th><th></th></tr></thead><tbody>' . $filas . '</tbody></table>', true);

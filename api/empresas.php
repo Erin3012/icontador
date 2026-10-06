@@ -1,5 +1,5 @@
 <?php
-// GET  empresas.php                 empresas de la base (con RUT, régimen y contacto cuando existen)
+// GET  empresas.php                 empresas que puede ver el usuario: todas si es administrador, si no las asignadas
 // GET  empresas.php?exportar=ID     descarga la empresa con todos sus datos (archivo JSON)
 // POST empresas.php {razon_social, rut, giro, regimen, telefono, email, plan_ejemplo}  crea una empresa
 // POST empresas.php {formato: "icontador-empresa", ...}  importa una empresa exportada
@@ -11,19 +11,25 @@ require __DIR__ . '/lib/empresa-paquete.php';
 try {
     $db = icontador_db();
     empresas_esquema_completo($db);
+    $usuario = auth_actual();
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'GET':
             if (isset($_GET['exportar'])) {
-                $paquete = empresa_exportar($db, (int) $_GET['exportar']) ?? responder(['errores' => ['La empresa no existe.']], 404);
+                $paquete = (empresa_usuario_puede($db, $usuario, (int) $_GET['exportar']) ? empresa_exportar($db, (int) $_GET['exportar']) : null)
+                    ?? responder(['errores' => ['La empresa no existe.']], 404);
                 $nombre = preg_replace('/[^A-Za-z0-9]+/', '-', iconv('UTF-8', 'ASCII//TRANSLIT', $paquete['empresa']['razon_social']) ?: 'empresa');
                 header('Content-Disposition: attachment; filename="empresa-' . trim($nombre, '-') . '.json"');
                 responder($paquete);
             }
-            $usuario = auth_actual();
-            responder(['empresas' => empresas_listar($db), 'puede_administrar' => ($usuario['rol'] ?? '') === 'admin']);
+            $empresas = empresas_listar($db);
+            if (!empresa_es_admin($usuario)) {
+                $asignadas = empresas_de_usuario($db, (int) $usuario['id']);
+                $empresas = array_values(array_filter($empresas, fn($e) => in_array($e['id'], $asignadas, true)));
+            }
+            responder(['empresas' => $empresas, 'puede_administrar' => empresa_es_admin($usuario)]);
         case 'POST':
             $datos = cuerpoJson();
-            responder(isset($datos['formato']) ? empresa_importar($db, $datos) : empresa_crear($db, $datos), 201);
+            responder(isset($datos['formato']) ? empresa_importar($db, $datos, $usuario) : empresa_crear($db, $datos, $usuario), 201);
         case 'PUT':
         case 'PATCH':
             auth_exigir_api(true);
