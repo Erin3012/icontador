@@ -62,4 +62,13 @@ document.addEventListener('click',event=>{
 });
 document.addEventListener('input',event=>{if(event.target.type!=='search')return;const section=event.target.closest('.dataTables_wrapper');section?.querySelectorAll('tbody tr').forEach(row=>{row.hidden=!row.textContent.toLowerCase().includes(event.target.value.toLowerCase());});});
 function notify(){document.querySelector('.offline-message')?.remove();const e=document.createElement('div');e.className='offline-message';e.setAttribute('role','status');e.textContent='Vista de referencia: esta operación requiere el backend y está desactivada.';document.body.append(e);setTimeout(()=>e.remove(),4000);}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciarEmpresaLocal);else iniciarEmpresaLocal();
+// Botón fijo para reportar un problema o dejar una sugerencia desde cualquier pantalla (views/sugerencias.html).
+function agregarBotonSugerencias(){
+ if(document.querySelector('.sug-flotante'))return;
+ const pagina=location.pathname.split('/').pop()||'';
+ const enlace=document.createElement('a');enlace.className='sug-flotante';enlace.textContent='Reportar problema';
+ enlace.href='sugerencias.html?'+new URLSearchParams({origen:pagina.replace(/\.html$/,''),desde:pagina});
+ document.body.append(enlace);
+}
+function iniciarPagina(){iniciarEmpresaLocal();agregarBotonSugerencias();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciarPagina);else iniciarPagina();

@@ -1,0 +1,29 @@
+body{margin:0;background:#f5f7fa;color:#24354a;font:15px Arial,sans-serif}
+.sug-barra{display:flex;gap:16px;align-items:center;padding:12px 24px;background:#173759;color:#fff}
+.sug-barra span{opacity:.85}.sug-barra a{margin-left:auto;color:#fff}
+.sug-main{max-width:980px;margin:24px auto;padding:0 16px}
+.sug-card{background:#fff;border:1px solid #d9e0e8;border-radius:8px;padding:20px 24px;margin-bottom:20px}
+.sug-card h1{font-size:22px;margin:0 0 6px;color:#173759}.sug-card h2{font-size:19px;margin:0;color:#173759}
+.sug-ayuda{color:#596b7a;font-size:13px;margin:4px 0 10px}
+label{display:block;font-weight:bold;margin:12px 0 4px}
+input:not([type=radio]):not([type=file]),textarea,select{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #b9c5d3;border-radius:6px;font:inherit}
+.sug-tipo{border:0;padding:0;margin:0}.sug-tipo legend{font-weight:bold;margin-bottom:4px}.sug-tipo label{display:inline-flex;gap:6px;font-weight:normal;margin:0 18px 0 0}
+button{padding:8px 16px;border:0;border-radius:6px;background:#ef7100;color:#fff;font:inherit;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.sug-archivos{list-style:none;padding:0;margin:0}.sug-archivos li{display:flex;gap:10px;align-items:center;padding:4px 0;font-size:13px}
+.sug-archivos button{padding:2px 8px;background:#e8edf3;color:#24354a}
+.sug-mensaje{padding:10px 12px;border-radius:6px;background:#fde8e7;color:#8a1c12}.sug-mensaje.ok{background:#e5f5ea;color:#145c2c}
+.sug-cabecera{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sug-filtros button{background:#e8edf3;color:#24354a;margin-left:4px}.sug-filtros button.activo{background:#173759;color:#fff}
+.sug-item{border-top:1px solid #e3e8ef;padding:14px 0}
+.sug-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:#596b7a}
+.sug-meta strong{color:#24354a}
+.sug-chip{padding:2px 9px;border-radius:10px;font-size:12px;background:#e8edf3;color:#24354a}
+.sug-chip.nueva{background:#fff3d4}.sug-chip.en_revision{background:#dcebfa}.sug-chip.resuelta{background:#e5f5ea}.sug-chip.problema{background:#fde8e7}
+.sug-texto{white-space:pre-wrap;margin:8px 0}
+.sug-adjuntos{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0}.sug-adjuntos a{font-size:13px;color:#1467b3}
+.sug-adjuntos img{display:block;max-width:160px;max-height:110px;border:1px solid #d9e0e8;border-radius:4px}
+.sug-nota{background:#f5f7fa;border-left:3px solid #173759;padding:8px 10px;font-size:13px;white-space:pre-wrap}
+.sug-admin{display:grid;grid-template-columns:180px 1fr auto;gap:8px;align-items:start;margin-top:8px}
+.sug-admin textarea{min-height:38px}
+@media (max-width:640px){.sug-admin{grid-template-columns:1fr}}

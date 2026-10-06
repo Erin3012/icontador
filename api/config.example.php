@@ -5,4 +5,6 @@ return [
     'dsn' => 'mysql:host=127.0.0.1;port=3306;dbname=icontador;charset=utf8mb4',
     'user' => 'icontador',
     'password' => '',
+    // Opcional: carpeta privada para los adjuntos de Sugerencias (por defecto data/adjuntos).
+    // 'adjuntos_dir' => '/home/usuario/icontador-adjuntos',
 ];

@@ -93,3 +93,14 @@ Las tablas contienen ejemplos; los campos personales y contraseñas están vací
 Se conserva la estructura y el estilo recibido. Las diferencias visuales incluyen el aviso superior de copia local, diálogos colocados dentro de la página, opciones genéricas, gráficos ficticios y algunos recursos decorativos omitidos. Las ayudas en vídeo, la paginación remota y listas dinámicas no funcionan sin backend. Los recursos que el navegador no recibió y los archivos con HTTP 404 aparecen en el inventario.
 
 La navegación usa el índice y enlaces locales entre módulos, pestañas y formularios capturados. Las operaciones no disponibles muestran un aviso. Las verificaciones están en `verification.json` y `verification/`.
+
+## Sugerencias y reportes
+
+Cada pantalla tiene un botón **Reportar problema** (abajo a la derecha) que abre `views/sugerencias.html` con la pantalla de origen ya indicada. Quien tenga sesión puede describir el problema o la sugerencia y adjuntar hasta 5 archivos de 10 MB (imágenes, PDF, TXT, CSV, Excel o Word); también se puede pegar una captura con Ctrl+V. Cada usuario ve sus propios reportes y la respuesta del administrador.
+
+Un administrador ve todos los reportes en la misma pantalla (también enlazada desde el índice), los filtra por estado (nueva, en revisión, resuelta) y deja una nota para quien reportó.
+
+- API: `api/sugerencias.php` (GET lista, POST crea, PATCH cambia estado; `?adjunto=N` descarga un adjunto solo a su dueño o a un administrador). Tablas `sugerencias` y `sugerencia_adjuntos` (se crean solas; MySQL en `api/schema/sugerencias.mysql.sql`).
+- Los adjuntos se guardan con nombre aleatorio en `data/adjuntos/`, que no se publica (`.htaccess`). Para guardarlos fuera del sitio, define `adjuntos_dir` en `api/config.php` o la variable `ICONTADOR_ADJUNTOS_DIR`. Se valida la extensión y el contenido real de cada archivo.
+- En cPanel, `.user.ini` sube el límite de PHP a 10 MB por archivo.
+- Prueba: `php tools/test-sugerencias-api.php` (incluida en `npm run test:php`).
