@@ -42,9 +42,31 @@ async function mostrarSelectorEmpresa(){
   crearSelectorEmpresa(datos.empresas||[]);
  }catch(error){notify(error.message||'No se pudo cargar la empresa local.');}
 }
+// Página de inicio: nombre de la cuenta con sesión en la cabecera, fecha del día y pestañas de avisos.
+async function mostrarUsuarioInicio(){
+ try{
+  const respuesta=await fetch('../api/usuario.php',{headers:{Accept:'application/json'}});
+  if(!respuesta.ok)return;
+  const usuario=await respuesta.json(),empresa=empresaSeleccionada();
+  document.querySelectorAll('a.link_blanco').forEach(enlace=>{
+   if(/USUARIO TITULAR:/i.test(enlace.textContent))enlace.textContent='USUARIO TITULAR: '+String(usuario.nombre||usuario.email||'').toUpperCase()+(empresa?' · '+empresa.razon_social:'');
+  });
+ }catch{}
+}
+function iniciarPaginaInicio(){
+ const fecha=document.getElementById('fecha-hoy');
+ if(fecha){const texto=new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'}).replace(/ de /g,' ');fecha.textContent=texto.replace(/(^|\s)\p{Ll}/u,l=>l.toUpperCase());}
+ document.querySelectorAll('.tabs a[data-tab]').forEach(pestana=>pestana.addEventListener('click',event=>{
+  event.preventDefault();event.stopPropagation();
+  document.querySelectorAll('.tabs a[data-tab]').forEach(otra=>otra.classList.toggle('active',otra===pestana));
+  document.querySelectorAll('.secciones > article').forEach(articulo=>{articulo.style.display=articulo.id===pestana.dataset.tab?'block':'none';});
+ }));
+ mostrarUsuarioInicio();
+}
 function iniciarEmpresaLocal(){
  actualizarCabeceraEmpresa();
  const esInicio=/\/inicio-cuenta\.html$/i.test(location.pathname);
+ if(esInicio)iniciarPaginaInicio();
  if(esInicio&&(new URLSearchParams(location.search).has('seleccionar')||!empresaSeleccionada()))mostrarSelectorEmpresa();
 }
 // Las zonas marcadas con data-conta tienen su propio comportamiento en contabilidad.js.

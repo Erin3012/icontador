@@ -19,4 +19,4 @@ RewriteRule ^api/(db|config[^/]*)\.php$ - [F,L]
 RewriteCond %{ENV:REDIRECT_STATUS} ^$
 RewriteRule ^(index\.html)?$ auth/vista.php?r=index.html [L]
 RewriteCond %{ENV:REDIRECT_STATUS} ^$
-RewriteRule ^(views/[A-Za-z0-9_-]+\.html)$ auth/vista.php?r=$1 [L]
+RewriteRule ^(vistas\.html|views/[A-Za-z0-9_-]+\.html)$ auth/vista.php?r=$1 [L]
