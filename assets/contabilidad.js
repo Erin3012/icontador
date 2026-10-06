@@ -47,7 +47,13 @@ function filasLibroRcv(libro){
  const t=libro.totales;filas.push(['','',`Total: ${t.documentos} ${t.documentos===1?'documento':'documentos'}`,'','','',t.exento,t.neto,t.iva,...extra.map(e=>t[e[0]]),t.otros,t.total]);return filas;
 }
 
-const core={TIPOS,REGISTROS,monto,totales,formato,fechaCorta,csv,filasDiario,filasMayor,filasBalance,filasResultado,filasLibroRcv,nombreDoc};
+function filasLibroHonorarios(libro){
+ const filas=[['Período','Fecha','N°','Estado','RUT','Nombre o razón social','Soc. prof.','Bruto','Retenido','Pagado']];
+ for(const b of libro.boletas)filas.push([b.periodo,b.fecha,b.numero,b.estado,b.rut,b.nombre,b.socProf?'Sí':'No',b.bruto,b.retenido,b.pagado]);
+ const t=libro.totales,vig=t.boletas-t.anuladas;filas.push(['','',`Total: ${vig} ${vig===1?'boleta vigente':'boletas vigentes'}`+(t.anuladas?` (${t.anuladas} anuladas no suman)`:''),'','','','',t.bruto,t.retenido,t.pagado]);return filas;
+}
+
+const core={TIPOS,REGISTROS,monto,totales,formato,fechaCorta,csv,filasDiario,filasMayor,filasBalance,filasResultado,filasLibroRcv,filasLibroHonorarios,nombreDoc};
 if(typeof module!=='undefined'&&module.exports){module.exports=core;return;}
 
 // ---------- Navegador ----------
@@ -205,6 +211,8 @@ const INFORMES={
   ruta:f=>'libros.php?'+consulta({libro:'resultado',desde:f.desde,hasta:f.hasta,registro:f.registro}),filas:filasResultado,vacio:r=>!r.ingresos.length&&!r.gastos.length},
  'reportes-libro-compras.html':{form:'#reporteLibroCompra_form',des:'#fdeslc',has:'#fhaslc',titulo:'Libro de Compras',archivo:'libro-compras',rcv:'compras'},
  'reportes-libro-ventas.html':{form:'#reporteLibroVenta_form',des:'#fdes',has:'#fhas',titulo:'Libro de Ventas',archivo:'libro-ventas',rcv:'ventas'},
+ // La captura de esta pantalla reutiliza el formulario del Libro de Ventas.
+ 'reportes-libro-honorarios.html':{form:'#reporteLibroVenta_form',des:'#fdes',has:'#fhas',titulo:'Libro de Honorarios (boletas recibidas)',archivo:'libro-honorarios',honorarios:'recibidas'},
 };
 function tablaFilas(filas,{destacar=()=>false}={}){
  const [cab,...cuerpo]=filas,num=v=>typeof v==='number';
@@ -214,7 +222,8 @@ function tablaFilas(filas,{destacar=()=>false}={}){
 function pantallaInforme(cfg){
  const form=$(cfg.form);if(!form)return;
  form.dataset.conta='';
- const des=$(cfg.des,form),has=$(cfg.has,form),reg=$('#idTpCONTAB',form),tipo=cfg.rcv?$('#tDocto',form):null;
+ const des=$(cfg.des,form),has=$(cfg.has,form),reg=$('#idTpCONTAB',form),tipo=cfg.rcv?$('#tDocto',form):null,sii=cfg.rcv||cfg.honorarios;
+ if(cfg.honorarios)$('#tDocto',form)?.closest('.col-lg-12')?.remove();
  [des,has].forEach(aFecha);
  if(reg)reg.innerHTML='<option value="Tributario">Tributario</option><option value="IFRS">IFRS</option>';
  if(tipo){tipo.nextElementSibling?.classList.contains('select2')&&tipo.nextElementSibling.remove();
@@ -223,17 +232,17 @@ function pantallaInforme(cfg){
  const salida=document.createElement('div');salida.id='conta-reporte';salida.className='col-lg-12 col-md-12 col-sm-12 col-xs-12 conta-reporte';salida.dataset.conta='';
  form.parentElement.after(salida);
  const filtros=()=>({desde:des.value,hasta:has.value,registro:reg?.value,tipo:tipo?.value});
- const ruta=f=>cfg.rcv?'rcv.php?'+consulta({libro:cfg.rcv,desde:f.desde,hasta:f.hasta,tipo:f.tipo}):cfg.ruta(f);
- const filas=cfg.rcv?filasLibroRcv:cfg.filas;
+ const ruta=f=>cfg.rcv?'rcv.php?'+consulta({libro:cfg.rcv,desde:f.desde,hasta:f.hasta,tipo:f.tipo}):cfg.honorarios?'honorarios.php?'+consulta({libro:cfg.honorarios,desde:f.desde,hasta:f.hasta}):cfg.ruta(f);
+ const filas=cfg.rcv?filasLibroRcv:cfg.honorarios?filasLibroHonorarios:cfg.filas;
  const leer=f=>api(ruta(f));
- const periodo=f=>`${f.desde?fechaCorta(f.desde):'inicio'} al ${f.hasta?fechaCorta(f.hasta):'hoy'}`+(cfg.rcv?'':` · Contabilidad ${f.registro}`);
- const vacio=cfg.rcv?'<p class="conta-vacio">No hay documentos del RCV en este período. <a href="rcv.html">Importar el RCV</a></p>':'<p class="conta-vacio">No hay vouchers en este período. <a href="voucher-crear.html">Crear un voucher</a></p>';
+ const periodo=f=>`${f.desde?fechaCorta(f.desde):'inicio'} al ${f.hasta?fechaCorta(f.hasta):'hoy'}`+(sii?'':` · Contabilidad ${f.registro}`);
+ const vacio=cfg.honorarios?'<p class="conta-vacio">No hay boletas de honorarios en este período. <a href="honorarios.html">Importar el informe del SII</a></p>':cfg.rcv?'<p class="conta-vacio">No hay documentos del RCV en este período. <a href="rcv.html">Importar el RCV</a></p>':'<p class="conta-vacio">No hay vouchers en este período. <a href="voucher-crear.html">Crear un voucher</a></p>';
  // Las filas de totales (sin código ni período) se destacan.
  const destacar=f=>f[0]==='';
  let pedido=0;
  const pintar=async()=>{const yo=++pedido,f=filtros();
   try{const datos=await leer(f);if(yo!==pedido)return;
-   const sinDatos=cfg.rcv?!datos.docs.length:cfg.vacio(datos);
+   const sinDatos=cfg.rcv?!datos.docs.length:cfg.honorarios?!datos.boletas.length:cfg.vacio(datos);
    salida.innerHTML=`<h3 class="conta-titulo">${cfg.titulo}</h3><p class="conta-periodo">${esc(periodo(f))}</p>`+(sinDatos?vacio:tablaFilas(filas(datos),{destacar}));}
   catch(e){if(yo===pedido)salida.innerHTML=alerta(e.errores||[e.message]);}
  };
