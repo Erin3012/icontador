@@ -80,5 +80,19 @@ comprobar(count($eerr['ingresos']) === 1 && $eerr['gastos'][0]['nombre'] === 'Ar
 comprobar(eliminarVoucher($pdo, $v2['id']) && count(listarVouchers($pdo)) === 3, 'eliminar voucher');
 comprobar((int) $pdo->query('SELECT COUNT(*) FROM voucher_lineas WHERE voucher_id = ' . $v2['id'])->fetchColumn() === 0, 'eliminar borra sus líneas');
 
+
+// Editar y eliminar cuentas del plan (por empresa).
+comprobar(editarCuenta($pdo, '1.1.01', ['codigo' => '1.1.01', 'nombre' => 'Caja chica']) === ['codigo' => '1.1.01', 'nombre' => 'Caja chica'], 'se cambia el nombre de una cuenta con movimientos');
+comprobar(libroDiario($pdo)['asientos'][0]['lineas'][0]['nombre'] === 'Caja chica', 'el nuevo nombre aparece en el Libro Diario');
+comprobar(errores(fn() => editarCuenta($pdo, '1.1.01', ['codigo' => '1.1.99', 'nombre' => 'Caja'])) !== [], 'no cambia el código de una cuenta con movimientos');
+comprobar(errores(fn() => eliminarCuenta($pdo, '1.1.01')) !== [], 'no elimina una cuenta con movimientos');
+comprobar(errores(fn() => editarCuenta($pdo, '3.1.05', ['codigo' => '3.1.04', 'nombre' => 'X'])) === ['La cuenta 3.1.04 ya existe.'], 'no repite un código existente');
+comprobar(errores(fn() => editarCuenta($pdo, '3.1.05', ['codigo' => '3.1.05', 'nombre' => ' '])) === ['Ingrese el nombre de la cuenta.'], 'exige nombre al editar');
+comprobar(editarCuenta($pdo, 'no-existe', ['codigo' => '9', 'nombre' => 'X']) === null, 'editar una cuenta inexistente devuelve null');
+comprobar(editarCuenta($pdo, '3.1.05', ['codigo' => '3.1.50', 'nombre' => 'Servicios básicos']) !== null
+    && in_array('3.1.50', array_column(planCuentas($pdo), 'codigo'), true) && !in_array('3.1.05', array_column(planCuentas($pdo), 'codigo'), true), 'cambia el código de una cuenta sin movimientos');
+comprobar(editarCuenta($pdo, '3.1.50', ['codigo' => '3.1.50', 'nombre' => 'Otra'], 7) === null, 'no edita cuentas de otra empresa');
+comprobar(eliminarCuenta($pdo, '3.1.50', 7) === false && eliminarCuenta($pdo, '3.1.50') === true, 'elimina solo en la empresa propia');
+
 echo $fallas ? "$fallas pruebas fallaron" . PHP_EOL : 'Todas las pruebas pasaron' . PHP_EOL;
 exit($fallas ? 1 : 0);
