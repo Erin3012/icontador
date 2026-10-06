@@ -70,3 +70,5 @@
 .cifrax-volver-flotante{position:fixed;top:12px;left:12px;z-index:2147483645;background:#10233f;border-color:#10233f;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .offline-banner a.cifrax-volver-aviso{margin-right:12px;padding:3px 10px;text-decoration:none}
 .cifrax-volver-flotante:hover,.cifrax-volver-flotante:focus{background:#1b3a63}
+/* Pie de las ventanas emergentes: logo de Cifrax en lugar del de iContador. */
+.ui-dialog .ui-dialog-buttonpane{background-image:url("cifrax-logo.png")!important;background-size:auto 28px!important;background-position:12px center!important}

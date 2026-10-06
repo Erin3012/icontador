@@ -147,6 +147,16 @@ function agregarMarca(){
  const logo=document.createElement("img");logo.src="../assets/cifrax-logo-blanco.png";logo.alt="Cifrax";
  enlace.append(logo);barra.prepend(enlace);
 }
+// Botón Cambiar Empresa: algunas pantallas (Empresas) lo traen oculto; siempre se muestra en la barra.
+function mostrarCambiarEmpresa(){const li=document.getElementById('CmbrEmprSlcnd');if(li&&li.style.display==='none')li.style.display='';}
+// Campos de fecha: el calendario del original (jQuery UI) no viene en la copia; se usa el calendario del navegador.
+function activarCalendarios(){
+ document.querySelectorAll('input.hasDatepicker').forEach(input=>{
+  const m=/^(d{2})[-/](d{2})[-/](d{4})$/.exec(input.value.trim());
+  input.type='date';input.removeAttribute('maxlength');input.classList.remove('hasDatepicker');
+  if(m)input.value=`${m[3]}-${m[2]}-${m[1]}`;
+ });
+}
 // Botón Volver: regresa a la pantalla anterior de la app; si se llegó desde fuera (o se abrió directo), va al inicio.
 function vieneDeLaApp(){
  try{return !!document.referrer&&new URL(document.referrer).origin===location.origin&&history.length>1;}catch{return false;}
@@ -163,5 +173,5 @@ function agregarBotonVolver(){
  if(barra){const marca=barra.querySelector('.cifrax-marca');marca?marca.after(enlace):barra.prepend(enlace);}
  else{const aviso=document.querySelector('.offline-banner');if(aviso){enlace.classList.add('cifrax-volver-aviso');aviso.prepend(enlace);}else{enlace.classList.add('cifrax-volver-flotante');document.body.append(enlace);}}
 }
-function iniciarPagina(){agregarMarca();agregarBotonVolver();iniciarEmpresaLocal();agregarBotonSugerencias();}
+function iniciarPagina(){agregarMarca();mostrarCambiarEmpresa();activarCalendarios();agregarBotonVolver();iniciarEmpresaLocal();agregarBotonSugerencias();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciarPagina);else iniciarPagina();
