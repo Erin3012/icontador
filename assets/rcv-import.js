@@ -142,7 +142,7 @@
  }
  async function connect(){
   const note=document.getElementById('rcv-import-storage');
-  try{await refreshPeriods();state.server=true;note.textContent='Los libros importados se guardan en la base de datos de iContador.';if(state.periods.length)await openPeriod(state.periods[0].period);else render();}
+  try{await refreshPeriods();state.server=true;note.textContent='Los libros importados se guardan en la base de datos de Cifrax.';if(state.periods.length)await openPeriod(state.periods[0].period);else render();}
   catch{state.server=false;note.textContent='Sin servidor PHP: los archivos se procesan en este navegador y no se guardan. Inicia la copia con "npm run start:php" para guardarlos.';render();}
  }
  function init(){

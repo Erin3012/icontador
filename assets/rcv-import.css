@@ -1,9 +1,9 @@
 .rcv-import{margin:20px;padding:20px;background:#fff;border:1px solid #d9e1ea;border-radius:8px;font:14px Arial,sans-serif;color:#24323f}
-.rcv-import h3{margin:0 0 8px;font-size:18px;color:#173759}.rcv-import h4{margin:18px 0 8px;font-size:15px;color:#173759}
+.rcv-import h3{margin:0 0 8px;font-size:18px;color:#10233f}.rcv-import h4{margin:18px 0 8px;font-size:15px;color:#10233f}
 .rcv-import-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0}
 .rcv-import input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
-.rcv-btn,.rcv-btn-secondary{display:inline-block;padding:8px 14px;border-radius:4px;cursor:pointer;font-weight:bold;border:1px solid #173759}
-.rcv-btn{background:#173759;color:#fff}.rcv-btn-secondary{background:#fff;color:#173759}
+.rcv-btn,.rcv-btn-secondary{display:inline-block;padding:8px 14px;border-radius:4px;cursor:pointer;font-weight:bold;border:1px solid #10233f}
+.rcv-btn{background:#10233f;color:#fff}.rcv-btn-secondary{background:#fff;color:#10233f}
 .rcv-import input[type=file]:focus-visible+.rcv-btn,.rcv-btn:focus-within{outline:2px solid #2b7bd6}
 .rcv-files{margin:0 0 8px;padding-left:18px;color:#4a5a69}.rcv-msg{color:#a33a00;min-height:1em}
 .rcv-import section.rcv-iva,.rcv-import section.rcv-book{display:block;margin-top:22px;padding:0;border:0}
@@ -13,6 +13,6 @@
 .rcv-note{margin:8px 0 0;font-size:13px;color:#4a5a69}
 .rcv-table-wrap{overflow-x:auto}.rcv-table{width:100%;border-collapse:collapse;font-size:13px}
 .rcv-table th,.rcv-table td{padding:6px 8px;border-bottom:1px solid #e3e8ee;text-align:left;white-space:nowrap}
-.rcv-table th{background:#173759;color:#fff}.rcv-table .num{text-align:right;font-variant-numeric:tabular-nums}
-.rcv-table tfoot td{font-weight:bold;border-top:2px solid #173759}.rcv-table tr.rcv-nc td{color:#a33a00}.rcv-empty{color:#4a5a69}
-.rcv-select{padding:7px 10px;border:1px solid #173759;border-radius:4px;background:#fff;color:#173759}
+.rcv-table th{background:#10233f;color:#fff}.rcv-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.rcv-table tfoot td{font-weight:bold;border-top:2px solid #10233f}.rcv-table tr.rcv-nc td{color:#a33a00}.rcv-empty{color:#4a5a69}
+.rcv-select{padding:7px 10px;border:1px solid #10233f;border-radius:4px;background:#fff;color:#10233f}

@@ -19,12 +19,23 @@ try {
                 header('Content-Disposition: attachment; filename="empresa-' . trim($nombre, '-') . '.json"');
                 responder($paquete);
             }
-            responder(['empresas' => empresas_listar($db)]);
+            $usuario = auth_actual();
+            responder(['empresas' => empresas_listar($db), 'puede_administrar' => ($usuario['rol'] ?? '') === 'admin']);
         case 'POST':
             $datos = cuerpoJson();
             responder(isset($datos['formato']) ? empresa_importar($db, $datos) : empresa_crear($db, $datos), 201);
+        case 'PUT':
+        case 'PATCH':
+            auth_exigir_api(true);
+            $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($id === false) throw new ErrorValidacion(['Identificador de empresa inválido.']);
+            $datos = cuerpoJson();
+            if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+                responder(['empresa' => empresa_actualizar($db, (int) $id, $datos)]);
+            }
+            responder(['empresa' => empresa_cambiar_estado($db, (int) $id, (string) ($datos['estado'] ?? ''))]);
     }
-    header('Allow: GET, POST');
+    header('Allow: GET, POST, PUT, PATCH');
     responder(['errores' => ['Método no permitido.']], 405);
 } catch (ErrorValidacion $e) {
     responder(['errores' => $e->errores], 422);

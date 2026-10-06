@@ -1,4 +1,4 @@
-# iContador local
+# Cifrax – plataforma contable (copia local)
 
 Copia del HTML renderizado, estilos, imágenes y fuentes servidos al navegador el 2 de octubre de 2026. Se revisaron los 16 módulos del menú de esta cuenta. Consulta `index.html` para recorrer las capturas y `inventory.json` para conocer la cobertura y las exclusiones.
 

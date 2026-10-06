@@ -2,8 +2,8 @@
 .conta-detalle{margin-bottom:12px}
 .conta-tabla{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
 .conta-tabla th,.conta-tabla td{padding:6px 8px;border-bottom:1px solid #e1e6ec;vertical-align:middle}
-.conta-tabla thead th{background:#173759;color:#fff;font-weight:600}
-.conta-tabla caption{text-align:left;font-weight:700;color:#173759;padding:10px 0 4px;font-size:14px}
+.conta-tabla thead th{background:#10233f;color:#fff;font-weight:600}
+.conta-tabla caption{text-align:left;font-weight:700;color:#10233f;padding:10px 0 4px;font-size:14px}
 .conta-tabla .num{text-align:right;font-variant-numeric:tabular-nums}
 .conta-tabla input.num{min-width:110px}
 .conta-tabla tfoot td{font-weight:700;background:#f3f6f9}
@@ -14,7 +14,7 @@
 .conta-accion{border:0;background:none;color:#1467b3;cursor:pointer;padding:0 4px;text-decoration:underline}
 .conta-resaltado td{background:#fff6d6!important}
 .conta-reporte{margin:16px 0 30px}
-.conta-titulo{color:#173759;margin:8px 0 2px}
+.conta-titulo{color:#10233f;margin:8px 0 2px}
 .conta-periodo{color:#526579;margin-bottom:10px}
 .conta-asiento td{background:#eef3f8;font-weight:600}
 .conta-subtotal td{border-bottom:2px solid #c9d3de}
