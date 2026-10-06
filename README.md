@@ -25,6 +25,7 @@ Sin configuración usa SQLite en `data/icontador.sqlite`. Para MySQL, copia `api
 ## Boletas de honorarios
 
 La pantalla **Honorarios** importa el informe mensual de boletas de honorarios recibidas del SII (`informeMensualREC.xls`, una tabla HTML en ISO-8859-1) con `assets/honorarios-import.js`, y guarda las boletas por empresa y período en la tabla `honorarios_boletas` (API `api/honorarios.php`, esquema MySQL en `api/schema/honorarios.mysql.sql`). Muestra bruto, retención (F29 código 151) y líquido; las boletas anuladas se listan pero no suman, igual que en el SII. **Libro de Honorarios** (Reportes) lee esas boletas por rango de fechas. Pruebas: `tools/test-honorarios.cjs` y `tools/test-honorarios-api.php`.
+
 ## Vouchers y libros contables (PHP)
 
 Las pantallas **Voucher**, **Crear Voucher**, **Libro Diario** y **Libro Mayor** guardan y leen la misma base de datos que el RCV, así que también necesitan `npm run start:php` (o Apache/XAMPP); con `npm start` muestran un aviso.
