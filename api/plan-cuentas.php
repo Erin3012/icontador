@@ -4,6 +4,7 @@
 // POST   plan-cuentas.php {codigo, nombre}    agrega una cuenta
 // DELETE plan-cuentas.php?codigo=X           elimina una cuenta sin movimientos
 declare(strict_types=1);
+require_once __DIR__ . '/lib/sesion.php';
 require __DIR__ . '/lib/vouchers.php';
 
 ejecutar(function (PDO $pdo, int $empresa) {

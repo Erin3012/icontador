@@ -1,6 +1,7 @@
 <?php
 // GET libros.php?libro=diario|mayor|balance|resultado[&desde=&hasta=&registro=Tributario|IFRS&cuenta=]
 declare(strict_types=1);
+require_once __DIR__ . '/lib/sesion.php';
 require __DIR__ . '/lib/vouchers.php';
 
 ejecutar(function (PDO $pdo, int $empresa) {

@@ -45,6 +45,21 @@ Vouchers, RCV y liquidaciones se guardan por empresa. La pantalla de inicio pide
 - PDF imprime el reporte; EXCEL y CSV descargan un CSV. Los formatos propios del SII (Libro Compra Electrónico, Caracterización) aún no están disponibles.
 - **Plan de Cuenta** muestra el plan de la empresa seleccionada, con el detalle importado de iContador cuando existe (`api/plan-cuentas.php`).
 
+## Acceso con usuario y clave (PHP)
+
+Con `npm run start:php` (o Apache/cPanel) la copia exige iniciar sesión: las pantallas redirigen a `/auth/login.php` y cada `api/*.php` responde 401 sin una sesión aprobada.
+
+1. Crea la primera cuenta de administrador desde la terminal (pide la clave sin mostrarla):
+
+   ```powershell
+   php tools/crear-admin.php tu-correo@ejemplo.cl "Tu nombre"
+   ```
+
+2. Otras personas se registran en `/auth/registro.php`. Su cuenta queda **pendiente** y no puede entrar hasta que la apruebes.
+3. En `/auth/usuarios.php` (enlace "Usuarios y aprobaciones" en el índice) apruebas o rechazas registros, deshabilitas cuentas y das o quitas el rol de administrador. Deshabilitar corta el acceso de inmediato.
+
+Las claves se guardan con `password_hash`. La tabla `usuarios` se crea sola (`api/schema/usuarios.mysql.sql` para MySQL). En Apache, `.htaccess` hace pasar las pantallas HTML por `auth/vista.php` y bloquea `data/`, `tools/`, `api/lib/` y la configuración. Todo endpoint nuevo en `api/` debe empezar con `require_once __DIR__ . '/lib/sesion.php';`; `npm run test:php` lo comprueba.
+
 ## Trabajar con los archivos
 
 - `views/`: pantallas HTML editables recuperadas del navegador.

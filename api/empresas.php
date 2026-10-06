@@ -4,6 +4,7 @@
 // POST empresas.php {razon_social, rut, giro, regimen, telefono, email, plan_ejemplo}  crea una empresa
 // POST empresas.php {formato: "icontador-empresa", ...}  importa una empresa exportada
 declare(strict_types=1);
+require_once __DIR__ . '/lib/sesion.php';
 require __DIR__ . '/lib/empresa-paquete.php';
 
 // No usa ejecutar(): esta pantalla debe funcionar aunque la empresa elegida en el navegador ya no exista.
