@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/lib/sesion.php';
 /* API del RCV.
    GET    api/rcv.php                  -> períodos guardados
    GET    api/rcv.php?periodo=AAAA-MM  -> libros del período

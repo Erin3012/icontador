@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/lib/sesion.php';
 /* API de liquidaciones de sueldo.
    GET    api/liquidaciones.php                  -> liquidaciones guardadas
    GET    api/liquidaciones.php?periodo=AAAA-MM  -> liquidaciones del período

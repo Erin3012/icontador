@@ -1,0 +1,16 @@
+# Apache / cPanel: las pantallas HTML pasan por auth/vista.php, que exige una sesión aprobada.
+# Cada api/*.php además comprueba la sesión por sí mismo (api/lib/sesion.php).
+Options -Indexes
+DirectoryIndex index.html
+RewriteEngine On
+
+# Carpetas y archivos internos que nunca se publican.
+RewriteRule ^(data|tools|reference|samples|node_modules|verification|\.git)(/|$) - [F,L]
+RewriteRule ^api/(lib|schema)/ - [F,L]
+RewriteRule ^api/(db|config[^/]*)\.php$ - [F,L]
+
+# Pantallas: solo con sesión.
+RewriteCond %{ENV:REDIRECT_STATUS} ^$
+RewriteRule ^(index\.html)?$ auth/vista.php?r=index.html [L]
+RewriteCond %{ENV:REDIRECT_STATUS} ^$
+RewriteRule ^(views/[A-Za-z0-9_-]+\.html)$ auth/vista.php?r=$1 [L]
