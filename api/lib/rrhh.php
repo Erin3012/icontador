@@ -409,3 +409,25 @@ function finiquito_actualizar(PDO $db, int $id, array $datos, int $empresa): boo
     $stmt = $db->prepare($query);
     return $stmt->execute($valores);
 }
+
+function anexo_crear(PDO $db, int $empresa, array $datos): int {
+    $stmt = $db->prepare('INSERT INTO anexos_contrato
+        (empresa_id, contrato_id, empleado_rut, fecha, detalle, creado_en)
+        VALUES (?, ?, ?, ?, ?, ?)');
+    $stmt->execute([
+        $empresa,
+        $datos['contrato_id'] ?? 0,
+        $datos['empleado_rut'] ?? '',
+        $datos['fecha'] ?? date('Y-m-d'),
+        $datos['detalle'] ?? '',
+        date('Y-m-d H:i:s')
+    ]);
+    return (int)$db->lastInsertId();
+}
+
+function anexo_obtener(PDO $db, int $id, int $empresa): ?array {
+    $stmt = $db->prepare('SELECT * FROM anexos_contrato WHERE id = ? AND empresa_id = ?');
+    $stmt->execute([$id, $empresa]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result ?: null;
+}
