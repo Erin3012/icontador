@@ -1,8 +1,8 @@
 <?php
-// Vouchers, Libro Diario y Libro Mayor: esquema, validación y consultas. Conexión en api/db.php.
+// Vouchers y reportes contables por empresa: esquema, validación y consultas. Conexión en api/db.php.
 declare(strict_types=1);
 
-require_once dirname(__DIR__) . '/db.php';
+require_once __DIR__ . '/empresas.php';
 
 const TIPOS = ['I' => 'Ingreso', 'E' => 'Egreso', 'T' => 'Traspaso'];
 const REGISTROS = ['Ambos', 'IFRS', 'Tributario'];
@@ -45,18 +45,8 @@ function crearEsquema(PDO $pdo): void
         codigo VARCHAR(20) NOT NULL PRIMARY KEY,
         nombre VARCHAR(120) NOT NULL
     )$motor");
-    $pdo->exec("CREATE TABLE IF NOT EXISTS vouchers (
-        id $id,
-        tipo CHAR(1) NOT NULL,
-        periodo CHAR(7) NOT NULL,
-        numero INT NOT NULL,
-        fecha DATE NOT NULL,
-        registro VARCHAR(12) NOT NULL,
-        glosa VARCHAR(500) NOT NULL DEFAULT '',
-        creado VARCHAR(25) NOT NULL,
-        modificado VARCHAR(25) NOT NULL,
-        UNIQUE (tipo, periodo, numero)
-    )$motor");
+    $pdo->exec(tablaVouchers('vouchers', $id, $motor));
+    migrarVouchersPorEmpresa($pdo, $mysql, $id, $motor);
     $pdo->exec("CREATE TABLE IF NOT EXISTS voucher_lineas (
         id $id,
         voucher_id INT NOT NULL,
@@ -73,6 +63,53 @@ function crearEsquema(PDO $pdo): void
         foreach (PLAN_BASE as $cuenta) {
             $insertar->execute($cuenta);
         }
+    }
+}
+
+function tablaVouchers(string $nombre, string $id, string $motor): string
+{
+    return "CREATE TABLE IF NOT EXISTS $nombre (
+        id $id,
+        empresa_id INT NOT NULL DEFAULT 0,
+        tipo CHAR(1) NOT NULL,
+        periodo CHAR(7) NOT NULL,
+        numero INT NOT NULL,
+        fecha DATE NOT NULL,
+        registro VARCHAR(12) NOT NULL,
+        glosa VARCHAR(500) NOT NULL DEFAULT '',
+        creado VARCHAR(25) NOT NULL,
+        modificado VARCHAR(25) NOT NULL,
+        UNIQUE (empresa_id, tipo, periodo, numero)
+    )$motor";
+}
+
+// Los vouchers creados antes de separar por empresa no tienen empresa_id y su correlativo era único para todas las empresas.
+function migrarVouchersPorEmpresa(PDO $pdo, bool $mysql, string $id, string $motor): void
+{
+    if (columna_existe($pdo, 'vouchers', 'empresa_id')) {
+        return;
+    }
+    $empresa = empresa_para_datos_previos($pdo);
+    if ($mysql) {
+        $pdo->exec('ALTER TABLE vouchers ADD COLUMN empresa_id INT NOT NULL DEFAULT 0 AFTER id, DROP INDEX tipo, ADD UNIQUE KEY uq_vouchers_numero (empresa_id, tipo, periodo, numero)');
+        $pdo->prepare('UPDATE vouchers SET empresa_id = ?')->execute([$empresa]);
+        return;
+    }
+    // SQLite no permite cambiar una restricción UNIQUE: se reconstruye la tabla sin activar el borrado en cascada de las líneas.
+    $pdo->exec('PRAGMA foreign_keys = OFF');
+    $pdo->beginTransaction();
+    try {
+        $pdo->exec(tablaVouchers('vouchers_nueva', $id, $motor));
+        $pdo->prepare('INSERT INTO vouchers_nueva (id, empresa_id, tipo, periodo, numero, fecha, registro, glosa, creado, modificado)
+            SELECT id, ?, tipo, periodo, numero, fecha, registro, glosa, creado, modificado FROM vouchers')->execute([$empresa]);
+        $pdo->exec('DROP TABLE vouchers');
+        $pdo->exec('ALTER TABLE vouchers_nueva RENAME TO vouchers');
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    } finally {
+        $pdo->exec('PRAGMA foreign_keys = ON');
     }
 }
 
@@ -160,10 +197,10 @@ function formato(int $n): string
     return number_format($n, 0, ',', '.');
 }
 
-function obtenerVoucher(PDO $pdo, int $id): ?array
+function obtenerVoucher(PDO $pdo, int $id, int $empresa = 0): ?array
 {
-    $consulta = $pdo->prepare('SELECT * FROM vouchers WHERE id = ?');
-    $consulta->execute([$id]);
+    $consulta = $pdo->prepare('SELECT * FROM vouchers WHERE id = ? AND empresa_id = ?');
+    $consulta->execute([$id, $empresa]);
     $voucher = $consulta->fetch();
     if (!$voucher) {
         return null;
@@ -184,9 +221,11 @@ function formatearVoucher(array $v, array $lineas): array
     ];
 }
 
-function listarVouchers(PDO $pdo, array $filtros = []): array
+function listarVouchers(PDO $pdo, array $filtros = [], int $empresa = 0): array
 {
     [$where, $params] = condiciones($filtros);
+    array_unshift($where, 'v.empresa_id = ?');
+    array_unshift($params, $empresa);
     if (($filtros['numero'] ?? '') !== '') {
         $where[] = 'v.numero = ?';
         $params[] = (int) $filtros['numero'];
@@ -223,7 +262,7 @@ function condiciones(array $filtros): array
 }
 
 // Crea un voucher (sin $id) o reemplaza uno existente. El número es correlativo por tipo y mes.
-function guardarVoucher(PDO $pdo, array $datos, ?int $id = null): array
+function guardarVoucher(PDO $pdo, array $datos, ?int $id = null, int $empresa = 0): array
 {
     $codigos = array_column(planCuentas($pdo), 'codigo');
     $v = validarVoucher($datos, $codigos);
@@ -233,8 +272,8 @@ function guardarVoucher(PDO $pdo, array $datos, ?int $id = null): array
     try {
         $previo = null;
         if ($id !== null) {
-            $previo = $pdo->prepare('SELECT * FROM vouchers WHERE id = ?');
-            $previo->execute([$id]);
+            $previo = $pdo->prepare('SELECT * FROM vouchers WHERE id = ? AND empresa_id = ?');
+            $previo->execute([$id, $empresa]);
             $previo = $previo->fetch() ?: null;
             if (!$previo) {
                 throw new ErrorValidacion(['El voucher no existe.']);
@@ -243,8 +282,8 @@ function guardarVoucher(PDO $pdo, array $datos, ?int $id = null): array
         if ($previo && $previo['tipo'] === $v['tipo'] && $previo['periodo'] === $periodo) {
             $numero = (int) $previo['numero'];
         } else {
-            $max = $pdo->prepare('SELECT COALESCE(MAX(numero), 0) FROM vouchers WHERE tipo = ? AND periodo = ?');
-            $max->execute([$v['tipo'], $periodo]);
+            $max = $pdo->prepare('SELECT COALESCE(MAX(numero), 0) FROM vouchers WHERE empresa_id = ? AND tipo = ? AND periodo = ?');
+            $max->execute([$empresa, $v['tipo'], $periodo]);
             $numero = (int) $max->fetchColumn() + 1;
         }
         if ($previo) {
@@ -252,8 +291,8 @@ function guardarVoucher(PDO $pdo, array $datos, ?int $id = null): array
                 ->execute([$v['tipo'], $periodo, $numero, $v['fecha'], $v['registro'], $v['glosa'], $ahora, $id]);
             $pdo->prepare('DELETE FROM voucher_lineas WHERE voucher_id = ?')->execute([$id]);
         } else {
-            $pdo->prepare('INSERT INTO vouchers (tipo, periodo, numero, fecha, registro, glosa, creado, modificado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-                ->execute([$v['tipo'], $periodo, $numero, $v['fecha'], $v['registro'], $v['glosa'], $ahora, $ahora]);
+            $pdo->prepare('INSERT INTO vouchers (empresa_id, tipo, periodo, numero, fecha, registro, glosa, creado, modificado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+                ->execute([$empresa, $v['tipo'], $periodo, $numero, $v['fecha'], $v['registro'], $v['glosa'], $ahora, $ahora]);
             $id = (int) $pdo->lastInsertId();
         }
         $insertar = $pdo->prepare('INSERT INTO voucher_lineas (voucher_id, orden, cuenta, glosa, debe, haber) VALUES (?, ?, ?, ?, ?, ?)');
@@ -265,34 +304,37 @@ function guardarVoucher(PDO $pdo, array $datos, ?int $id = null): array
         $pdo->rollBack();
         throw $e;
     }
-    return obtenerVoucher($pdo, $id);
+    return obtenerVoucher($pdo, $id, $empresa);
 }
 
-function eliminarVoucher(PDO $pdo, int $id): bool
+function eliminarVoucher(PDO $pdo, int $id, int $empresa = 0): bool
 {
+    if (!obtenerVoucher($pdo, $id, $empresa)) {
+        return false;
+    }
     $pdo->prepare('DELETE FROM voucher_lineas WHERE voucher_id = ?')->execute([$id]);
     $consulta = $pdo->prepare('DELETE FROM vouchers WHERE id = ?');
     $consulta->execute([$id]);
     return $consulta->rowCount() > 0;
 }
 
-function libroDiario(PDO $pdo, array $filtros = []): array
+function libroDiario(PDO $pdo, array $filtros = [], int $empresa = 0): array
 {
     $nombres = array_column(planCuentas($pdo), 'nombre', 'codigo');
     $asientos = array_map(function ($v) use ($nombres) {
         $v['lineas'] = array_map(fn($l) => $l + ['nombre' => $nombres[$l['cuenta']] ?? $l['cuenta']], $v['lineas']);
         return $v;
-    }, listarVouchers($pdo, ['desde' => $filtros['desde'] ?? null, 'hasta' => $filtros['hasta'] ?? null, 'registro' => $filtros['registro'] ?? null]));
+    }, listarVouchers($pdo, ['desde' => $filtros['desde'] ?? null, 'hasta' => $filtros['hasta'] ?? null, 'registro' => $filtros['registro'] ?? null], $empresa));
     return ['asientos' => $asientos, 'debe' => array_sum(array_column($asientos, 'debe')), 'haber' => array_sum(array_column($asientos, 'haber'))];
 }
 
-function libroMayor(PDO $pdo, array $filtros = []): array
+function libroMayor(PDO $pdo, array $filtros = [], int $empresa = 0): array
 {
     $desde = fechaValida($filtros['desde'] ?? null) ? $filtros['desde'] : null;
     $cuenta = (string) ($filtros['cuenta'] ?? '');
     $porCuenta = [];
     // Se leen los movimientos hasta "hasta"; los anteriores a "desde" forman el saldo anterior.
-    foreach (listarVouchers($pdo, ['hasta' => $filtros['hasta'] ?? null, 'registro' => $filtros['registro'] ?? null]) as $v) {
+    foreach (listarVouchers($pdo, ['hasta' => $filtros['hasta'] ?? null, 'registro' => $filtros['registro'] ?? null], $empresa) as $v) {
         foreach ($v['lineas'] as $l) {
             if ($cuenta !== '' && $l['cuenta'] !== $cuenta) {
                 continue;
@@ -337,10 +379,10 @@ function claseCuenta(string $codigo): string
 }
 
 // Sumas de Debe y Haber por cuenta entre "desde" y "hasta".
-function sumasPorCuenta(PDO $pdo, array $filtros): array
+function sumasPorCuenta(PDO $pdo, array $filtros, int $empresa): array
 {
     $sumas = [];
-    foreach (listarVouchers($pdo, ['desde' => $filtros['desde'] ?? null, 'hasta' => $filtros['hasta'] ?? null, 'registro' => $filtros['registro'] ?? null]) as $v) {
+    foreach (listarVouchers($pdo, ['desde' => $filtros['desde'] ?? null, 'hasta' => $filtros['hasta'] ?? null, 'registro' => $filtros['registro'] ?? null], $empresa) as $v) {
         foreach ($v['lineas'] as $l) {
             $sumas[$l['cuenta']] ??= ['debe' => 0, 'haber' => 0];
             $sumas[$l['cuenta']]['debe'] += $l['debe'];
@@ -351,9 +393,9 @@ function sumasPorCuenta(PDO $pdo, array $filtros): array
 }
 
 // Balance General de 8 columnas: sumas, saldos, inventario y resultado.
-function balanceGeneral(PDO $pdo, array $filtros = []): array
+function balanceGeneral(PDO $pdo, array $filtros = [], int $empresa = 0): array
 {
-    $sumas = sumasPorCuenta($pdo, $filtros);
+    $sumas = sumasPorCuenta($pdo, $filtros, $empresa);
     $cuentas = [];
     $totales = array_fill_keys(['debitos', 'creditos', 'deudor', 'acreedor', 'activo', 'pasivo', 'perdida', 'ganancia'], 0);
     foreach (planCuentas($pdo) as $c) {
@@ -387,9 +429,9 @@ function balanceGeneral(PDO $pdo, array $filtros = []): array
 }
 
 // Estado de Resultado: ingresos (clase 4) menos costos y gastos (clase 3).
-function estadoResultado(PDO $pdo, array $filtros = []): array
+function estadoResultado(PDO $pdo, array $filtros = [], int $empresa = 0): array
 {
-    $sumas = sumasPorCuenta($pdo, $filtros);
+    $sumas = sumasPorCuenta($pdo, $filtros, $empresa);
     $ingresos = $gastos = [];
     foreach (planCuentas($pdo) as $c) {
         if (!isset($sumas[$c['codigo']])) {
@@ -421,9 +463,12 @@ function responder(mixed $datos, int $estado = 200): never
 function ejecutar(callable $accion): never
 {
     try {
-        responder($accion(conectar()));
+        $pdo = conectar();
+        responder($accion($pdo, empresa_actual($pdo)));
     } catch (ErrorValidacion $e) {
         responder(['errores' => $e->errores], 422);
+    } catch (EmpresaError $e) {
+        responder(['errores' => [$e->getMessage()]], 422);
     } catch (Throwable $e) {
         error_log('iContador API: ' . $e);
         responder(['errores' => ['Error interno de la base de datos. Revise el registro del servidor PHP.']], 500);

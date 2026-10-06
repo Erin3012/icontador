@@ -4,6 +4,10 @@ const EMPRESA_LOCAL_KEY='icontador.empresaSeleccionada';
 function empresaSeleccionada(){
  try{return JSON.parse(localStorage.getItem(EMPRESA_LOCAL_KEY)||'null');}catch{return null;}
 }
+// Las APIs PHP guardan y leen los datos de la empresa indicada en esta cabecera.
+function cabeceraEmpresa(){
+ const empresa=empresaSeleccionada();return empresa?.id?{'X-Empresa-Id':String(empresa.id)}:{};
+}
 function actualizarCabeceraEmpresa(){
  const empresa=empresaSeleccionada();if(!empresa)return;
  document.querySelectorAll('a.link_blanco').forEach(enlace=>{

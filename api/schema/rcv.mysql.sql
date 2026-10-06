@@ -1,6 +1,7 @@
 -- Tabla del Registro de Compras y Ventas (MySQL 5.7+ / MariaDB). api/lib/rcv.php la crea si no existe.
 CREATE TABLE IF NOT EXISTS rcv_documentos (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  empresa_id INT NOT NULL DEFAULT 0,
   periodo CHAR(7) NOT NULL,
   libro VARCHAR(7) NOT NULL,
   archivo VARCHAR(255) NOT NULL DEFAULT '',
@@ -19,5 +20,5 @@ CREATE TABLE IF NOT EXISTS rcv_documentos (
   otros BIGINT NOT NULL DEFAULT 0,
   total BIGINT NOT NULL DEFAULT 0,
   creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  KEY idx_rcv_periodo_libro (periodo, libro)
+  KEY idx_rcv_empresa_periodo (empresa_id, periodo, libro)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

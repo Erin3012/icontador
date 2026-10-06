@@ -32,6 +32,10 @@ Las pantallas **Voucher**, **Crear Voucher**, **Libro Diario** y **Libro Mayor**
 - Libro Diario y Libro Mayor se generan desde la base de datos con filtros de fecha y tipo de contabilidad (Tributario/IFRS). PDF imprime el reporte; EXCEL y CSV descargan un CSV.
 - API: `api/vouchers.php` (GET, POST, PUT, DELETE), `api/cuentas.php` (plan de cuentas) y `api/libros.php?libro=diario|mayor|balance|resultado`.
 
+## Datos por empresa
+
+Vouchers, RCV y liquidaciones se guardan por empresa. La pantalla de inicio pide elegir la empresa y cada pantalla envía su id a la API en la cabecera `X-Empresa-Id` (la función `empresa_actual()` de `api/lib/empresas.php` la lee y valida). Al actualizar una base anterior, los datos guardados pasan a la única empresa importada; si hay varias, quedan sin empresa y solo se ven sin empresa seleccionada. El plan de cuentas (`cuentas`) sigue siendo común a todas las empresas.
+
 ## Balance, Estado de Resultado y Libros de Compras y Ventas (PHP)
 
 - **Balance General** (8 columnas) y **Estado de Resultado** se calculan desde los vouchers guardados, con los mismos filtros de fecha y tipo de contabilidad que el Libro Diario. Las cuentas se clasifican por el primer dígito del código: 1 activo, 2 pasivo y patrimonio, 3 costos y gastos, 4 ingresos.

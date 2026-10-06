@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
-/* Persistencia de liquidaciones de sueldo calculadas en la calculadora de Remuneraciones. */
+/* Persistencia de liquidaciones de sueldo calculadas en la calculadora de Remuneraciones, por empresa. */
+require_once __DIR__ . '/empresas.php';
 
 const LIQ_MONTOS = ['sueldoBase' => 'sueldo_base', 'gratificacion' => 'gratificacion', 'imponible' => 'imponible', 'totalHaberes' => 'total_haberes',
     'afp' => 'afp', 'salud' => 'salud', 'afc' => 'afc', 'impuesto' => 'impuesto', 'totalDescuentos' => 'total_descuentos', 'liquido' => 'liquido', 'costoEmpresa' => 'costo_empresa'];
@@ -11,13 +12,15 @@ final class LiquidacionError extends RuntimeException {}
 function liq_schema(PDO $db): void {
     if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
         $db->exec(file_get_contents(dirname(__DIR__) . '/schema/liquidaciones.mysql.sql'));
+        agregar_empresa_id($db, 'liquidaciones');
         return;
     }
     $montos = implode(', ', array_map(fn($c) => "$c INTEGER NOT NULL DEFAULT 0", LIQ_MONTOS));
     $db->exec("CREATE TABLE IF NOT EXISTS liquidaciones (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, periodo TEXT NOT NULL, trabajador TEXT NOT NULL, $montos,
+        id INTEGER PRIMARY KEY AUTOINCREMENT, empresa_id INTEGER NOT NULL DEFAULT 0, periodo TEXT NOT NULL, trabajador TEXT NOT NULL, $montos,
         detalle TEXT NOT NULL, creado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)");
-    $db->exec('CREATE INDEX IF NOT EXISTS idx_liquidaciones_periodo ON liquidaciones (periodo)');
+    agregar_empresa_id($db, 'liquidaciones');
+    $db->exec('CREATE INDEX IF NOT EXISTS idx_liquidaciones_empresa_periodo ON liquidaciones (empresa_id, periodo)');
 }
 
 function liq_validar_periodo($periodo): string {
@@ -26,11 +29,11 @@ function liq_validar_periodo($periodo): string {
 }
 
 /** Guarda una liquidación y devuelve su id. */
-function liq_guardar(PDO $db, array $datos): int {
+function liq_guardar(PDO $db, array $datos, int $empresa = 0): int {
     $periodo = liq_validar_periodo($datos['periodo'] ?? null);
     $trabajador = is_string($datos['trabajador'] ?? null) ? trim($datos['trabajador']) : '';
     if ($trabajador === '') throw new LiquidacionError('Indica el nombre del trabajador.');
-    $fila = ['periodo' => $periodo, 'trabajador' => mb_substr($trabajador, 0, 120)];
+    $fila = ['empresa_id' => $empresa, 'periodo' => $periodo, 'trabajador' => mb_substr($trabajador, 0, 120)];
     foreach (LIQ_MONTOS as $campo => $columna) {
         $valor = $datos[$campo] ?? null;
         if (!is_int($valor) && !(is_float($valor) && floor($valor) === $valor)) throw new LiquidacionError($campo . ' debe ser un monto entero.');
@@ -50,10 +53,10 @@ function liq_guardar(PDO $db, array $datos): int {
 }
 
 /** Liquidaciones guardadas, las más recientes primero; opcionalmente de un período. */
-function liq_listar(PDO $db, ?string $periodo = null): array {
-    $sql = 'SELECT * FROM liquidaciones';
-    $params = [];
-    if ($periodo !== null) { $sql .= ' WHERE periodo = ?'; $params[] = liq_validar_periodo($periodo); }
+function liq_listar(PDO $db, ?string $periodo = null, int $empresa = 0): array {
+    $sql = 'SELECT * FROM liquidaciones WHERE empresa_id = ?';
+    $params = [$empresa];
+    if ($periodo !== null) { $sql .= ' AND periodo = ?'; $params[] = liq_validar_periodo($periodo); }
     $st = $db->prepare($sql . ' ORDER BY periodo DESC, id DESC LIMIT 500');
     $st->execute($params);
     return array_map('liq_desde_fila', $st->fetchAll());
@@ -67,9 +70,9 @@ function liq_desde_fila(array $f): array {
     return $out;
 }
 
-function liq_borrar(PDO $db, $id): int {
+function liq_borrar(PDO $db, $id, int $empresa = 0): int {
     if (!is_numeric($id) || (int)$id <= 0) throw new LiquidacionError('Id inválido.');
-    $st = $db->prepare('DELETE FROM liquidaciones WHERE id = ?');
-    $st->execute([(int)$id]);
+    $st = $db->prepare('DELETE FROM liquidaciones WHERE id = ? AND empresa_id = ?');
+    $st->execute([(int)$id, $empresa]);
     return $st->rowCount();
 }
