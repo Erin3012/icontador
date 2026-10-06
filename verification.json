@@ -1,7 +1,7 @@
 {
   "status": "passed",
   "views": 129,
-  "localReferences": 4310,
+  "localReferences": 4311,
   "checks": [
     "referencias locales existentes",
     "CSP sin conexiones externas (solo vistas contables hacia la API local)",

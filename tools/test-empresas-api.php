@@ -3,7 +3,7 @@
 declare(strict_types=1);
 require dirname(__DIR__) . '/api/lib/vouchers.php';
 require dirname(__DIR__) . '/api/lib/rcv.php';
-require dirname(__DIR__) . '/api/lib/liquidaciones.php';
+require dirname(__DIR__) . '/api/lib/empresa-paquete.php';
 function check(bool $ok, string $msg): void { if (!$ok) { fwrite(STDERR, "FALLA: $msg\n"); exit(1); } }
 function base(): PDO { return new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]); }
 
@@ -65,4 +65,39 @@ check(guardarVoucher($db, ['fecha' => '2026-09-03'] + $voucher, null, 1)['numero
 check(rcv_periodos($db, 1) === [['period' => '2026-09', 'compras' => 1, 'ventas' => 0]], 'el RCV anterior pasa a la empresa importada');
 check($db->query("SELECT COUNT(*) FROM sqlite_master WHERE name LIKE '%_nueva'")->fetchColumn() == 0, 'sin tablas temporales');
 check($db->query('PRAGMA foreign_key_check')->fetchAll() === [], 'claves foráneas consistentes tras migrar');
-echo "Empresas PHP: separación de datos y migración verificadas\n";
+
+// Crear, exportar e importar en otra base (como pasar ENYEL de la base local al sitio publicado).
+$origen = base();
+empresas_esquema_completo($origen);
+check(normalizarRut('76.086.428-5') === '76086428-5' && normalizarRut('76086428-4') === null && normalizarRut('1-9') === '1-9', 'RUT con dígito verificador');
+$creada = empresa_crear($origen, ['razon_social' => 'ENYEL SPA', 'rut' => '76.086.428-5', 'regimen' => 'Pro Pyme General (14 D N°3)', 'email' => 'a@b.cl', 'plan_ejemplo' => true]);
+$eid = $creada['empresa']['id'];
+check($creada['cuentas_agregadas'] === count(PLAN_EJEMPLO) && $creada['empresa']['rut'] === '76086428-5' && $creada['empresa']['cuentas'] === count(PLAN_EJEMPLO), 'crear empresa con plan de ejemplo');
+foreach ([['razon_social' => ''], ['razon_social' => 'X', 'rut' => '11.111.111-2'], ['razon_social' => 'X', 'rut' => '76086428-5'], ['razon_social' => 'X', 'email' => 'no']] as $mala) {
+    try { empresa_crear($origen, $mala); check(false, 'debió rechazar ' . json_encode($mala)); } catch (ErrorValidacion) {}
+}
+check(empresa_crear($origen, ['razon_social' => 'SIN PLAN'])['empresa']['cuentas'] === 0, 'crear empresa sin plan');
+guardarVoucher($origen, $voucher, null, $eid);
+rcv_guardar($origen, ['kind' => 'compras', 'period' => '2026-09', 'docs' => [['tipo' => 33, 'folio' => '7', 'neto' => 100, 'iva' => 19, 'total' => 119]]], $eid);
+liq_guardar($origen, $liq, $eid);
+$origen->prepare("INSERT INTO importacion_vistas (empresa_id, vista, datos_json, actualizado) VALUES (?, 'plan-cuentas', '{}', '')")->execute([$eid]);
+$origen->prepare("INSERT INTO importacion_registros (empresa_id, vista, tabla, huella, datos_json) VALUES (?, 'plan-cuentas', 't', 'h1', '{\"celdas\":[]}')")->execute([$eid]);
+$paquete = json_decode(json_encode(empresa_exportar($origen, $eid)), true);
+check($paquete['formato'] === 'icontador-empresa' && count($paquete['vouchers'][0]['lineas']) === 2 && count($paquete['rcv']) === 1, 'exportar empresa con sus datos');
+check(empresa_exportar($origen, 999) === null, 'exportar empresa inexistente');
+
+$destino = base();
+empresas_esquema_completo($destino);
+empresa_crear($destino, ['razon_social' => 'OTRA']);
+$r = empresa_importar($destino, $paquete);
+$nid = $r['empresa']['id'];
+check($r['empresa']['razon_social'] === 'ENYEL SPA' && $r['empresa']['rut'] === '76086428-5' && $r['importado']['vouchers'] === 1, 'importar en otra base');
+check(count(planCuentas($destino, $nid)) === count(PLAN_EJEMPLO) && listarVouchers($destino, [], $nid)[0]['debe'] === 100, 'plan y vouchers importados');
+check(rcv_libro($destino, 'compras', null, null, null, $nid)['totales']['total'] === 119 && count(liq_listar($destino, null, $nid)) === 1, 'RCV y liquidaciones importados');
+check(empresa_importar($destino, $paquete)['empresa']['id'] === $nid && count(listarVouchers($destino, [], $nid)) === 1 && count(empresas_listar($destino)) === 2, 'reimportar reemplaza sin duplicar');
+foreach ([['formato' => 'otro'], ['formato' => 'icontador-empresa', 'empresa' => ['origen_id' => 'x', 'razon_social' => 'Y'], 'vouchers' => 'no'],
+    ['formato' => 'icontador-empresa', 'empresa' => ['origen_id' => 'z', 'razon_social' => 'Z'], 'cuentas' => [['codigo' => '1', 'nombre' => 'a'], ['codigo' => '1', 'nombre' => 'b']]]] as $malo) {
+    try { empresa_importar($destino, $malo); check(false, 'debió rechazar ' . json_encode($malo)); } catch (ErrorValidacion) {}
+}
+check(count(empresas_listar($destino)) === 2, 'un archivo con errores no deja datos a medias');
+echo "Empresas PHP: separación de datos, migración, creación y exportación verificadas\n";

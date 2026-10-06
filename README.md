@@ -34,6 +34,8 @@ Las pantallas **Voucher**, **Crear Voucher**, **Libro Diario** y **Libro Mayor**
 
 ## Datos por empresa
 
+**Empresas** lista las empresas de la base y permite seleccionarlas, crear una nueva (RUT con dígito verificador, régimen y contacto; opcionalmente con el plan de cuentas de ejemplo) y **exportar/importar** una empresa completa en un archivo JSON: ficha, plan de cuentas, vouchers, RCV, liquidaciones y datos importados de iContador. Así se pasa una empresa de la base SQLite local a la base MySQL del sitio publicado: en la copia local, Empresas → Exportar; en el sitio, Empresas → Importar empresa desde archivo. Si la empresa ya existe en el destino, sus datos se reemplazan por los del archivo.
+
 Vouchers, RCV y liquidaciones se guardan por empresa. La pantalla de inicio pide elegir la empresa y cada pantalla envía su id a la API en la cabecera `X-Empresa-Id` (la función `empresa_actual()` de `api/lib/empresas.php` la lee y valida). Al actualizar una base anterior, los datos guardados pasan a la única empresa importada; si hay varias, quedan sin empresa y solo se ven sin empresa seleccionada. Cada empresa tiene su propio plan de cuentas: en **Plan de Cuenta**, “Cargar plan de ejemplo” agrega un plan base de pyme (63 cuentas, sin pisar las existentes) y también se pueden agregar o eliminar cuentas una a una (solo las que no tienen movimientos). La importación desde iContador (`tools/importar-empresa.php`) guarda el plan en la empresa importada.
 
 ## Balance, Estado de Resultado y Libros de Compras y Ventas (PHP)

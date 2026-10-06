@@ -38,7 +38,7 @@ function crearSelectorEmpresa(empresas){
 async function mostrarSelectorEmpresa(){
  try{
   const respuesta=await fetch('../api/empresas.php',{headers:{Accept:'application/json'}});
-  const datos=await respuesta.json();if(!respuesta.ok)throw new Error(datos.error||'Error al cargar empresas');
+  const datos=await respuesta.json();if(!respuesta.ok)throw new Error((datos.errores||[]).join(' ')||datos.error||'Error al cargar empresas');
   crearSelectorEmpresa(datos.empresas||[]);
  }catch(error){notify(error.message||'No se pudo cargar la empresa local.');}
 }
