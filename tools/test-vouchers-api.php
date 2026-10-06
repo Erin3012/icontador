@@ -1,6 +1,7 @@
 <?php
 // Pruebas de la lógica contable en PHP con una base SQLite en memoria: php tools/test-api.php
 declare(strict_types=1);
+require __DIR__ . '/base-prueba.php';
 require dirname(__DIR__) . '/api/lib/vouchers.php';
 
 $fallas = 0;
@@ -20,7 +21,7 @@ function errores(callable $f): array
     return [];
 }
 
-$pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+$pdo = base_prueba();
 crearEsquema($pdo);
 comprobar(planCuentas($pdo) === [], 'una base nueva no trae plan de cuentas');
 comprobar(cargarPlanEjemplo($pdo) === count(PLAN_EJEMPLO) && cargarPlanEjemplo($pdo) === 0, 'el plan de ejemplo se carga una vez');

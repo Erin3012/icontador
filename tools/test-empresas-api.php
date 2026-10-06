@@ -1,11 +1,12 @@
 <?php
 // Separación de datos por empresa y migración de bases anteriores: php tools/test-empresas-api.php
 declare(strict_types=1);
+require __DIR__ . '/base-prueba.php';
 require dirname(__DIR__) . '/api/lib/vouchers.php';
 require dirname(__DIR__) . '/api/lib/rcv.php';
 require dirname(__DIR__) . '/api/lib/empresa-paquete.php';
 function check(bool $ok, string $msg): void { if (!$ok) { fwrite(STDERR, "FALLA: $msg\n"); exit(1); } }
-function base(): PDO { return new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]); }
+function base(): PDO { return base_prueba(); }
 
 // Base nueva: cada empresa ve solo sus datos y tiene su propio correlativo.
 $db = base();
@@ -45,13 +46,16 @@ check(count(liq_listar($db, null, 1)) === 1 && liq_listar($db, null, 2) === [] &
 $db = base();
 empresas_schema($db);
 $db->exec("INSERT INTO empresas (origen_id, razon_social, datos_json, actualizado) VALUES ('77', 'EMPRESA UNO', '{}', '')");
-$db->exec('CREATE TABLE cuentas (codigo VARCHAR(20) NOT NULL PRIMARY KEY, nombre VARCHAR(120) NOT NULL)');
-$db->exec("CREATE TABLE vouchers (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo CHAR(1) NOT NULL, periodo CHAR(7) NOT NULL, numero INT NOT NULL, fecha DATE NOT NULL, registro VARCHAR(12) NOT NULL, glosa VARCHAR(500) NOT NULL DEFAULT '', creado VARCHAR(25) NOT NULL, modificado VARCHAR(25) NOT NULL, UNIQUE (tipo, periodo, numero))");
-$db->exec("CREATE TABLE voucher_lineas (id INTEGER PRIMARY KEY AUTOINCREMENT, voucher_id INT NOT NULL, orden INT NOT NULL, cuenta VARCHAR(20) NOT NULL, glosa VARCHAR(200) NOT NULL DEFAULT '', debe BIGINT NOT NULL DEFAULT 0, haber BIGINT NOT NULL DEFAULT 0, FOREIGN KEY (voucher_id) REFERENCES vouchers(id) ON DELETE CASCADE, FOREIGN KEY (cuenta) REFERENCES cuentas(codigo))");
+$autoId = es_mysql($db) ? 'INT AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
+$motor = es_mysql($db) ? ' ENGINE=InnoDB' : '';
+$db->exec('CREATE TABLE cuentas (codigo VARCHAR(20) NOT NULL PRIMARY KEY, nombre VARCHAR(120) NOT NULL)' . $motor);
+$db->exec("CREATE TABLE vouchers (id $autoId, tipo CHAR(1) NOT NULL, periodo CHAR(7) NOT NULL, numero INT NOT NULL, fecha DATE NOT NULL, registro VARCHAR(12) NOT NULL, glosa VARCHAR(500) NOT NULL DEFAULT '', creado VARCHAR(25) NOT NULL, modificado VARCHAR(25) NOT NULL, UNIQUE (tipo, periodo, numero))$motor");
+$db->exec("CREATE TABLE voucher_lineas (id $autoId, voucher_id INT NOT NULL, orden INT NOT NULL, cuenta VARCHAR(20) NOT NULL, glosa VARCHAR(200) NOT NULL DEFAULT '', debe BIGINT NOT NULL DEFAULT 0, haber BIGINT NOT NULL DEFAULT 0, FOREIGN KEY (voucher_id) REFERENCES vouchers(id) ON DELETE CASCADE, FOREIGN KEY (cuenta) REFERENCES cuentas(codigo))$motor");
 $db->exec("INSERT INTO cuentas VALUES ('1.1.01', 'Caja'), ('4.1.01', 'Ventas')");
 $db->exec("INSERT INTO vouchers VALUES (1, 'I', '2026-09', 1, '2026-09-01', 'Ambos', 'Antigua', 'x', 'x')");
 $db->exec("INSERT INTO voucher_lineas (voucher_id, orden, cuenta, debe, haber) VALUES (1, 1, '1.1.01', 500, 0), (1, 2, '4.1.01', 0, 500)");
-$db->exec("CREATE TABLE rcv_documentos (id INTEGER PRIMARY KEY AUTOINCREMENT, periodo TEXT NOT NULL, libro TEXT NOT NULL, archivo TEXT NOT NULL DEFAULT '', tipo_doc INTEGER NOT NULL, tipo_operacion TEXT NOT NULL DEFAULT '', rut TEXT NOT NULL DEFAULT '', razon_social TEXT NOT NULL DEFAULT '', folio TEXT NOT NULL DEFAULT '', fecha TEXT NOT NULL DEFAULT '', exento INTEGER NOT NULL DEFAULT 0, neto INTEGER NOT NULL DEFAULT 0, iva INTEGER NOT NULL DEFAULT 0, iva_no_rec INTEGER NOT NULL DEFAULT 0, iva_uso_comun INTEGER NOT NULL DEFAULT 0, iva_retenido INTEGER NOT NULL DEFAULT 0, otros INTEGER NOT NULL DEFAULT 0, total INTEGER NOT NULL DEFAULT 0, creado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+// Tabla del RCV tal como la creaba la versión anterior (sin empresa_id).
+$db->exec(es_mysql($db) ? file_get_contents(__DIR__ . '/rcv-anterior.mysql.sql') : "CREATE TABLE rcv_documentos (id INTEGER PRIMARY KEY AUTOINCREMENT, periodo TEXT NOT NULL, libro TEXT NOT NULL, archivo TEXT NOT NULL DEFAULT '', tipo_doc INTEGER NOT NULL, tipo_operacion TEXT NOT NULL DEFAULT '', rut TEXT NOT NULL DEFAULT '', razon_social TEXT NOT NULL DEFAULT '', folio TEXT NOT NULL DEFAULT '', fecha TEXT NOT NULL DEFAULT '', exento INTEGER NOT NULL DEFAULT 0, neto INTEGER NOT NULL DEFAULT 0, iva INTEGER NOT NULL DEFAULT 0, iva_no_rec INTEGER NOT NULL DEFAULT 0, iva_uso_comun INTEGER NOT NULL DEFAULT 0, iva_retenido INTEGER NOT NULL DEFAULT 0, otros INTEGER NOT NULL DEFAULT 0, total INTEGER NOT NULL DEFAULT 0, creado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)");
 $db->exec("INSERT INTO rcv_documentos (periodo, libro, tipo_doc, total) VALUES ('2026-09', 'compras', 33, 119)");
 crearEsquema($db);
 crearEsquema($db); // idempotente
@@ -63,8 +67,10 @@ cargarPlanEjemplo($db, 2);
 check(guardarVoucher($db, ['fecha' => '2026-09-02'] + $voucher, null, 2)['numero'] === 1, 'tras migrar, otra empresa puede usar el mismo número');
 check(guardarVoucher($db, ['fecha' => '2026-09-03'] + $voucher, null, 1)['numero'] === 2, 'la empresa migrada continúa su correlativo');
 check(rcv_periodos($db, 1) === [['period' => '2026-09', 'compras' => 1, 'ventas' => 0]], 'el RCV anterior pasa a la empresa importada');
-check($db->query("SELECT COUNT(*) FROM sqlite_master WHERE name LIKE '%_nueva'")->fetchColumn() == 0, 'sin tablas temporales');
-check($db->query('PRAGMA foreign_key_check')->fetchAll() === [], 'claves foráneas consistentes tras migrar');
+if (!es_mysql($db)) {
+    check($db->query("SELECT COUNT(*) FROM sqlite_master WHERE name LIKE '%_nueva'")->fetchColumn() == 0, 'sin tablas temporales');
+    check($db->query('PRAGMA foreign_key_check')->fetchAll() === [], 'claves foráneas consistentes tras migrar');
+}
 
 // Crear, exportar e importar en otra base (como pasar ENYEL de la base local al sitio publicado).
 $origen = base();

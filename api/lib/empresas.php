@@ -32,9 +32,9 @@ function empresa_actual(PDO $db): int {
 
 function columna_existe(PDO $db, string $tabla, string $columna): bool {
     if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
-        $st = $db->prepare("SHOW COLUMNS FROM `$tabla` LIKE ?");
-        $st->execute([$columna]);
-        return (bool)$st->fetch();
+        $st = $db->prepare('SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?');
+        $st->execute([$tabla, $columna]);
+        return (bool)$st->fetchColumn();
     }
     foreach ($db->query("PRAGMA table_info($tabla)") as $c) if ($c['name'] === $columna) return true;
     return false;

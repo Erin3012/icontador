@@ -1,10 +1,11 @@
 <?php
 // Prueba de la persistencia del RCV con SQLite en memoria: php tools/test-rcv-api.php
 declare(strict_types=1);
+require __DIR__ . '/base-prueba.php';
 require dirname(__DIR__) . '/api/lib/rcv.php';
 function check(bool $ok, string $msg): void { if (!$ok) { fwrite(STDERR, "FALLA: $msg\n"); exit(1); } }
 
-$db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+$db = base_prueba();
 rcv_schema($db);
 rcv_schema($db); // idempotente
 $compra = ['tipo' => 33, 'tipoOperacion' => 'Del Giro', 'rut' => '77000001-1', 'razon' => 'PROVEEDOR', 'folio' => '1520', 'fecha' => '03/09/2026', 'exento' => 0, 'neto' => 1000000, 'iva' => 190000, 'ivaNoRec' => 0, 'ivaUsoComun' => 0, 'otros' => 0, 'total' => 1190000];

@@ -20,7 +20,7 @@ La pantalla RCV importa los CSV de detalle de compras y ventas que se descargan 
 npm run start:php
 ```
 
-Sin configuración usa SQLite en `data/icontador.sqlite`. Para MySQL, copia `api/config.example.php` como `api/config.php` con tus datos de conexión (o usa las variables `ICONTADOR_DB_DSN`, `ICONTADOR_DB_USER` e `ICONTADOR_DB_PASS`); la tabla está en `api/schema/rcv.mysql.sql` y se crea sola. Con `npm start` la importación funciona igual, pero no guarda nada. Hay CSV ficticios en `samples/`; `npm test` y `npm run test:php` comprueban el cálculo y el guardado.
+Sin configuración usa SQLite en `data/icontador.sqlite`. Para MySQL, copia `api/config.example.php` como `api/config.php` con tus datos de conexión (o usa las variables `ICONTADOR_DB_DSN`, `ICONTADOR_DB_USER` e `ICONTADOR_DB_PASS`); la tabla está en `api/schema/rcv.mysql.sql` y se crea sola. Con `npm start` la importación funciona igual, pero no guarda nada. Hay CSV ficticios en `samples/`; `npm test` y `npm run test:php` comprueban el cálculo y el guardado. Para correr las pruebas PHP contra MySQL/MariaDB (como en cPanel), define `ICONTADOR_TEST_MYSQL="host=127.0.0.1;port=3306"`, `ICONTADOR_TEST_USER` e `ICONTADOR_TEST_PASS`: cada prueba crea y borra su propia base.
 
 ## Vouchers y libros contables (PHP)
 
