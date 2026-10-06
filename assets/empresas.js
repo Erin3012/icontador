@@ -68,7 +68,7 @@ function iniciar(){
   if(info)info.textContent=`Mostrando ${visibles.length} de ${empresas.length} ${empresas.length===1?'empresa':'empresas'}`;
  };
  const pintar=async()=>{
-  try{const datos=await api('');empresas=datos.empresas||[];puedeAdministrar=Boolean(datos.puede_administrar);renderizar();}
+  try{const datos=await api('');empresas=datos.empresas||[];puedeAdministrar=Boolean(datos.puede_administrar);const elegida=empresaSeleccionada();if(elegida&&!empresas.some(e=>e.id===elegida.id))localStorage.removeItem(EMPRESA_LOCAL_KEY);renderizar();}
   catch(e){cuerpo.innerHTML=`<tr><td colspan="6" class="dataTables_empty">${esc(e.message)}</td></tr>`;if(info)info.textContent='';}
  };
  filtro?.addEventListener('change',renderizar);

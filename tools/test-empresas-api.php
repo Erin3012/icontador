@@ -75,14 +75,15 @@ if (!es_mysql($db)) {
 // Crear, exportar e importar en otra base (como pasar ENYEL de la base local al sitio publicado).
 $origen = base();
 empresas_esquema_completo($origen);
+$mary = ['id' => 1, 'rol' => 'admin'];
 check(normalizarRut('76.086.428-5') === '76086428-5' && normalizarRut('76086428-4') === null && normalizarRut('1-9') === '1-9', 'RUT con dígito verificador');
-$creada = empresa_crear($origen, ['razon_social' => 'ENYEL SPA', 'rut' => '76.086.428-5', 'regimen' => 'Pro Pyme General (14 D N°3)', 'email' => 'a@b.cl', 'plan_ejemplo' => true]);
+$creada = empresa_crear($origen, ['razon_social' => 'ENYEL SPA', 'rut' => '76.086.428-5', 'regimen' => 'Pro Pyme General (14 D N°3)', 'email' => 'a@b.cl', 'plan_ejemplo' => true], $mary);
 $eid = $creada['empresa']['id'];
 check($creada['cuentas_agregadas'] === count(PLAN_EJEMPLO) && $creada['empresa']['rut'] === '76086428-5' && $creada['empresa']['cuentas'] === count(PLAN_EJEMPLO), 'crear empresa con plan de ejemplo');
 foreach ([['razon_social' => ''], ['razon_social' => 'X', 'rut' => '11.111.111-2'], ['razon_social' => 'X', 'rut' => '76086428-5'], ['razon_social' => 'X', 'email' => 'no']] as $mala) {
-    try { empresa_crear($origen, $mala); check(false, 'debió rechazar ' . json_encode($mala)); } catch (ErrorValidacion) {}
+    try { empresa_crear($origen, $mala, $mary); check(false, 'debió rechazar ' . json_encode($mala)); } catch (ErrorValidacion) {}
 }
-check(empresa_crear($origen, ['razon_social' => 'SIN PLAN'])['empresa']['cuentas'] === 0, 'crear empresa sin plan');
+check(empresa_crear($origen, ['razon_social' => 'SIN PLAN'], $mary)['empresa']['cuentas'] === 0, 'crear empresa sin plan');
 guardarVoucher($origen, $voucher, null, $eid);
 rcv_guardar($origen, ['kind' => 'compras', 'period' => '2026-09', 'docs' => [['tipo' => 33, 'folio' => '7', 'neto' => 100, 'iva' => 19, 'total' => 119]]], $eid);
 liq_guardar($origen, $liq, $eid);
@@ -94,16 +95,33 @@ check(empresa_exportar($origen, 999) === null, 'exportar empresa inexistente');
 
 $destino = base();
 empresas_esquema_completo($destino);
-empresa_crear($destino, ['razon_social' => 'OTRA']);
-$r = empresa_importar($destino, $paquete);
+empresa_crear($destino, ['razon_social' => 'OTRA'], $mary);
+$r = empresa_importar($destino, $paquete, $mary);
 $nid = $r['empresa']['id'];
 check($r['empresa']['razon_social'] === 'ENYEL SPA' && $r['empresa']['rut'] === '76086428-5' && $r['importado']['vouchers'] === 1, 'importar en otra base');
 check(count(planCuentas($destino, $nid)) === count(PLAN_EJEMPLO) && listarVouchers($destino, [], $nid)[0]['debe'] === 100, 'plan y vouchers importados');
 check(rcv_libro($destino, 'compras', null, null, null, $nid)['totales']['total'] === 119 && count(liq_listar($destino, null, $nid)) === 1, 'RCV y liquidaciones importados');
-check(empresa_importar($destino, $paquete)['empresa']['id'] === $nid && count(listarVouchers($destino, [], $nid)) === 1 && count(empresas_listar($destino)) === 2, 'reimportar reemplaza sin duplicar');
+check(empresa_importar($destino, $paquete, $mary)['empresa']['id'] === $nid && count(listarVouchers($destino, [], $nid)) === 1 && count(empresas_listar($destino)) === 2, 'reimportar reemplaza sin duplicar');
 foreach ([['formato' => 'otro'], ['formato' => 'icontador-empresa', 'empresa' => ['origen_id' => 'x', 'razon_social' => 'Y'], 'vouchers' => 'no'],
     ['formato' => 'icontador-empresa', 'empresa' => ['origen_id' => 'z', 'razon_social' => 'Z'], 'cuentas' => [['codigo' => '1', 'nombre' => 'a'], ['codigo' => '1', 'nombre' => 'b']]]] as $malo) {
-    try { empresa_importar($destino, $malo); check(false, 'debió rechazar ' . json_encode($malo)); } catch (ErrorValidacion) {}
+    try { empresa_importar($destino, $malo, $mary); check(false, 'debió rechazar ' . json_encode($malo)); } catch (ErrorValidacion) {}
 }
 check(count(empresas_listar($destino)) === 2, 'un archivo con errores no deja datos a medias');
-echo "Empresas PHP: separación de datos, migración, creación y exportación verificadas\n";
+
+// Acceso por usuario: quien no es administrador ve solo las empresas que crea, importa o le asignan.
+$ana = ['id' => 2, 'rol' => 'usuario'];
+$luis = ['id' => 3, 'rol' => 'usuario'];
+check(empresas_de_usuario($destino, 2) === [] && !empresa_usuario_puede($destino, $ana, $nid), 'un usuario nuevo no tiene empresas');
+check(empresa_usuario_puede($destino, $mary, $nid) && !empresa_usuario_puede($destino, null, $nid), 'el administrador ve todas; sin sesión, ninguna');
+$propia = empresa_crear($destino, ['razon_social' => 'DE ANA'], $ana)['empresa']['id'];
+check(empresas_de_usuario($destino, 2) === [$propia] && !empresa_usuario_puede($destino, $luis, $propia), 'quien crea una empresa la ve; otros no');
+try { empresa_importar($destino, $paquete, $luis); check(false, 'no reemplaza una empresa ajena'); } catch (ErrorValidacion) {}
+check(count(listarVouchers($destino, [], $nid)) === 1, 'el intento de reemplazo no toca los datos');
+$nuevo = $paquete; $nuevo['empresa']['origen_id'] = 'local:de-luis';
+$deLuis = empresa_importar($destino, $nuevo, $luis)['empresa']['id'];
+check(empresa_usuario_puede($destino, $luis, $deLuis) && !empresa_usuario_puede($destino, $ana, $deLuis), 'quien importa una empresa nueva la ve');
+empresas_asignar_usuario($destino, 2, [$nid, $propia, 999]);
+check(count(empresas_de_usuario($destino, 2)) === 2 && empresa_usuario_puede($destino, $ana, $nid), 'el administrador asigna empresas (ignora ids inexistentes)');
+empresas_asignar_usuario($destino, 2, [$propia]);
+check(empresas_de_usuario($destino, 2) === [$propia] && empresa_usuario_puede($destino, $luis, $deLuis), 'quitar una empresa a un usuario no afecta a otros');
+echo "Empresas PHP: separación de datos, migración, creación, exportación y acceso por usuario verificadas\n";

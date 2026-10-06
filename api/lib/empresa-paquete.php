@@ -67,7 +67,8 @@ function normalizarRut(string $rut): ?string
     return $esperado === $m[2] ? ltrim($m[1], '0') . '-' . $m[2] : null;
 }
 
-function empresa_crear(PDO $db, array $datos): array
+// Quien crea la empresa queda asignado a ella.
+function empresa_crear(PDO $db, array $datos, array $usuario): array
 {
     $razon = trim((string) ($datos['razon_social'] ?? ''));
     $errores = [];
@@ -99,6 +100,7 @@ function empresa_crear(PDO $db, array $datos): array
     $db->prepare('INSERT INTO empresas (origen_id, razon_social, datos_json, actualizado) VALUES (?, ?, ?, ?)')
         ->execute(['local:' . bin2hex(random_bytes(8)), mb_substr($razon, 0, 191), json_encode(['razon_social' => $razon] + $ficha, JSON_UNESCAPED_UNICODE), gmdate('c')]);
     $id = (int) $db->lastInsertId();
+    empresa_asignar($db, $id, (int) $usuario['id']);
     $agregadas = !empty($datos['plan_ejemplo']) ? cargarPlanEjemplo($db, $id) : 0;
     $empresa = array_values(array_filter(empresas_listar($db), fn($e) => $e['id'] === $id))[0];
     return ['empresa' => $empresa, 'cuentas_agregadas' => $agregadas];
@@ -221,7 +223,8 @@ function insertar_filas(PDO $db, string $tabla, int $empresa, array $filas): voi
 }
 
 // Crea la empresa o, si ya existe con el mismo origen, reemplaza todos sus datos por los del archivo.
-function empresa_importar(PDO $db, array $paquete): array
+// Quien importa queda asignado a la empresa; solo puede reemplazar una empresa existente si ya tiene acceso a ella.
+function empresa_importar(PDO $db, array $paquete, array $usuario): array
 {
     if (($paquete['formato'] ?? null) !== PAQUETE_FORMATO || !is_array($paquete['empresa'] ?? null)) {
         throw new ErrorValidacion(['El archivo no es una exportación de empresa de Cifrax local.']);
@@ -244,6 +247,9 @@ function empresa_importar(PDO $db, array $paquete): array
         $buscar = $db->prepare('SELECT id FROM empresas WHERE origen_id = ?');
         $buscar->execute([$origen]);
         $id = $buscar->fetchColumn();
+        if ($id && !empresa_usuario_puede($db, $usuario, (int) $id)) {
+            throw new ErrorValidacion(['Esa empresa ya existe y no tiene acceso a ella. Pida al administrador que se la asigne.']);
+        }
         if ($id) {
             $id = (int) $id;
             $db->prepare('UPDATE empresas SET razon_social = ?, datos_json = ?, actualizado = ? WHERE id = ?')->execute([$razon, $datos, gmdate('c'), $id]);
@@ -278,6 +284,7 @@ function empresa_importar(PDO $db, array $paquete): array
         }
         insertar_filas($db, 'rcv_documentos', $id, $listas['rcv']);
         insertar_filas($db, 'liquidaciones', $id, $listas['liquidaciones']);
+        empresa_asignar($db, $id, (int) $usuario['id']);
         $db->commit();
     } catch (PDOException $e) {
         $db->rollBack();
