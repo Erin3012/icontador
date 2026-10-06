@@ -3,6 +3,7 @@
  * Módulo de Recursos Humanos: Contratos, permisos, feriados, finiquitos
  * Requiere: icontador_db() de api/db.php
  */
+require_once __DIR__ . '/empresas.php';
 
 function rrhh_schema(PDO $db): void {
     try {
@@ -16,7 +17,12 @@ function rrhh_schema(PDO $db): void {
                     $db->exec($s);
                 }
             }
-            agregar_empresa_id($db);
+            agregar_empresa_id($db, 'contratos');
+            agregar_empresa_id($db, 'anexos_contrato');
+            agregar_empresa_id($db, 'permisos_sin_goce');
+            agregar_empresa_id($db, 'feriados_legal');
+            agregar_empresa_id($db, 'comprobantes_feriado');
+            agregar_empresa_id($db, 'finiquitos');
         } else {
             // SQLite
             $statements = [
@@ -137,7 +143,12 @@ function rrhh_schema(PDO $db): void {
             foreach ($statements as $stmt) {
                 $db->exec($stmt);
             }
-            agregar_empresa_id($db);
+            agregar_empresa_id($db, 'contratos');
+            agregar_empresa_id($db, 'anexos_contrato');
+            agregar_empresa_id($db, 'permisos_sin_goce');
+            agregar_empresa_id($db, 'feriados_legal');
+            agregar_empresa_id($db, 'comprobantes_feriado');
+            agregar_empresa_id($db, 'finiquitos');
         }
     } catch (Exception $e) {
         error_log("rrhh_schema error: {$e->getMessage()}");
