@@ -2,7 +2,7 @@
 // GET plan-cuentas.php?empresa_id=N  plan de cuentas importado de la empresa (filas de la vista plan-cuentas)
 declare(strict_types=1);
 
-require __DIR__ . '/db.php';
+require __DIR__ . '/lib/empresas.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 try {
     $db = icontador_db();
+    empresas_schema($db);
     $empresaId = filter_var($_GET['empresa_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
     // Sin empresa seleccionada se usa la primera importada, como en el selector de empresas.
     $stmt = $empresaId

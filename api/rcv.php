@@ -3,6 +3,7 @@ declare(strict_types=1);
 /* API del RCV.
    GET    api/rcv.php                  -> períodos guardados
    GET    api/rcv.php?periodo=AAAA-MM  -> libros del período
+   GET    api/rcv.php?libro=compras|ventas[&desde=AAAA-MM-DD&hasta=AAAA-MM-DD&tipo=N] -> Libro de Compras o Ventas
    POST   api/rcv.php  {kind, period, fileName, docs}  -> reemplaza ese libro del período
    DELETE api/rcv.php?periodo=AAAA-MM  -> borra el período */
 require __DIR__ . '/db.php';
@@ -23,6 +24,11 @@ try {
     rcv_schema($db);
     $metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
     $periodo = isset($_GET['periodo']) ? (string)$_GET['periodo'] : null;
+    if ($metodo === 'GET' && isset($_GET['libro'])) {
+        $tipo = filter_var($_GET['tipo'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: null;
+        $fecha = fn(string $k) => is_string($_GET[$k] ?? null) && $_GET[$k] !== '' ? $_GET[$k] : null;
+        responder(200, rcv_libro($db, (string)$_GET['libro'], $fecha('desde'), $fecha('hasta'), $tipo));
+    }
     if ($metodo === 'GET') {
         responder(200, $periodo === null ? ['periodos' => rcv_periodos($db)] : ['periodo' => $periodo, 'libros' => rcv_leer($db, $periodo)]);
     }

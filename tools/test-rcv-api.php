@@ -23,5 +23,11 @@ foreach ([['kind' => 'otro', 'period' => '2026-09', 'docs' => []], ['kind' => 'c
     try { rcv_guardar($db, $malo); check(false, 'debió rechazar ' . json_encode($malo)); } catch (RcvError) {}
 }
 check(count(rcv_leer($db, '2026-09')[0]['docs']) === 2, 'un rechazo no borra lo guardado');
+$lc = rcv_libro($db, 'compras', '2026-09-01', '2026-09-30');
+check(count($lc['docs']) === 2 && $lc['totales']['neto'] === 950000 && $lc['totales']['iva'] === 180500 && $lc['docs'][1]['signo'] === -1, 'Libro de Compras resta la nota de crédito');
+check(count(rcv_libro($db, 'compras', '2026-09-04', '2026-09-30')['docs']) === 1, 'Libro de Compras filtra por fecha del documento');
+check(count(rcv_libro($db, 'compras', null, null, 61)['docs']) === 1 && rcv_libro($db, 'ventas', '2026-10-01')['docs'] === [], 'Libro filtra por tipo y período');
+check(rcv_libro($db, 'ventas')['totales']['total'] === 2380000, 'Libro de Ventas');
+try { rcv_libro($db, 'compras', '01-09-2026'); check(false, 'debió rechazar la fecha'); } catch (RcvError) {}
 check(rcv_borrar($db, '2026-09') === 3 && rcv_periodos($db) === [], 'borrar');
 echo "RCV PHP: guardar, reemplazar, leer, validar y borrar verificados\n";

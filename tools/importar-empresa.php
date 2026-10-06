@@ -1,13 +1,11 @@
 <?php
 declare(strict_types=1);
-require dirname(__DIR__) . '/api/db.php';
+require dirname(__DIR__) . '/api/lib/empresas.php';
 $payload=json_decode(stream_get_contents(STDIN),true,512,JSON_THROW_ON_ERROR);
 $db=icontador_db();
 if($db->getAttribute(PDO::ATTR_DRIVER_NAME)!=='sqlite')throw new RuntimeException('Importador preparado para la base SQLite local.');
 $db->exec('PRAGMA foreign_keys=ON');
-$db->exec('CREATE TABLE IF NOT EXISTS empresas (id INTEGER PRIMARY KEY AUTOINCREMENT, origen_id TEXT NOT NULL UNIQUE, razon_social TEXT NOT NULL, datos_json TEXT NOT NULL, actualizado TEXT NOT NULL)');
-$db->exec('CREATE TABLE IF NOT EXISTS importacion_vistas (id INTEGER PRIMARY KEY AUTOINCREMENT, empresa_id INTEGER NOT NULL, vista TEXT NOT NULL, datos_json TEXT NOT NULL, actualizado TEXT NOT NULL, UNIQUE(empresa_id,vista), FOREIGN KEY(empresa_id) REFERENCES empresas(id))');
-$db->exec('CREATE TABLE IF NOT EXISTS importacion_registros (id INTEGER PRIMARY KEY AUTOINCREMENT, empresa_id INTEGER NOT NULL, vista TEXT NOT NULL, tabla TEXT NOT NULL, huella TEXT NOT NULL, datos_json TEXT NOT NULL, UNIQUE(empresa_id,vista,tabla,huella), FOREIGN KEY(empresa_id) REFERENCES empresas(id))');
+empresas_schema($db);
 $db->beginTransaction();
 try{
  $e=$payload['empresa'];$now=gmdate('c');

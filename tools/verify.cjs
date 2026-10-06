@@ -1,7 +1,7 @@
 const fs=require('node:fs');const path=require('node:path');const assert=require('node:assert/strict');const {parseHTML}=require('linkedom');const {sanitize}=require('./sanitize.js');
 const root=path.resolve(__dirname,'..');const catalog=JSON.parse(fs.readFileSync(path.join(root,'catalog.json'),'utf8'));assert(catalog.length>=100,'Faltan vistas en el catálogo');let references=0;
 // Vistas conectadas a la API PHP local (assets/contabilidad.js): solo ellas pueden conectarse a su propio origen.
-const contabilidad=new Set(['views/voucher.html','views/voucher-crear.html','views/reportes-libro-diario.html','views/reportes-libro-mayor.html']);
+const contabilidad=new Set(['views/voucher.html','views/voucher-crear.html','views/reportes-libro-diario.html','views/reportes-libro-mayor.html','views/reportes-libro-balance.html','views/reportes-resultados.html','views/reportes-libro-compras.html','views/reportes-libro-ventas.html']);
 for(const item of catalog){const full=path.join(root,item.file);const html=fs.readFileSync(full,'utf8');const {document}=parseHTML(html);
  assert(!/<!--[\s\S]*?-->/.test(html),'Comentarios originales pendientes');assert(!/\bon\w+\s*=/i.test(html),'Handler inline');
  assert(!html.includes('[Truncated]'),'Captura truncada '+item.file);assert(!/\\b\\d{8,9}-[0-9kK]\\b/.test(html),'Identificador personal sin anonimizar '+item.file);

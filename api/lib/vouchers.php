@@ -328,6 +328,86 @@ function libroMayor(PDO $pdo, array $filtros = []): array
     return $resultado;
 }
 
+// Clasificación por el primer dígito del código: 1 activo, 2 pasivo y patrimonio, 3 pérdidas (gastos), 4 ganancias (ingresos).
+function claseCuenta(string $codigo): string
+{
+    return match ($codigo[0] ?? '') {
+        '1' => 'activo', '2' => 'pasivo', '3' => 'perdida', '4' => 'ganancia', default => 'otra',
+    };
+}
+
+// Sumas de Debe y Haber por cuenta entre "desde" y "hasta".
+function sumasPorCuenta(PDO $pdo, array $filtros): array
+{
+    $sumas = [];
+    foreach (listarVouchers($pdo, ['desde' => $filtros['desde'] ?? null, 'hasta' => $filtros['hasta'] ?? null, 'registro' => $filtros['registro'] ?? null]) as $v) {
+        foreach ($v['lineas'] as $l) {
+            $sumas[$l['cuenta']] ??= ['debe' => 0, 'haber' => 0];
+            $sumas[$l['cuenta']]['debe'] += $l['debe'];
+            $sumas[$l['cuenta']]['haber'] += $l['haber'];
+        }
+    }
+    return $sumas;
+}
+
+// Balance General de 8 columnas: sumas, saldos, inventario y resultado.
+function balanceGeneral(PDO $pdo, array $filtros = []): array
+{
+    $sumas = sumasPorCuenta($pdo, $filtros);
+    $cuentas = [];
+    $totales = array_fill_keys(['debitos', 'creditos', 'deudor', 'acreedor', 'activo', 'pasivo', 'perdida', 'ganancia'], 0);
+    foreach (planCuentas($pdo) as $c) {
+        if (!isset($sumas[$c['codigo']])) {
+            continue;
+        }
+        ['debe' => $debe, 'haber' => $haber] = $sumas[$c['codigo']];
+        $deudor = max($debe - $haber, 0);
+        $acreedor = max($haber - $debe, 0);
+        $clase = claseCuenta($c['codigo']);
+        // Las cuentas de balance van a inventario y las de resultado a pérdidas o ganancias según su saldo.
+        $balance = $clase !== 'perdida' && $clase !== 'ganancia';
+        $fila = ['codigo' => $c['codigo'], 'nombre' => $c['nombre'], 'debitos' => $debe, 'creditos' => $haber, 'deudor' => $deudor, 'acreedor' => $acreedor,
+            'activo' => $balance ? $deudor : 0, 'pasivo' => $balance ? $acreedor : 0, 'perdida' => $balance ? 0 : $deudor, 'ganancia' => $balance ? 0 : $acreedor];
+        foreach ($totales as $k => $_) {
+            $totales[$k] += $fila[$k];
+        }
+        $cuentas[] = $fila;
+    }
+    // El resultado del ejercicio cuadra el inventario con las cuentas de resultado.
+    $resultado = $totales['ganancia'] - $totales['perdida'];
+    $ajuste = [
+        'activo' => $resultado < 0 ? -$resultado : 0, 'pasivo' => $resultado > 0 ? $resultado : 0,
+        'perdida' => $resultado > 0 ? $resultado : 0, 'ganancia' => $resultado < 0 ? -$resultado : 0,
+    ];
+    $sumasIguales = [];
+    foreach (['activo', 'pasivo', 'perdida', 'ganancia'] as $k) {
+        $sumasIguales[$k] = $totales[$k] + $ajuste[$k];
+    }
+    return ['cuentas' => $cuentas, 'totales' => $totales, 'resultado' => $resultado, 'ajuste' => $ajuste, 'sumasIguales' => $sumasIguales];
+}
+
+// Estado de Resultado: ingresos (clase 4) menos costos y gastos (clase 3).
+function estadoResultado(PDO $pdo, array $filtros = []): array
+{
+    $sumas = sumasPorCuenta($pdo, $filtros);
+    $ingresos = $gastos = [];
+    foreach (planCuentas($pdo) as $c) {
+        if (!isset($sumas[$c['codigo']])) {
+            continue;
+        }
+        $clase = claseCuenta($c['codigo']);
+        $neto = $sumas[$c['codigo']]['haber'] - $sumas[$c['codigo']]['debe'];
+        if ($clase === 'ganancia') {
+            $ingresos[] = ['codigo' => $c['codigo'], 'nombre' => $c['nombre'], 'monto' => $neto];
+        } elseif ($clase === 'perdida') {
+            $gastos[] = ['codigo' => $c['codigo'], 'nombre' => $c['nombre'], 'monto' => -$neto];
+        }
+    }
+    $totalIngresos = array_sum(array_column($ingresos, 'monto'));
+    $totalGastos = array_sum(array_column($gastos, 'monto'));
+    return ['ingresos' => $ingresos, 'gastos' => $gastos, 'totalIngresos' => $totalIngresos, 'totalGastos' => $totalGastos, 'resultado' => $totalIngresos - $totalGastos];
+}
+
 // ---------- Respuestas HTTP ----------
 function responder(mixed $datos, int $estado = 200): never
 {

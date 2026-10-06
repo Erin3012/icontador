@@ -1,5 +1,6 @@
 'use strict';
-// Pantallas de Voucher, Libro Diario y Libro Mayor conectadas a la API PHP (api/*.php).
+// Pantallas de Voucher, Libro Diario, Libro Mayor, Balance General, Estado de Resultado y Libros de Compras y Ventas
+// conectadas a la API PHP (api/*.php).
 // La base de datos y la validación definitiva están en PHP; aquí solo se muestran totales en vivo.
 // Las funciones puras de la primera parte se prueban con `npm test`.
 (function(){
@@ -21,8 +22,32 @@ function filasMayor(mayor){
  for(const c of mayor){filas.push([c.codigo,c.nombre,'','','','Saldo anterior','','',c.saldoAnterior]);for(const m of c.movimientos)filas.push([c.codigo,c.nombre,fechaCorta(m.fecha),m.tipoNombre,m.numero,m.glosa,m.debe,m.haber,m.saldo]);filas.push([c.codigo,c.nombre,'','','','Total',c.debe,c.haber,c.saldo]);}
  return filas;
 }
+function filasBalance(b){
+ const filas=[['Código','Cuenta','Débitos','Créditos','Saldo deudor','Saldo acreedor','Activo','Pasivo','Pérdidas','Ganancias']];
+ for(const c of b.cuentas)filas.push([c.codigo,c.nombre,c.debitos,c.creditos,c.deudor,c.acreedor,c.activo,c.pasivo,c.perdida,c.ganancia]);
+ const t=b.totales,a=b.ajuste,s=b.sumasIguales;
+ filas.push(['','Sumas',t.debitos,t.creditos,t.deudor,t.acreedor,t.activo,t.pasivo,t.perdida,t.ganancia]);
+ filas.push(['',b.resultado>=0?'Utilidad del ejercicio':'Pérdida del ejercicio','','','','',a.activo,a.pasivo,a.perdida,a.ganancia]);
+ filas.push(['','Sumas iguales','','','','',s.activo,s.pasivo,s.perdida,s.ganancia]);return filas;
+}
+function filasResultado(r){
+ const filas=[['Código','Cuenta','Monto']];
+ filas.push(['','Ingresos','']);for(const c of r.ingresos)filas.push([c.codigo,c.nombre,c.monto]);filas.push(['','Total ingresos',r.totalIngresos]);
+ filas.push(['','Costos y gastos','']);for(const c of r.gastos)filas.push([c.codigo,c.nombre,c.monto]);filas.push(['','Total costos y gastos',r.totalGastos]);
+ filas.push(['',r.resultado>=0?'Utilidad del ejercicio':'Pérdida del ejercicio',r.resultado]);return filas;
+}
+// Columnas propias de cada libro del RCV además de exento, neto e IVA.
+const RCV_EXTRA={compras:[['ivaNoRec','IVA no recuperable'],['ivaUsoComun','IVA uso común']],ventas:[['ivaRetenido','IVA retenido']]};
+const DOCS_SII={30:'Factura',32:'Factura exenta',33:'Factura electrónica',34:'Factura exenta electrónica',35:'Boleta',38:'Boleta exenta',39:'Boleta electrónica',41:'Boleta exenta electrónica',45:'Factura de compra',46:'Factura de compra electrónica',48:'Comprobante de pago electrónico',55:'Nota de débito',56:'Nota de débito electrónica',60:'Nota de crédito',61:'Nota de crédito electrónica',101:'Factura de exportación',110:'Factura de exportación electrónica',111:'Nota de débito de exportación electrónica',112:'Nota de crédito de exportación electrónica',914:'Declaración de ingreso (DIN)'};
+const nombreDoc=t=>DOCS_SII[t]||'Documento '+t;
+function filasLibroRcv(libro){
+ const extra=RCV_EXTRA[libro.libro]||[],firmado=(d,c)=>d.signo*(d[c]||0)||0;
+ const filas=[['Período','Fecha','Tipo','Folio','RUT',libro.libro==='compras'?'Proveedor':'Cliente','Exento','Neto','IVA',...extra.map(e=>e[1]),'Otros impuestos','Total']];
+ for(const d of libro.docs)filas.push([d.periodo,d.fecha,nombreDoc(d.tipo),d.folio,d.rut,d.razon,firmado(d,'exento'),firmado(d,'neto'),firmado(d,'iva'),...extra.map(e=>firmado(d,e[0])),firmado(d,'otros'),firmado(d,'total')]);
+ const t=libro.totales;filas.push(['','',`Total: ${t.documentos} ${t.documentos===1?'documento':'documentos'}`,'','','',t.exento,t.neto,t.iva,...extra.map(e=>t[e[0]]),t.otros,t.total]);return filas;
+}
 
-const core={TIPOS,REGISTROS,monto,totales,formato,fechaCorta,csv,filasDiario,filasMayor};
+const core={TIPOS,REGISTROS,monto,totales,formato,fechaCorta,csv,filasDiario,filasMayor,filasBalance,filasResultado,filasLibroRcv,nombreDoc};
 if(typeof module!=='undefined'&&module.exports){module.exports=core;return;}
 
 // ---------- Navegador ----------
@@ -34,7 +59,7 @@ async function api(ruta,opciones={}){
  catch{throw new ErrorApi(['No se pudo conectar con la API PHP. Inicie el servidor con "npm run start:php" o use Apache/XAMPP.']);}
  const datos=await respuesta.json().catch(()=>null);
  if(!datos)throw new ErrorApi(['La API PHP no respondió. Inicie el servidor con "npm run start:php" o use Apache/XAMPP (el servidor de "npm start" no ejecuta PHP).']);
- if(!respuesta.ok)throw new ErrorApi(datos.errores||['Error '+respuesta.status]);
+ if(!respuesta.ok)throw new ErrorApi(datos.errores||(datos.error?[datos.error]:['Error '+respuesta.status]));
  return datos;
 }
 const consulta=o=>new URLSearchParams(Object.entries(o).filter(([,v])=>v!==undefined&&v!=='')).toString();
@@ -171,12 +196,64 @@ async function pantallaReporte(tipo){
  pintar();
 }
 
+// Balance General, Estado de Resultado y Libros de Compras y Ventas comparten el mismo esquema de filtros y salida.
+const INFORMES={
+ 'reportes-libro-balance.html':{form:'#reporteBalance_form',des:'#fdeslb',has:'#fhaslb',titulo:'Balance General',archivo:'balance-general',
+  ruta:f=>'libros.php?'+consulta({libro:'balance',desde:f.desde,hasta:f.hasta,registro:f.registro}),filas:filasBalance,vacio:b=>!b.cuentas.length},
+ 'reportes-resultados.html':{form:'#reporteEerr_form',des:'#fdeser',has:'#fhaser',titulo:'Estado de Resultado',archivo:'estado-resultado',
+  ruta:f=>'libros.php?'+consulta({libro:'resultado',desde:f.desde,hasta:f.hasta,registro:f.registro}),filas:filasResultado,vacio:r=>!r.ingresos.length&&!r.gastos.length},
+ 'reportes-libro-compras.html':{form:'#reporteLibroCompra_form',des:'#fdeslc',has:'#fhaslc',titulo:'Libro de Compras',archivo:'libro-compras',rcv:'compras'},
+ 'reportes-libro-ventas.html':{form:'#reporteLibroVenta_form',des:'#fdes',has:'#fhas',titulo:'Libro de Ventas',archivo:'libro-ventas',rcv:'ventas'},
+};
+function tablaFilas(filas,{destacar=()=>false}={}){
+ const [cab,...cuerpo]=filas,num=v=>typeof v==='number';
+ return `<table class="conta-tabla conta-libro"><thead><tr>${cab.map((c,i)=>`<th${cuerpo.some(f=>num(f[i]))?' class="num"':''}>${esc(c)}</th>`).join('')}</tr></thead><tbody>${cuerpo.map((f,j)=>
+  `<tr${destacar(f,j,cuerpo.length)?' class="conta-asiento"':''}>${f.map(v=>num(v)?`<td class="num">${formato(v)}</td>`:`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+function pantallaInforme(cfg){
+ const form=$(cfg.form);if(!form)return;
+ form.dataset.conta='';
+ const des=$(cfg.des,form),has=$(cfg.has,form),reg=$('#idTpCONTAB',form),tipo=cfg.rcv?$('#tDocto',form):null;
+ [des,has].forEach(aFecha);
+ if(reg)reg.innerHTML='<option value="Tributario">Tributario</option><option value="IFRS">IFRS</option>';
+ if(tipo){tipo.nextElementSibling?.classList.contains('select2')&&tipo.nextElementSibling.remove();
+  tipo.classList.remove('select2-hidden-accessible');tipo.removeAttribute('aria-hidden');tipo.removeAttribute('tabindex');
+  tipo.innerHTML='<option value="">Todos</option>'+Object.keys(DOCS_SII).map(t=>`<option value="${t}">${t} · ${esc(DOCS_SII[t])}</option>`).join('');}
+ const salida=document.createElement('div');salida.id='conta-reporte';salida.className='col-lg-12 col-md-12 col-sm-12 col-xs-12 conta-reporte';salida.dataset.conta='';
+ form.parentElement.after(salida);
+ const filtros=()=>({desde:des.value,hasta:has.value,registro:reg?.value,tipo:tipo?.value});
+ const ruta=f=>cfg.rcv?'rcv.php?'+consulta({libro:cfg.rcv,desde:f.desde,hasta:f.hasta,tipo:f.tipo}):cfg.ruta(f);
+ const filas=cfg.rcv?filasLibroRcv:cfg.filas;
+ const leer=f=>api(ruta(f));
+ const periodo=f=>`${f.desde?fechaCorta(f.desde):'inicio'} al ${f.hasta?fechaCorta(f.hasta):'hoy'}`+(cfg.rcv?'':` · Contabilidad ${f.registro}`);
+ const vacio=cfg.rcv?'<p class="conta-vacio">No hay documentos del RCV en este período. <a href="rcv.html">Importar el RCV</a></p>':'<p class="conta-vacio">No hay vouchers en este período. <a href="voucher-crear.html">Crear un voucher</a></p>';
+ // Las filas de totales (sin código ni período) se destacan.
+ const destacar=f=>f[0]==='';
+ let pedido=0;
+ const pintar=async()=>{const yo=++pedido,f=filtros();
+  try{const datos=await leer(f);if(yo!==pedido)return;
+   const sinDatos=cfg.rcv?!datos.docs.length:cfg.vacio(datos);
+   salida.innerHTML=`<h3 class="conta-titulo">${cfg.titulo}</h3><p class="conta-periodo">${esc(periodo(f))}</p>`+(sinDatos?vacio:tablaFilas(filas(datos),{destacar}));}
+  catch(e){if(yo===pedido)salida.innerHTML=alerta(e.errores||[e.message]);}
+ };
+ const exportar=async()=>{try{descargar(cfg.archivo+'.csv',csv(filas(await leer(filtros()))));}catch(e){aviso(e.message);}};
+ form.addEventListener('change',pintar);
+ form.addEventListener('submit',e=>e.preventDefault());
+ form.addEventListener('click',e=>{const b=e.target.closest('button,a');if(!b)return;e.preventDefault();
+  if(b.classList.contains('dropdown-toggle')){const menu=b.parentElement.querySelector('.dropdown-menu');if(menu)menu.style.display=menu.style.display==='block'?'none':'block';return;}
+  const texto=b.textContent;
+  if(/PDF/.test(texto))window.print();else if(/EXCEL|CSV/.test(texto))exportar();else if(/Ver/.test(texto))pintar();
+  else aviso('Este formato del SII aún no está disponible; use PDF o CSV.');});
+ pintar();
+}
+
 function iniciar(){
  const pagina=location.pathname.split('/').pop();
  if(pagina==='voucher-crear.html')pantallaCrear();
  else if(pagina==='voucher.html')pantallaLista();
  else if(pagina==='reportes-libro-diario.html')pantallaReporte('diario');
  else if(pagina==='reportes-libro-mayor.html')pantallaReporte('mayor');
+ else if(INFORMES[pagina])pantallaInforme(INFORMES[pagina]);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciar);else iniciar();
 })();

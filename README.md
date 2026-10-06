@@ -30,7 +30,14 @@ Las pantallas **Voucher**, **Crear Voucher**, **Libro Diario** y **Libro Mayor**
 - Un voucher solo se guarda si Debe = Haber, tiene al menos dos líneas y cada línea usa una cuenta del plan con un monto en Debe o en Haber. La validación se hace en PHP (`api/lib/vouchers.php`).
 - El número de comprobante es correlativo por tipo (Ingreso, Egreso, Traspaso) y mes.
 - Libro Diario y Libro Mayor se generan desde la base de datos con filtros de fecha y tipo de contabilidad (Tributario/IFRS). PDF imprime el reporte; EXCEL y CSV descargan un CSV.
-- API: `api/vouchers.php` (GET, POST, PUT, DELETE), `api/cuentas.php` (plan de cuentas) y `api/libros.php?libro=diario|mayor`.
+- API: `api/vouchers.php` (GET, POST, PUT, DELETE), `api/cuentas.php` (plan de cuentas) y `api/libros.php?libro=diario|mayor|balance|resultado`.
+
+## Balance, Estado de Resultado y Libros de Compras y Ventas (PHP)
+
+- **Balance General** (8 columnas) y **Estado de Resultado** se calculan desde los vouchers guardados, con los mismos filtros de fecha y tipo de contabilidad que el Libro Diario. Las cuentas se clasifican por el primer dígito del código: 1 activo, 2 pasivo y patrimonio, 3 costos y gastos, 4 ingresos.
+- **Libro Compras** y **Libro Ventas** leen los documentos del RCV ya importados (`api/rcv.php?libro=compras|ventas&desde=&hasta=&tipo=`). Las notas de crédito restan en los totales.
+- PDF imprime el reporte; EXCEL y CSV descargan un CSV. Los formatos propios del SII (Libro Compra Electrónico, Caracterización) aún no están disponibles.
+- **Plan de Cuenta** muestra las cuentas importadas de la empresa seleccionada (`api/plan-cuentas.php`).
 
 ## Trabajar con los archivos
 
@@ -58,7 +65,7 @@ npm test
 
 Activos Fijos, Tributario y Cont. Express muestran avisos de servicio no contratado; se conservan esos avisos. Contratos, finiquitos y cargas familiares dependen de guardar un empleado. El detalle de una cartola bancaria necesita una cartola creada. No se crearon registros ni se cambiaron permisos, datos contables o credenciales.
 
-Los formularios y filtros son referencias visuales. No hay PHP, base de datos, autenticación local, generación de documentos ni operaciones contables. Guardar, borrar, enviar, pagar, sincronizar e importar archivos están desactivados. Los reportes conservan sus pantallas de configuración; sus resultados no se generaron. Tampoco se descargaron informes con registros reales.
+Salvo las pantallas descritas arriba (Voucher, Libro Diario, Libro Mayor, Balance General, Estado de Resultado, Libros de Compras y Ventas, RCV, Plan de Cuenta, Calculadora de liquidación y el selector de empresa), los formularios y filtros son referencias visuales. No hay autenticación local. En las demás pantallas, guardar, borrar, enviar, pagar, sincronizar e importar archivos están desactivados y los reportes conservan solo su pantalla de configuración. Tampoco se descargaron informes con registros reales.
 
 Las tablas contienen ejemplos; los campos personales y contraseñas están vacíos; las series de gráficos fueron sustituidas por barras ficticias. Los scripts originales, eventos inline, enlaces externos y llamadas al servidor se eliminan de las vistas activas. Una política CSP bloquea conexiones y envíos de formularios. No se guardan cookies, tokens ni contraseñas.
 

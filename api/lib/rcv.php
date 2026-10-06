@@ -9,6 +9,7 @@ const RCV_CAMPOS = ['tipo' => 'tipo_doc', 'tipoOperacion' => 'tipo_operacion', '
     'exento' => 'exento', 'neto' => 'neto', 'iva' => 'iva', 'ivaNoRec' => 'iva_no_rec', 'ivaUsoComun' => 'iva_uso_comun', 'ivaRetenido' => 'iva_retenido', 'otros' => 'otros', 'total' => 'total'];
 const RCV_TEXTOS = ['tipo_operacion' => 60, 'rut' => 12, 'razon_social' => 255, 'folio' => 20, 'fecha' => 10];
 const RCV_MAX_DOCUMENTOS = 20000;
+const RCV_NOTAS_CREDITO = [60, 61, 106, 112];
 
 final class RcvError extends RuntimeException {}
 
@@ -102,4 +103,37 @@ function rcv_borrar(PDO $db, string $periodo): int {
     $st = $db->prepare('DELETE FROM rcv_documentos WHERE periodo = ?');
     $st->execute([rcv_validar_periodo($periodo)]);
     return $st->rowCount();
+}
+
+/** Fecha del documento en AAAA-MM-DD (el SII la entrega como DD/MM/AAAA). */
+function rcv_fecha_iso(string $fecha): ?string {
+    if (preg_match('/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/', $fecha, $m)) return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+    return preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha) ? $fecha : null;
+}
+
+/** Libro de compras o ventas entre dos fechas (AAAA-MM-DD, opcionales), con notas de crédito restando en los totales. */
+function rcv_libro(PDO $db, string $libro, ?string $desde = null, ?string $hasta = null, ?int $tipo = null): array {
+    $libro = rcv_validar_libro($libro);
+    foreach ([$desde, $hasta] as $f) if ($f !== null && $f !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $f)) throw new RcvError('Fecha inválida; use AAAA-MM-DD.');
+    $sql = 'SELECT * FROM rcv_documentos WHERE libro = ?';
+    $params = [$libro];
+    if ($desde) { $sql .= ' AND periodo >= ?'; $params[] = substr($desde, 0, 7); }
+    if ($hasta) { $sql .= ' AND periodo <= ?'; $params[] = substr($hasta, 0, 7); }
+    if ($tipo) { $sql .= ' AND tipo_doc = ?'; $params[] = $tipo; }
+    $st = $db->prepare($sql . ' ORDER BY periodo, id');
+    $st->execute($params);
+    $docs = [];
+    $totales = array_fill_keys(array_merge(['documentos'], array_keys(array_intersect(RCV_CAMPOS, RCV_MONTOS))), 0);
+    foreach ($st as $fila) {
+        $iso = rcv_fecha_iso($fila['fecha']);
+        // El período filtra por mes; la fecha del documento afina el rango cuando se puede leer.
+        if ($iso !== null && (($desde && $iso < $desde) || ($hasta && $iso > $hasta))) continue;
+        $doc = ['periodo' => $fila['periodo']];
+        foreach (RCV_CAMPOS as $campo => $columna) $doc[$campo] = ($columna === 'tipo_doc' || in_array($columna, RCV_MONTOS, true)) ? (int)$fila[$columna] : $fila[$columna];
+        $doc['signo'] = in_array($doc['tipo'], RCV_NOTAS_CREDITO, true) ? -1 : 1;
+        $totales['documentos']++;
+        foreach ($totales as $campo => $_) if ($campo !== 'documentos') $totales[$campo] += $doc['signo'] * $doc[$campo];
+        $docs[] = $doc;
+    }
+    return ['libro' => $libro, 'docs' => $docs, 'totales' => $totales];
 }

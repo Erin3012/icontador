@@ -65,6 +65,16 @@ comprobar($mayor[0]['saldo'] === 69010 && end($mayor[0]['movimientos'])['saldo']
 $caja = array_values(array_filter(libroMayor($pdo), fn($c) => $c['codigo'] === '4.1.01'))[0];
 comprobar($caja['haber'] === 100010 && $caja['saldo'] === -100010, 'Libro Mayor de Ventas con saldo acreedor');
 
+$balance = balanceGeneral($pdo, ['desde' => '2026-10-01', 'hasta' => '2026-10-31']);
+$t = $balance['totales'];
+comprobar($t['debitos'] === 170000 && $t['creditos'] === 170000 && $t['deudor'] === $t['acreedor'], 'Balance General cuadra sumas y saldos');
+comprobar($balance['resultado'] === 50000 && $balance['ajuste']['pasivo'] === 50000 && $balance['ajuste']['perdida'] === 50000, 'Balance General calcula la utilidad (ventas 100.000 menos arriendo 50.000)');
+comprobar($balance['sumasIguales']['activo'] === $balance['sumasIguales']['pasivo'] && $balance['sumasIguales']['perdida'] === $balance['sumasIguales']['ganancia'], 'Balance General termina con sumas iguales');
+comprobar(balanceGeneral($pdo, ['registro' => 'IFRS'])['totales']['debitos'] === 120010, 'Balance IFRS excluye vouchers solo tributarios');
+$eerr = estadoResultado($pdo, ['desde' => '2026-10-01', 'hasta' => '2026-10-31']);
+comprobar($eerr['totalIngresos'] === 100000 && $eerr['totalGastos'] === 50000 && $eerr['resultado'] === 50000, 'Estado de Resultado: ingresos, gastos y utilidad');
+comprobar(count($eerr['ingresos']) === 1 && $eerr['gastos'][0]['nombre'] === 'Arriendos', 'Estado de Resultado detalla cuentas');
+
 comprobar(eliminarVoucher($pdo, $v2['id']) && count(listarVouchers($pdo)) === 3, 'eliminar voucher');
 comprobar((int) $pdo->query('SELECT COUNT(*) FROM voucher_lineas WHERE voucher_id = ' . $v2['id'])->fetchColumn() === 0, 'eliminar borra sus líneas');
 

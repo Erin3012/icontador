@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/db.php';
+require __DIR__ . '/lib/empresas.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 try {
     $db = icontador_db();
+    empresas_schema($db);
     $query = $db->query(
         'SELECT e.id, e.origen_id, e.razon_social,
                 COUNT(DISTINCT v.id) AS vistas,
