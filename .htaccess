@@ -4,6 +4,12 @@ Options -Indexes
 DirectoryIndex index.html
 RewriteEngine On
 
+# Siempre por HTTPS (excepto la validación de certificados de AutoSSL en .well-known).
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteCond %{REQUEST_URI} !^/\.well-known/
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
 # Carpetas y archivos internos que nunca se publican.
 RewriteRule ^(data|tools|reference|samples|node_modules|verification|\.git)(/|$) - [F,L]
 RewriteRule ^api/(lib|schema)/ - [F,L]
