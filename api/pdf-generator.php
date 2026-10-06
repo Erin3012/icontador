@@ -5,6 +5,9 @@
  * Uso: /api/pdf-generator.php?tipo=contrato&id=123&action=html|pdf
  */
 
+declare(strict_types=1);
+require_once __DIR__ . '/lib/sesion.php';
+
 header('Content-Type: text/html; charset=utf-8');
 
 require_once __DIR__ . '/db.php';
@@ -14,30 +17,25 @@ $tipo = $_GET['tipo'] ?? 'contrato';
 $id = (int)($_GET['id'] ?? 0);
 $action = $_GET['action'] ?? 'html';
 
-$pdo = icontador_db();
-if (!$pdo) die('No database');
+$db = icontador_db();
+if (!$db) die('No database');
+
+$empresa = empresa_actual($db);
+rrhh_schema($db);
 
 // Generar documento según tipo
 switch ($tipo) {
     case 'contrato':
         if ($id) {
-            $contrato = contrato_obtener($id);
+            $contrato = contrato_obtener($db, $id, $empresa);
             echo generar_contrato_html($contrato);
         } else {
             echo '<p>ID de contrato requerido</p>';
         }
         break;
-    case 'anexo':
-        if ($id) {
-            $anexo = anexo_obtener($id);
-            echo generar_anexo_html($anexo);
-        } else {
-            echo '<p>ID de anexo requerido</p>';
-        }
-        break;
     case 'permiso':
         if ($id) {
-            $permiso = permiso_obtener($id);
+            $permiso = permiso_obtener($db, $id, $empresa);
             echo generar_permiso_html($permiso);
         } else {
             echo '<p>ID de permiso requerido</p>';
@@ -45,7 +43,7 @@ switch ($tipo) {
         break;
     case 'feriado':
         if ($id) {
-            $feriado = feriado_obtener($id);
+            $feriado = feriado_obtener($db, $id, $empresa);
             echo generar_feriado_html($feriado);
         } else {
             echo '<p>ID de feriado requerido</p>';
@@ -53,15 +51,21 @@ switch ($tipo) {
         break;
     case 'comprobante':
         if ($id) {
-            $comprobante = comprobante_obtener($id);
-            echo generar_comprobante_html($comprobante);
+            $stmt = $db->prepare('SELECT * FROM comprobantes_feriado WHERE id = ? AND empresa_id = ?');
+            $stmt->execute([$id, $empresa]);
+            $comprobante = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($comprobante) {
+                echo generar_comprobante_html($comprobante);
+            } else {
+                echo '<p>Comprobante no encontrado</p>';
+            }
         } else {
             echo '<p>ID de comprobante requerido</p>';
         }
         break;
     case 'finiquito':
         if ($id) {
-            $finiquito = finiquito_obtener($id);
+            $finiquito = finiquito_obtener($db, $id, $empresa);
             echo generar_finiquito_html($finiquito);
         } else {
             echo '<p>ID de finiquito requerido</p>';

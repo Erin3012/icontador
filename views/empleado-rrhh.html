@@ -452,9 +452,6 @@
 </div>
 
 <script>
-// Datos de almacenamiento (simulado, en producción usar API)
-let empresa_id = 1; // Obtener del contexto de la app
-
 function switchTab(tabName) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -490,7 +487,7 @@ function guardarContrato(e) {
     const form = document.getElementById('form-contrato');
     const datos = new FormData(form);
 
-    fetch('/api/rrhh.php?op=contrato_crear&empresa=' + empresa_id, {
+    fetch('/api/rrhh.php?op=contrato_crear', {
         method: 'POST',
         body: datos
     })
@@ -518,7 +515,7 @@ function guardarAnexo(e) {
     const form = document.getElementById('form-anexo');
     const datos = new FormData(form);
 
-    fetch('/api/rrhh.php?op=anexo_crear&empresa=' + empresa_id, {
+    fetch('/api/rrhh.php?op=anexo_crear', {
         method: 'POST',
         body: datos
     })
@@ -551,7 +548,7 @@ function guardarPermiso(e) {
     const form = document.getElementById('form-permiso');
     const datos = new FormData(form);
 
-    fetch('/api/rrhh.php?op=permiso_crear&empresa=' + empresa_id, {
+    fetch('/api/rrhh.php?op=permiso_crear', {
         method: 'POST',
         body: datos
     })
@@ -584,7 +581,7 @@ function guardarFeriado(e) {
     const form = document.getElementById('form-feriado');
     const datos = new FormData(form);
 
-    fetch('/api/rrhh.php?op=feriado_crear&empresa=' + empresa_id, {
+    fetch('/api/rrhh.php?op=feriado_crear', {
         method: 'POST',
         body: datos
     })
@@ -619,7 +616,7 @@ function guardarComprobante(e) {
     const form = document.getElementById('form-comprobante');
     const datos = new FormData(form);
 
-    fetch('/api/rrhh.php?op=comprobante_feriado_crear&empresa=' + empresa_id, {
+    fetch('/api/rrhh.php?op=comprobante_feriado_crear', {
         method: 'POST',
         body: datos
     })
@@ -646,7 +643,7 @@ function guardarFiniquito(e) {
     const form = document.getElementById('form-finiquito');
     const datos = new FormData(form);
 
-    fetch('/api/rrhh.php?op=finiquito_crear&empresa=' + empresa_id, {
+    fetch('/api/rrhh.php?op=finiquito_crear', {
         method: 'POST',
         body: datos
     })
