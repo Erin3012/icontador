@@ -19,4 +19,29 @@
 .conta-asiento td{background:#eef3f8;font-weight:600}
 .conta-subtotal td{border-bottom:2px solid #c9d3de}
 .conta-vacio{padding:16px;background:#f3f6f9;border-radius:6px}
-@media print{body *{visibility:hidden}#conta-reporte,#conta-reporte *{visibility:visible}#conta-reporte{position:absolute;left:0;top:0;width:100%}}
+.conta-empresa{color:#10233f;font-weight:600;margin:0 0 2px}
+.conta-empresa:empty{display:none}
+/* Impresión / PDF: solo se imprime #conta-impresion (hijo directo de body), desde el borde superior de la hoja. */
+#conta-impresion{display:none}
+@media print{
+ html,body{margin:0!important;padding:0!important;background:#fff!important;height:auto!important;min-height:0!important}
+ body>*:not(#conta-impresion){display:none!important}
+ #conta-impresion{display:block;font-family:Arial,Helvetica,sans-serif;color:#000;font-size:10px}
+ .imp-cabecera{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1.5px solid #10233f;padding-bottom:6px;margin-bottom:8px}
+ .imp-empresa{line-height:1.45}.imp-empresa span{font-weight:700}
+ .imp-emision{white-space:nowrap;color:#333}
+ .imp-titulo{font-size:16px;text-align:center;margin:4px 0 2px;color:#10233f}
+ .imp-periodo{text-align:center;margin:0 0 8px;color:#333}
+ #conta-impresion .conta-tabla{font-size:9.5px;margin-bottom:8px}
+ #conta-impresion .conta-tabla th,#conta-impresion .conta-tabla td{padding:3px 5px}
+ #conta-impresion .conta-tabla thead{display:table-header-group}
+ #conta-impresion .conta-tabla tr{break-inside:avoid}
+ #conta-impresion .conta-tabla thead th{background:#10233f!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ #conta-impresion .conta-asiento td,#conta-impresion .conta-tabla tfoot td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ #conta-impresion a{color:#000;text-decoration:none}
+ .imp-firmas{display:flex;gap:60px;margin-top:70px;break-inside:avoid}
+ .imp-firmas-centro{justify-content:center}.imp-firmas-izquierda{justify-content:flex-start}.imp-firmas-derecha{justify-content:flex-end}
+ .imp-firma{width:220px;text-align:center}
+ .imp-linea{border-top:1px solid #000;margin-bottom:4px}
+ .imp-sub{color:#333;font-size:9px}
+}

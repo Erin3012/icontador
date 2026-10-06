@@ -72,6 +72,46 @@ function aFecha(input){if(!input)return;input.type='date';input.removeAttribute(
 function descargar(nombre,contenido){const url=URL.createObjectURL(new Blob([contenido],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=nombre;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 const opcionesPlan=(plan,sel)=>plan.map(c=>`<option value="${esc(c.codigo)}"${c.codigo===sel?' selected':''}>${esc(c.codigo)} · ${esc(c.nombre)}</option>`).join('');
 
+
+// ---------- Impresión / PDF ----------
+// El informe se imprime desde un contenedor propio, hijo directo de <body>, con los datos de la empresa arriba y la firma al pie.
+// Así no hereda la posición de la pantalla (antes el PDF salía con un gran espacio en blanco arriba).
+const FIRMAS={ambos:['Representante legal','Contador'],representante:['Representante legal'],contador:['Contador'],ninguna:[]};
+function prepararFirma(form){
+ const como=$('#firComo',form),ubica=$('#UbicaFirma',form);
+ if(como)como.innerHTML='<option value="ambos">Representante legal y contador</option><option value="representante">Representante legal</option><option value="contador">Contador</option><option value="ninguna">Sin firma</option>';
+ if(ubica)ubica.innerHTML='<option value="centro">Centrada</option><option value="izquierda">A la izquierda</option><option value="derecha">A la derecha</option>';
+ return ()=>({firmas:FIRMAS[como?.value||'ambos']||FIRMAS.ambos,ubicacion:ubica?.value||'centro'});
+}
+let empresaImpresion=null;
+async function cargarEmpresaImpresion(){
+ const local=typeof empresaSeleccionada==='function'?empresaSeleccionada():null;
+ empresaImpresion=local;
+ try{const datos=await api('empresas.php');const e=(datos.empresas||[]).find(x=>x.id===local?.id);if(e)empresaImpresion=e;}catch{}
+ return empresaImpresion;
+}
+const rutConPuntos=r=>String(r||'').replace(/^(\d+)-/,(m,n)=>Number(n).toLocaleString('es-CL')+'-');
+function lineaEmpresa(e){return e?[e.razon_social,e.rut&&'RUT '+rutConPuntos(e.rut)].filter(Boolean).join(' · '):'';}
+function imprimirInforme({titulo,periodo,salida,horizontal=false,firma={firmas:FIRMAS.ambos,ubicacion:'centro'}}){
+ document.getElementById('conta-impresion')?.remove();
+ const e=empresaImpresion||{},hoyTexto=fechaCorta(hoy());
+ const datos=[['Razón social',e.razon_social],['RUT',rutConPuntos(e.rut)],['Giro',e.giro],['Régimen',e.regimen],['Teléfono',e.telefono],['Correo',e.email]].filter(([,v])=>v);
+ const cont=document.createElement('div');cont.id='conta-impresion';
+ const contenido=salida.cloneNode(true);contenido.removeAttribute('id');contenido.querySelectorAll('.conta-titulo,.conta-periodo,.conta-empresa').forEach(n=>n.remove());
+ cont.innerHTML=`<header class="imp-cabecera"><div class="imp-empresa">${datos.length?datos.map(([k,v])=>`<div><span>${k}:</span> ${esc(v)}</div>`).join(''):'<div>Empresa sin datos registrados</div>'}</div>
+  <div class="imp-emision">Emitido el ${hoyTexto}</div></header>
+  <h1 class="imp-titulo">${esc(titulo)}</h1><p class="imp-periodo">${esc(periodo)}</p>
+  <div class="imp-cuerpo"></div>
+  ${firma.firmas.length?`<footer class="imp-firmas imp-firmas-${firma.ubicacion}">${firma.firmas.map(f=>`<div class="imp-firma"><div class="imp-linea"></div><div>${esc(f)}</div>${f==='Representante legal'&&e.razon_social?`<div class="imp-sub">${esc(e.razon_social)}</div>`:''}</div>`).join('')}</footer>`:''}`;
+ $('.imp-cuerpo',cont).append(...contenido.childNodes);
+ document.body.append(cont);
+ let pagina=document.getElementById('conta-pagina');if(!pagina){pagina=document.createElement('style');pagina.id='conta-pagina';document.head.append(pagina);}
+ pagina.textContent=`@page{size:A4 ${horizontal?'landscape':'portrait'};margin:12mm 10mm}`;
+ const titulo0=document.title;document.title=[titulo,e.razon_social].filter(Boolean).join(' - ');
+ window.addEventListener('afterprint',()=>{document.title=titulo0;},{once:true});
+ window.print();
+}
+
 async function pantallaCrear(){
  const dialogo=$('.ui-dialog'),form=$('#ingCabVoucher_form');if(!dialogo||!form)return;
  dialogo.dataset.conta='';dialogo.classList.add('conta-dialogo');
@@ -174,6 +214,7 @@ async function pantallaReporte(tipo){
   has.closest('.margin_bottom_5px').after(fila);cuenta=$('#conta-cuenta');
   api('cuentas.php').then(plan=>cuenta.insertAdjacentHTML('beforeend',opcionesPlan(plan))).catch(()=>{});}
  const filtros=()=>({libro:tipo,desde:des.value,hasta:has.value,registro:reg.value,cuenta:cuenta?.value});
+ const firma=prepararFirma(form);cargarEmpresaImpresion().then(()=>pintar());
  const periodo=f=>`${f.desde?fechaCorta(f.desde):'inicio'} al ${f.hasta?fechaCorta(f.hasta):'hoy'} · Contabilidad ${f.registro}`;
  const vacio=()=>`<p class="conta-vacio">No hay vouchers en este período. <a href="voucher-crear.html">Crear un voucher</a></p>`;
  const diario=libro=>libro.asientos.length?`<table class="conta-tabla conta-libro"><thead><tr><th>Fecha</th><th>Comprobante</th><th>Código</th><th>Cuenta</th><th>Glosa</th><th class="num">Debe</th><th class="num">Haber</th></tr></thead><tbody>${libro.asientos.map(a=>
@@ -186,25 +227,25 @@ async function pantallaReporte(tipo){
  let pedido=0;
  const pintar=async()=>{const yo=++pedido,f=filtros();
   try{const datos=await api('libros.php?'+consulta(f));if(yo!==pedido)return;
-   salida.innerHTML=`<h3 class="conta-titulo">${tipo==='mayor'?'Libro Mayor':'Libro Diario'}</h3><p class="conta-periodo">${esc(periodo(f))}</p>`+(tipo==='mayor'?mayor(datos):diario(datos));}
+   salida.innerHTML=`<h3 class="conta-titulo">${tipo==='mayor'?'Libro Mayor':'Libro Diario'}</h3><p class="conta-empresa">${esc(lineaEmpresa(empresaImpresion))}</p><p class="conta-periodo">${esc(periodo(f))}</p>`+(tipo==='mayor'?mayor(datos):diario(datos));}
   catch(e){if(yo===pedido)salida.innerHTML=alerta(e.errores||[e.message]);}
  };
  const exportar=async()=>{try{const datos=await api('libros.php?'+consulta(filtros()));descargar(`libro-${tipo}.csv`,csv(tipo==='mayor'?filasMayor(datos):filasDiario(datos)));}catch(e){aviso(e.message);}};
  form.addEventListener('change',pintar);
  form.addEventListener('submit',e=>e.preventDefault());
  form.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault();
-  if(/PDF/.test(b.textContent))window.print();else exportar();});
+  if(/PDF/.test(b.textContent))imprimirInforme({titulo:tipo==='mayor'?'Libro Mayor':'Libro Diario',periodo:periodo(filtros()),salida,firma:firma()});else exportar();});
  pintar();
 }
 
 // Balance General, Estado de Resultado y Libros de Compras y Ventas comparten el mismo esquema de filtros y salida.
 const INFORMES={
- 'reportes-libro-balance.html':{form:'#reporteBalance_form',des:'#fdeslb',has:'#fhaslb',titulo:'Balance General',archivo:'balance-general',
+ 'reportes-libro-balance.html':{form:'#reporteBalance_form',des:'#fdeslb',has:'#fhaslb',titulo:'Balance General',archivo:'balance-general',horizontal:true,
   ruta:f=>'libros.php?'+consulta({libro:'balance',desde:f.desde,hasta:f.hasta,registro:f.registro}),filas:filasBalance,vacio:b=>!b.cuentas.length},
  'reportes-resultados.html':{form:'#reporteEerr_form',des:'#fdeser',has:'#fhaser',titulo:'Estado de Resultado',archivo:'estado-resultado',
   ruta:f=>'libros.php?'+consulta({libro:'resultado',desde:f.desde,hasta:f.hasta,registro:f.registro}),filas:filasResultado,vacio:r=>!r.ingresos.length&&!r.gastos.length},
- 'reportes-libro-compras.html':{form:'#reporteLibroCompra_form',des:'#fdeslc',has:'#fhaslc',titulo:'Libro de Compras',archivo:'libro-compras',rcv:'compras'},
- 'reportes-libro-ventas.html':{form:'#reporteLibroVenta_form',des:'#fdes',has:'#fhas',titulo:'Libro de Ventas',archivo:'libro-ventas',rcv:'ventas'},
+ 'reportes-libro-compras.html':{form:'#reporteLibroCompra_form',des:'#fdeslc',has:'#fhaslc',titulo:'Libro de Compras',archivo:'libro-compras',horizontal:true,rcv:'compras'},
+ 'reportes-libro-ventas.html':{form:'#reporteLibroVenta_form',des:'#fdes',has:'#fhas',titulo:'Libro de Ventas',archivo:'libro-ventas',horizontal:true,rcv:'ventas'},
 };
 function tablaFilas(filas,{destacar=()=>false}={}){
  const [cab,...cuerpo]=filas,num=v=>typeof v==='number';
@@ -223,6 +264,7 @@ function pantallaInforme(cfg){
  const salida=document.createElement('div');salida.id='conta-reporte';salida.className='col-lg-12 col-md-12 col-sm-12 col-xs-12 conta-reporte';salida.dataset.conta='';
  form.parentElement.after(salida);
  const filtros=()=>({desde:des.value,hasta:has.value,registro:reg?.value,tipo:tipo?.value});
+ const firma=prepararFirma(form);cargarEmpresaImpresion().then(()=>pintar());
  const ruta=f=>cfg.rcv?'rcv.php?'+consulta({libro:cfg.rcv,desde:f.desde,hasta:f.hasta,tipo:f.tipo}):cfg.ruta(f);
  const filas=cfg.rcv?filasLibroRcv:cfg.filas;
  const leer=f=>api(ruta(f));
@@ -234,7 +276,7 @@ function pantallaInforme(cfg){
  const pintar=async()=>{const yo=++pedido,f=filtros();
   try{const datos=await leer(f);if(yo!==pedido)return;
    const sinDatos=cfg.rcv?!datos.docs.length:cfg.vacio(datos);
-   salida.innerHTML=`<h3 class="conta-titulo">${cfg.titulo}</h3><p class="conta-periodo">${esc(periodo(f))}</p>`+(sinDatos?vacio:tablaFilas(filas(datos),{destacar}));}
+   salida.innerHTML=`<h3 class="conta-titulo">${cfg.titulo}</h3><p class="conta-empresa">${esc(lineaEmpresa(empresaImpresion))}</p><p class="conta-periodo">${esc(periodo(f))}</p>`+(sinDatos?vacio:tablaFilas(filas(datos),{destacar}));}
   catch(e){if(yo===pedido)salida.innerHTML=alerta(e.errores||[e.message]);}
  };
  const exportar=async()=>{try{descargar(cfg.archivo+'.csv',csv(filas(await leer(filtros()))));}catch(e){aviso(e.message);}};
@@ -243,7 +285,7 @@ function pantallaInforme(cfg){
  form.addEventListener('click',e=>{const b=e.target.closest('button,a');if(!b)return;e.preventDefault();
   if(b.classList.contains('dropdown-toggle')){const menu=b.parentElement.querySelector('.dropdown-menu');if(menu)menu.style.display=menu.style.display==='block'?'none':'block';return;}
   const texto=b.textContent;
-  if(/PDF/.test(texto))window.print();else if(/EXCEL|CSV/.test(texto))exportar();else if(/Ver/.test(texto))pintar();
+  if(/PDF/.test(texto))imprimirInforme({titulo:cfg.titulo,periodo:periodo(filtros()),salida,horizontal:Boolean(cfg.horizontal),firma:firma()});else if(/EXCEL|CSV/.test(texto))exportar();else if(/Ver/.test(texto))pintar();
   else aviso('Este formato del SII aún no está disponible; use PDF o CSV.');});
  pintar();
 }
