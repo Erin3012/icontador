@@ -1,0 +1,50 @@
+body{margin:0;background:#f5f7fa;color:#24354a;font:15px Arial,sans-serif}
+.dl-barra{display:flex;gap:16px;align-items:center;padding:10px 24px;background:#10233f;color:#fff}
+.dl-barra img{height:34px;width:auto}.dl-barra span{opacity:.85}.dl-barra a{margin-left:auto;color:#fff}
+.dl-main{max-width:1100px;margin:24px auto;padding:0 16px}
+.dl-card{background:#fff;border:1px solid #d9e0e8;border-radius:8px;padding:20px 24px;margin-bottom:20px}
+.dl-card h1{font-size:22px;margin:0 0 6px;color:#10233f}
+.dl-ayuda{color:#596b7a;font-size:13px;margin:4px 0 10px}
+.dl-empresa{font-weight:bold;color:#10233f;margin:8px 0}
+.dl-grilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 16px}
+label{display:block;font-weight:bold;margin:12px 0 4px}
+input:not([type=radio]):not([type=checkbox]){width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #b9c5d3;border-radius:6px;font:inherit}
+.dl-radios{border:0;padding:0;margin:12px 0 0}.dl-radios legend{font-weight:bold;margin-bottom:4px}.dl-radios label{display:inline-flex;gap:6px;font-weight:normal;margin:4px 18px 0 0}
+button{padding:8px 16px;border:0;border-radius:6px;background:#ec9124;color:#fff;font:inherit;cursor:pointer}
+button.secundario{background:#fff;color:#10233f;border:1px solid #10233f}
+.dl-acciones{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.dl-mensaje{background:#fff4e5;border:1px solid #f0c27a;border-radius:6px;padding:8px 12px;margin:12px 0 0}
+.dl-pestanas{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}
+.dl-pestanas button{background:#e8edf3;color:#24354a}.dl-pestanas button.activo{background:#10233f;color:#fff}
+.dl-opciones{margin-bottom:18px;padding-bottom:18px;border-bottom:1px dashed #d9e0e8}
+/* Hoja del documento: se ve como la página impresa. */
+.dl-hoja{max-width:780px;margin:0 auto 24px;padding:36px 44px;border:1px solid #d9e0e8;background:#fff;color:#000;font:14px/1.5 Arial,sans-serif}
+.dl-hoja.dl-horizontal{max-width:none;padding:28px}
+.dl-hoja h2{font-size:17px;margin:0 0 10px}.dl-hoja h3{font-size:14px;margin:18px 0 6px}
+.dl-hoja-encabezado{border-bottom:2px solid #10233f;margin-bottom:16px;padding-bottom:8px}
+.dl-hoja-empresa{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;margin-bottom:8px}
+.dl-hoja-sub{margin:0;font-size:13px}
+.dl-centro{text-align:center}.dl-derecha{text-align:right}.dl-negrita{font-weight:bold}.dl-justificado{text-align:justify}.dl-chico{font-size:12px}
+.dl-linea{display:inline-block;min-width:240px;border-bottom:1px solid #000;padding:0 4px}
+.dl-linea-corta{display:inline-block;min-width:110px;border-bottom:1px solid #000;padding:0 4px}
+.dl-tabla{width:100%;border-collapse:collapse;margin:8px 0}
+.dl-tabla th,.dl-tabla td{border:1px solid #000;padding:5px 8px;text-align:left;vertical-align:top}
+.dl-tabla th{background:#eef2f6}
+.dl-opcion td.dl-x{width:32px;text-align:center;vertical-align:middle;font-weight:bold}
+.dl-monto{text-align:right!important;white-space:nowrap}
+.dl-total td,.dl-total th{font-weight:bold;background:#eef2f6}
+.dl-resumen td:first-child{width:160px}
+.dl-alto{height:46px}
+.dl-planilla{font-size:11px}.dl-planilla th{font-size:10px}
+.dl-firma{display:flex;flex-direction:column;align-items:center;margin-top:70px;font-size:13px}
+.dl-firma-linea{width:320px;border-top:1px solid #000;margin-bottom:4px}
+@media(max-width:700px){.dl-hoja{padding:20px}.dl-linea{min-width:140px}.dl-hoja.dl-horizontal{overflow-x:auto}}
+@media print{
+ @page{margin:12mm}
+ body{background:#fff}
+ .dl-barra,.dl-no-imprimir,.dl-opciones,.dl-doc[hidden]{display:none!important}
+ .dl-main{max-width:none;margin:0;padding:0}
+ .dl-card{border:0;padding:0;margin:0}
+ .dl-hoja{border:0;margin:0;padding:0;max-width:none;page-break-after:always;break-after:page}
+ .dl-hoja:last-child{page-break-after:auto;break-after:auto}
+}

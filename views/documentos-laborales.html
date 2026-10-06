@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentos laborales · Cifrax</title>
+<link rel="stylesheet" href="../assets/documentos-laborales.css">
+<link rel="icon" type="image/png" href="../assets/cifrax-favicon.png"><link rel="apple-touch-icon" href="../assets/cifrax-apple-touch-icon.png"></head><body>
+<header class="dl-barra"><img src="../assets/cifrax-logo-blanco.png" alt="Cifrax"><span>Documentos laborales</span><a id="dl-volver" href="remuneraciones.html">Volver a Remuneraciones</a></header>
+<main class="dl-main">
+ <section class="dl-card dl-no-imprimir" aria-labelledby="dl-datos-titulo">
+  <h1 id="dl-datos-titulo">Documentos laborales y previsionales</h1>
+  <p class="dl-ayuda">Los documentos se llenan con la empresa seleccionada y con las liquidaciones guardadas del mes. Revisa los datos, completa lo que falte y usa <b>Imprimir / PDF</b>.</p>
+  <p id="dl-empresa" class="dl-empresa">Cargando empresa…</p>
+  <div class="dl-grilla">
+   <div><label for="dl-periodo">Mes</label><input id="dl-periodo" type="month"></div>
+   <div><label for="dl-rep-nombre">Representante legal / sostenedor</label><input id="dl-rep-nombre" maxlength="120" data-guardar="repNombre"></div>
+   <div><label for="dl-rep-rut">RUT representante</label><input id="dl-rep-rut" maxlength="12" placeholder="12.345.678-9" data-guardar="repRut"></div>
+   <div><label for="dl-establecimiento">Establecimiento</label><input id="dl-establecimiento" maxlength="120" data-guardar="establecimiento"></div>
+   <div><label for="dl-comuna">Comuna</label><input id="dl-comuna" maxlength="60" data-guardar="comuna"></div>
+   <div><label for="dl-rbd">Rol base de datos (RBD)</label><input id="dl-rbd" maxlength="12" data-guardar="rbd"></div>
+  </div>
+  <p id="dl-mensaje" class="dl-mensaje" role="status" hidden></p>
+  <nav class="dl-pestanas" aria-label="Documento">
+   <button type="button" data-doc="jurada" class="activo">Declaración jurada Ley 21.389</button><button type="button" data-doc="acreditacion">Acreditación de pagos previsionales</button><button type="button" data-doc="planilla">Planilla de remuneraciones</button><button type="button" data-doc="formulario">Documentación laboral y previsional</button>
+  </nav>
+ </section>
+
+ <section id="doc-jurada" class="dl-card dl-doc" aria-label="Declaración jurada Ley 21.389">
+  <div class="dl-no-imprimir dl-opciones">
+   <div class="dl-grilla">
+    <div><label for="dj-trabajador">Trabajador(a)</label><input id="dj-trabajador" maxlength="120" list="dl-trabajadores"></div>
+    <div><label for="dj-rut">RUT trabajador(a)</label><input id="dj-rut" maxlength="12" placeholder="12.345.678-9"></div>
+    <div><label for="dj-fecha">Fecha</label><input id="dj-fecha" type="date"></div>
+   </div>
+   <fieldset class="dl-radios"><legend>Retención judicial por pensión de alimentos</legend>
+    <label><input type="radio" name="dj-notificado" value="no" checked> No he sido notificado por tribunal</label>
+    <label><input type="radio" name="dj-notificado" value="si"> He sido notificado por el tribunal</label>
+   </fieldset>
+   <div class="dl-acciones"><button type="button" data-imprimir="jurada">Imprimir / PDF</button><button type="button" id="dj-todos" class="secundario">Imprimir una por cada trabajador del mes</button></div>
+  </div>
+  <div id="dj-hojas"></div>
+ </section>
+
+ <section id="doc-acreditacion" class="dl-card dl-doc" aria-label="Declaración de acreditación de pagos previsionales" hidden>
+  <div class="dl-no-imprimir dl-opciones">
+   <div class="dl-grilla">
+    <div><label for="ac-pagadas">Cotizaciones efectivamente pagadas</label><input id="ac-pagadas" inputmode="numeric"></div>
+    <div><label for="ac-fecha">Fecha de la declaración</label><input id="ac-fecha" type="date"></div>
+   </div>
+   <p class="dl-ayuda">Total de cotizaciones = AFP, salud y seguro de cesantía del trabajador más los aportes del empleador (SIS, cesantía, mutual y cotización adicional) de las liquidaciones del mes. Si no indicas lo pagado, se asume pagado el total.</p>
+   <div class="dl-acciones"><button type="button" data-imprimir="acreditacion">Imprimir / PDF</button></div>
+  </div>
+  <div id="ac-hoja"></div>
+ </section>
+
+ <section id="doc-planilla" class="dl-card dl-doc" aria-label="Planilla de remuneraciones" hidden>
+  <div class="dl-no-imprimir dl-opciones dl-acciones"><button type="button" data-imprimir="planilla">Imprimir / PDF</button><button type="button" id="pl-csv" class="secundario">Descargar CSV (Excel)</button></div>
+  <div id="pl-hoja"></div>
+ </section>
+
+ <section id="doc-formulario" class="dl-card dl-doc" aria-label="Documentación laboral y previsional" hidden>
+  <div class="dl-no-imprimir dl-opciones">
+   <div class="dl-grilla">
+    <div><label for="fo-docentes">N° docentes</label><input id="fo-docentes" inputmode="numeric"></div>
+    <div><label for="fo-no-docentes">N° no docentes</label><input id="fo-no-docentes" inputmode="numeric"></div>
+   </div>
+   <fieldset class="dl-radios"><legend>Documentos que acompaña</legend>
+    <label><input type="checkbox" name="fo-doc" value="Contratos de trabajo" checked> Contratos de trabajo</label>
+    <label><input type="checkbox" name="fo-doc" value="Contratos de prestación de servicios"> Contratos de prestación de servicios</label>
+    <label><input type="checkbox" name="fo-doc" value="Libro auxiliar de remuneraciones" checked> Libro auxiliar de remuneraciones</label>
+    <label><input type="checkbox" name="fo-doc" value="Comprobante de pago de remuneraciones" checked> Comprobante de pago de remuneraciones</label>
+    <label><input type="checkbox" name="fo-doc" value="Nómina de personal jubilado (con valores no imponibles)"> Nómina de personal jubilado</label>
+   </fieldset>
+   <div class="dl-acciones"><button type="button" data-imprimir="formulario">Imprimir / PDF</button></div>
+  </div>
+  <div id="fo-hoja"></div>
+ </section>
+ <datalist id="dl-trabajadores"></datalist>
+</main>
+<script src="../assets/documentos-laborales.js"></script>
+</body></html>
