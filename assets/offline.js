@@ -147,5 +147,21 @@ function agregarMarca(){
  const logo=document.createElement("img");logo.src="../assets/cifrax-logo-blanco.png";logo.alt="Cifrax";
  enlace.append(logo);barra.prepend(enlace);
 }
-function iniciarPagina(){agregarMarca();iniciarEmpresaLocal();agregarBotonSugerencias();}
+// Botón Volver: regresa a la pantalla anterior de la app; si se llegó desde fuera (o se abrió directo), va al inicio.
+function vieneDeLaApp(){
+ try{return !!document.referrer&&new URL(document.referrer).origin===location.origin&&history.length>1;}catch{return false;}
+}
+function agregarBotonVolver(){
+ if(document.querySelector('.cifrax-volver'))return;
+ const esInicio=/\/inicio-cuenta\.html$/i.test(location.pathname);
+ if(esInicio&&!vieneDeLaApp())return;
+ const enlace=document.createElement('a');enlace.className='cifrax-volver';enlace.href='inicio-cuenta.html';enlace.title='Volver a la pantalla anterior';
+ const icono=document.createElement('span');icono.className='glyphicon glyphicon-arrow-left';icono.setAttribute('aria-hidden','true');
+ enlace.append(icono,document.createTextNode(' Volver'));
+ enlace.addEventListener('click',event=>{if(!vieneDeLaApp())return;event.preventDefault();history.back();});
+ const barra=document.querySelector('.navbar-inverse .navbar-header');
+ if(barra){const marca=barra.querySelector('.cifrax-marca');marca?marca.after(enlace):barra.prepend(enlace);}
+ else{const aviso=document.querySelector('.offline-banner');if(aviso){enlace.classList.add('cifrax-volver-aviso');aviso.prepend(enlace);}else{enlace.classList.add('cifrax-volver-flotante');document.body.append(enlace);}}
+}
+function iniciarPagina(){agregarMarca();agregarBotonVolver();iniciarEmpresaLocal();agregarBotonSugerencias();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciarPagina);else iniciarPagina();
