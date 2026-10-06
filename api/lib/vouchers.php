@@ -189,7 +189,8 @@ function cargarPlanEjemplo(PDO $pdo, int $empresa = 0): int
     return $agregadas;
 }
 
-function agregarCuenta(PDO $pdo, array $datos, int $empresa = 0): array
+// Valida código y nombre de una cuenta; $actual es el código que se está editando (no cuenta como repetido).
+function datosCuenta(PDO $pdo, array $datos, int $empresa, ?string $actual = null): array
 {
     $codigo = trim((string) ($datos['codigo'] ?? ''));
     $nombre = trim((string) ($datos['nombre'] ?? ''));
@@ -200,22 +201,48 @@ function agregarCuenta(PDO $pdo, array $datos, int $empresa = 0): array
     if ($nombre === '') {
         $errores[] = 'Ingrese el nombre de la cuenta.';
     }
-    if (!$errores && in_array($codigo, array_column(planCuentas($pdo, $empresa), 'codigo'), true)) {
+    if (!$errores && $codigo !== $actual && in_array($codigo, array_column(planCuentas($pdo, $empresa), 'codigo'), true)) {
         $errores[] = "La cuenta $codigo ya existe.";
     }
     if ($errores) {
         throw new ErrorValidacion($errores);
     }
-    $pdo->prepare('INSERT INTO cuentas (empresa_id, codigo, nombre) VALUES (?, ?, ?)')->execute([$empresa, $codigo, mb_substr($nombre, 0, 120)]);
-    return ['codigo' => $codigo, 'nombre' => mb_substr($nombre, 0, 120)];
+    return [$codigo, mb_substr($nombre, 0, 120)];
+}
+
+function agregarCuenta(PDO $pdo, array $datos, int $empresa = 0): array
+{
+    [$codigo, $nombre] = datosCuenta($pdo, $datos, $empresa);
+    $pdo->prepare('INSERT INTO cuentas (empresa_id, codigo, nombre) VALUES (?, ?, ?)')->execute([$empresa, $codigo, $nombre]);
+    return ['codigo' => $codigo, 'nombre' => $nombre];
+}
+
+function movimientosCuenta(PDO $pdo, string $codigo, int $empresa): int
+{
+    $uso = $pdo->prepare('SELECT COUNT(*) FROM voucher_lineas l JOIN vouchers v ON v.id = l.voucher_id WHERE v.empresa_id = ? AND l.cuenta = ?');
+    $uso->execute([$empresa, $codigo]);
+    return (int) $uso->fetchColumn();
+}
+
+// El nombre siempre se puede cambiar; el código solo si ningún voucher usa la cuenta, para no descuadrar los libros.
+// Devuelve null si la cuenta no existe.
+function editarCuenta(PDO $pdo, string $actual, array $datos, int $empresa = 0): ?array
+{
+    if (!in_array($actual, array_column(planCuentas($pdo, $empresa), 'codigo'), true)) {
+        return null;
+    }
+    [$codigo, $nombre] = datosCuenta($pdo, $datos, $empresa, $actual);
+    if ($codigo !== $actual && movimientosCuenta($pdo, $actual, $empresa) > 0) {
+        throw new ErrorValidacion(["La cuenta $actual tiene movimientos en vouchers: puede cambiar su nombre, pero no su código."]);
+    }
+    $pdo->prepare('UPDATE cuentas SET codigo = ?, nombre = ? WHERE empresa_id = ? AND codigo = ?')->execute([$codigo, $nombre, $empresa, $actual]);
+    return ['codigo' => $codigo, 'nombre' => $nombre];
 }
 
 // Solo se puede eliminar una cuenta que ningún voucher de la empresa usa.
 function eliminarCuenta(PDO $pdo, string $codigo, int $empresa = 0): bool
 {
-    $uso = $pdo->prepare('SELECT COUNT(*) FROM voucher_lineas l JOIN vouchers v ON v.id = l.voucher_id WHERE v.empresa_id = ? AND l.cuenta = ?');
-    $uso->execute([$empresa, $codigo]);
-    if ((int) $uso->fetchColumn() > 0) {
+    if (movimientosCuenta($pdo, $codigo, $empresa) > 0) {
         throw new ErrorValidacion(["La cuenta $codigo tiene movimientos en vouchers y no se puede eliminar."]);
     }
     $consulta = $pdo->prepare('DELETE FROM cuentas WHERE empresa_id = ? AND codigo = ?');
