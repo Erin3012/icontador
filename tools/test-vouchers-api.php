@@ -1,6 +1,7 @@
 <?php
 // Pruebas de la lógica contable en PHP con una base SQLite en memoria: php tools/test-api.php
 declare(strict_types=1);
+require __DIR__ . '/base-prueba.php';
 require dirname(__DIR__) . '/api/lib/vouchers.php';
 
 $fallas = 0;
@@ -20,9 +21,10 @@ function errores(callable $f): array
     return [];
 }
 
-$pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+$pdo = base_prueba();
 crearEsquema($pdo);
-comprobar(count(planCuentas($pdo)) === count(PLAN_BASE), 'plan de cuentas inicial cargado');
+comprobar(planCuentas($pdo) === [], 'una base nueva no trae plan de cuentas');
+comprobar(cargarPlanEjemplo($pdo) === count(PLAN_EJEMPLO) && cargarPlanEjemplo($pdo) === 0, 'el plan de ejemplo se carga una vez');
 
 $venta = ['tipo' => 'I', 'fecha' => '2026-10-01', 'registro' => 'Ambos', 'glosa' => 'Venta al contado', 'lineas' => [
     ['cuenta' => '1.1.01', 'debe' => '119000'], ['cuenta' => '4.1.01', 'haber' => 100000], ['cuenta' => '2.1.02', 'haber' => 19000],
@@ -64,6 +66,16 @@ comprobar(count($mayor) === 1 && $mayor[0]['saldoAnterior'] === 119000, 'Libro M
 comprobar($mayor[0]['saldo'] === 69010 && end($mayor[0]['movimientos'])['saldo'] === 69010, 'Libro Mayor calcula saldo acumulado');
 $caja = array_values(array_filter(libroMayor($pdo), fn($c) => $c['codigo'] === '4.1.01'))[0];
 comprobar($caja['haber'] === 100010 && $caja['saldo'] === -100010, 'Libro Mayor de Ventas con saldo acreedor');
+
+$balance = balanceGeneral($pdo, ['desde' => '2026-10-01', 'hasta' => '2026-10-31']);
+$t = $balance['totales'];
+comprobar($t['debitos'] === 170000 && $t['creditos'] === 170000 && $t['deudor'] === $t['acreedor'], 'Balance General cuadra sumas y saldos');
+comprobar($balance['resultado'] === 50000 && $balance['ajuste']['pasivo'] === 50000 && $balance['ajuste']['perdida'] === 50000, 'Balance General calcula la utilidad (ventas 100.000 menos arriendo 50.000)');
+comprobar($balance['sumasIguales']['activo'] === $balance['sumasIguales']['pasivo'] && $balance['sumasIguales']['perdida'] === $balance['sumasIguales']['ganancia'], 'Balance General termina con sumas iguales');
+comprobar(balanceGeneral($pdo, ['registro' => 'IFRS'])['totales']['debitos'] === 120010, 'Balance IFRS excluye vouchers solo tributarios');
+$eerr = estadoResultado($pdo, ['desde' => '2026-10-01', 'hasta' => '2026-10-31']);
+comprobar($eerr['totalIngresos'] === 100000 && $eerr['totalGastos'] === 50000 && $eerr['resultado'] === 50000, 'Estado de Resultado: ingresos, gastos y utilidad');
+comprobar(count($eerr['ingresos']) === 1 && $eerr['gastos'][0]['nombre'] === 'Arriendos', 'Estado de Resultado detalla cuentas');
 
 comprobar(eliminarVoucher($pdo, $v2['id']) && count(listarVouchers($pdo)) === 3, 'eliminar voucher');
 comprobar((int) $pdo->query('SELECT COUNT(*) FROM voucher_lineas WHERE voucher_id = ' . $v2['id'])->fetchColumn() === 0, 'eliminar borra sus líneas');

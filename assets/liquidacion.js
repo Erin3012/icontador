@@ -91,7 +91,7 @@
  const API='../api/liquidaciones.php';
  let ultimo=null;
  async function pedir(method,query,body){
-  const res=await fetch(API+(query||''),{method,headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});
+  const res=await fetch(API+(query||''),{method,headers:{...(body?{'Content-Type':'application/json'}:{}),...(typeof cabeceraEmpresa==='function'?cabeceraEmpresa():{})},body:body?JSON.stringify(body):undefined});
   const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||('Error '+res.status+' del servidor.'));return data;
  }
  async function iniciarGuardado(){

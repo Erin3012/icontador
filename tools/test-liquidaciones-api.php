@@ -1,10 +1,11 @@
 <?php
 // Prueba de la persistencia de liquidaciones con SQLite en memoria: php tools/test-liquidaciones-api.php
 declare(strict_types=1);
+require __DIR__ . '/base-prueba.php';
 require dirname(__DIR__) . '/api/lib/liquidaciones.php';
 function check(bool $ok, string $msg): void { if (!$ok) { fwrite(STDERR, "FALLA: $msg\n"); exit(1); } }
 
-$db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+$db = base_prueba();
 liq_schema($db);
 liq_schema($db); // idempotente
 $liq = ['periodo' => '2026-10', 'trabajador' => '  Juana Pérez ', 'sueldoBase' => 1000000, 'gratificacion' => 219115, 'imponible' => 1219115, 'totalHaberes' => 1219115,

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 /* Conexión PDO compartida. Usa MySQL cuando hay configuración (api/config.php o variables de entorno)
    y, si no, un archivo SQLite local en data/icontador.sqlite para desarrollo. */
+if (!function_exists('icontador_db')) {
 function icontador_db(): PDO {
     static $pdo = null;
     if ($pdo instanceof PDO) return $pdo;
@@ -21,4 +22,5 @@ function icontador_db(): PDO {
     ]);
     if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') $pdo->exec("SET NAMES utf8mb4");
     return $pdo;
+}
 }

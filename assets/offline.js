@@ -4,6 +4,10 @@ const EMPRESA_LOCAL_KEY='icontador.empresaSeleccionada';
 function empresaSeleccionada(){
  try{return JSON.parse(localStorage.getItem(EMPRESA_LOCAL_KEY)||'null');}catch{return null;}
 }
+// Las APIs PHP guardan y leen los datos de la empresa indicada en esta cabecera.
+function cabeceraEmpresa(){
+ const empresa=empresaSeleccionada();return empresa?.id?{'X-Empresa-Id':String(empresa.id)}:{};
+}
 function actualizarCabeceraEmpresa(){
  const empresa=empresaSeleccionada();if(!empresa)return;
  document.querySelectorAll('a.link_blanco').forEach(enlace=>{
@@ -34,13 +38,35 @@ function crearSelectorEmpresa(empresas){
 async function mostrarSelectorEmpresa(){
  try{
   const respuesta=await fetch('../api/empresas.php',{headers:{Accept:'application/json'}});
-  const datos=await respuesta.json();if(!respuesta.ok)throw new Error(datos.error||'Error al cargar empresas');
+  const datos=await respuesta.json();if(!respuesta.ok)throw new Error((datos.errores||[]).join(' ')||datos.error||'Error al cargar empresas');
   crearSelectorEmpresa(datos.empresas||[]);
  }catch(error){notify(error.message||'No se pudo cargar la empresa local.');}
+}
+// Página de inicio: nombre de la cuenta con sesión en la cabecera, fecha del día y pestañas de avisos.
+async function mostrarUsuarioInicio(){
+ try{
+  const respuesta=await fetch('../api/usuario.php',{headers:{Accept:'application/json'}});
+  if(!respuesta.ok)return;
+  const usuario=await respuesta.json(),empresa=empresaSeleccionada();
+  document.querySelectorAll('a.link_blanco').forEach(enlace=>{
+   if(/USUARIO TITULAR:/i.test(enlace.textContent))enlace.textContent='USUARIO TITULAR: '+String(usuario.nombre||usuario.email||'').toUpperCase()+(empresa?' · '+empresa.razon_social:'');
+  });
+ }catch{}
+}
+function iniciarPaginaInicio(){
+ const fecha=document.getElementById('fecha-hoy');
+ if(fecha){const texto=new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'}).replace(/ de /g,' ');fecha.textContent=texto.replace(/(^|\s)\p{Ll}/u,l=>l.toUpperCase());}
+ document.querySelectorAll('.tabs a[data-tab]').forEach(pestana=>pestana.addEventListener('click',event=>{
+  event.preventDefault();event.stopPropagation();
+  document.querySelectorAll('.tabs a[data-tab]').forEach(otra=>otra.classList.toggle('active',otra===pestana));
+  document.querySelectorAll('.secciones > article').forEach(articulo=>{articulo.style.display=articulo.id===pestana.dataset.tab?'block':'none';});
+ }));
+ mostrarUsuarioInicio();
 }
 function iniciarEmpresaLocal(){
  actualizarCabeceraEmpresa();
  const esInicio=/\/inicio-cuenta\.html$/i.test(location.pathname);
+ if(esInicio)iniciarPaginaInicio();
  if(esInicio&&(new URLSearchParams(location.search).has('seleccionar')||!empresaSeleccionada()))mostrarSelectorEmpresa();
 }
 // Las zonas marcadas con data-conta tienen su propio comportamiento en contabilidad.js.
@@ -58,4 +84,13 @@ document.addEventListener('click',event=>{
 });
 document.addEventListener('input',event=>{if(event.target.type!=='search')return;const section=event.target.closest('.dataTables_wrapper');section?.querySelectorAll('tbody tr').forEach(row=>{row.hidden=!row.textContent.toLowerCase().includes(event.target.value.toLowerCase());});});
 function notify(){document.querySelector('.offline-message')?.remove();const e=document.createElement('div');e.className='offline-message';e.setAttribute('role','status');e.textContent='Vista de referencia: esta operación requiere el backend y está desactivada.';document.body.append(e);setTimeout(()=>e.remove(),4000);}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciarEmpresaLocal);else iniciarEmpresaLocal();
+// Botón fijo para reportar un problema o dejar una sugerencia desde cualquier pantalla (views/sugerencias.html).
+function agregarBotonSugerencias(){
+ if(document.querySelector('.sug-flotante'))return;
+ const pagina=location.pathname.split('/').pop()||'';
+ const enlace=document.createElement('a');enlace.className='sug-flotante';enlace.textContent='Reportar problema';
+ enlace.href='sugerencias.html?'+new URLSearchParams({origen:pagina.replace(/\.html$/,''),desde:pagina});
+ document.body.append(enlace);
+}
+function iniciarPagina(){iniciarEmpresaLocal();agregarBotonSugerencias();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciarPagina);else iniciarPagina();
