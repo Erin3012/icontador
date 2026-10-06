@@ -4,6 +4,10 @@ const EMPRESA_LOCAL_KEY='icontador.empresaSeleccionada';
 function empresaSeleccionada(){
  try{return JSON.parse(localStorage.getItem(EMPRESA_LOCAL_KEY)||'null');}catch{return null;}
 }
+// Las APIs PHP guardan y leen los datos de la empresa indicada en esta cabecera.
+function cabeceraEmpresa(){
+ const empresa=empresaSeleccionada();return empresa?.id?{'X-Empresa-Id':String(empresa.id)}:{};
+}
 function actualizarCabeceraEmpresa(){
  const empresa=empresaSeleccionada();if(!empresa)return;
  document.querySelectorAll('a.link_blanco').forEach(enlace=>{
@@ -34,7 +38,7 @@ function crearSelectorEmpresa(empresas){
 async function mostrarSelectorEmpresa(){
  try{
   const respuesta=await fetch('../api/empresas.php',{headers:{Accept:'application/json'}});
-  const datos=await respuesta.json();if(!respuesta.ok)throw new Error(datos.error||'Error al cargar empresas');
+  const datos=await respuesta.json();if(!respuesta.ok)throw new Error((datos.errores||[]).join(' ')||datos.error||'Error al cargar empresas');
   crearSelectorEmpresa(datos.empresas||[]);
  }catch(error){notify(error.message||'No se pudo cargar la empresa local.');}
 }

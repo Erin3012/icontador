@@ -1,21 +1,29 @@
 <?php
-// Vouchers, Libro Diario y Libro Mayor: esquema, validación y consultas. Conexión en api/db.php.
+// Vouchers y reportes contables por empresa: esquema, validación y consultas. Conexión en api/db.php.
 declare(strict_types=1);
 
-require_once dirname(__DIR__) . '/db.php';
+require_once __DIR__ . '/empresas.php';
 
 const TIPOS = ['I' => 'Ingreso', 'E' => 'Egreso', 'T' => 'Traspaso'];
 const REGISTROS = ['Ambos', 'IFRS', 'Tributario'];
-const PLAN_BASE = [
+// Plan de cuentas de ejemplo para una pyme chilena. Se carga por empresa desde Plan de Cuenta.
+const PLAN_EJEMPLO = [
     ['1.1.01', 'Caja'], ['1.1.02', 'Banco'], ['1.1.03', 'Clientes'], ['1.1.04', 'Documentos por cobrar'],
-    ['1.1.05', 'IVA Crédito Fiscal'], ['1.1.06', 'PPM por recuperar'], ['1.1.07', 'Mercaderías'],
-    ['1.2.01', 'Muebles y útiles'], ['1.2.02', 'Equipos computacionales'], ['1.2.03', 'Vehículos'], ['1.2.09', 'Depreciación acumulada'],
+    ['1.1.05', 'IVA Crédito Fiscal'], ['1.1.06', 'PPM por recuperar'], ['1.1.07', 'Mercaderías'], ['1.1.08', 'Fondos por rendir'],
+    ['1.1.09', 'Anticipo a proveedores'], ['1.1.10', 'Deudores varios'], ['1.1.11', 'Impuestos por recuperar'], ['1.1.12', 'Gastos pagados por anticipado'],
+    ['1.2.01', 'Muebles y útiles'], ['1.2.02', 'Equipos computacionales'], ['1.2.03', 'Vehículos'], ['1.2.04', 'Maquinarias y equipos'],
+    ['1.2.05', 'Terrenos'], ['1.2.06', 'Construcciones'], ['1.2.09', 'Depreciación acumulada'], ['1.3.01', 'Garantías entregadas'],
     ['2.1.01', 'Proveedores'], ['2.1.02', 'IVA Débito Fiscal'], ['2.1.03', 'Retenciones por pagar'], ['2.1.04', 'Remuneraciones por pagar'],
-    ['2.1.05', 'Leyes sociales por pagar'], ['2.1.06', 'Préstamos bancarios'],
-    ['2.3.01', 'Capital'], ['2.3.02', 'Resultados acumulados'], ['2.3.03', 'Resultado del ejercicio'],
+    ['2.1.05', 'Leyes sociales por pagar'], ['2.1.06', 'Préstamos bancarios'], ['2.1.07', 'Honorarios por pagar'], ['2.1.08', 'Impuesto único por pagar'],
+    ['2.1.09', 'PPM por pagar'], ['2.1.10', 'Impuesto a la renta por pagar'], ['2.1.11', 'Acreedores varios'], ['2.1.12', 'Anticipo de clientes'],
+    ['2.1.13', 'Cuenta corriente socios'], ['2.2.01', 'Préstamos bancarios largo plazo'], ['2.2.02', 'Provisión de vacaciones'],
+    ['2.3.01', 'Capital'], ['2.3.02', 'Resultados acumulados'], ['2.3.03', 'Resultado del ejercicio'], ['2.3.04', 'Retiros'],
     ['3.1.01', 'Costo de ventas'], ['3.1.02', 'Remuneraciones'], ['3.1.03', 'Honorarios'], ['3.1.04', 'Arriendos'],
-    ['3.1.05', 'Gastos generales'], ['3.1.06', 'Depreciación del ejercicio'], ['3.1.07', 'Gastos financieros'],
-    ['4.1.01', 'Ventas'], ['4.1.02', 'Otros ingresos'], ['4.1.03', 'Ingresos financieros'],
+    ['3.1.05', 'Gastos generales'], ['3.1.06', 'Depreciación del ejercicio'], ['3.1.07', 'Gastos financieros'], ['3.1.08', 'Leyes sociales'],
+    ['3.1.09', 'Servicios básicos'], ['3.1.10', 'Combustibles'], ['3.1.11', 'Mantención y reparaciones'], ['3.1.12', 'Publicidad'],
+    ['3.1.13', 'Seguros'], ['3.1.14', 'Materiales de oficina'], ['3.1.15', 'Gastos bancarios'], ['3.1.16', 'Patentes municipales'],
+    ['3.1.17', 'Impuesto a la renta'], ['3.1.18', 'Multas e intereses'], ['3.1.19', 'Corrección monetaria'],
+    ['4.1.01', 'Ventas'], ['4.1.02', 'Otros ingresos'], ['4.1.03', 'Ingresos financieros'], ['4.1.04', 'Ventas exentas'], ['4.1.05', 'Ventas de activo fijo'],
 ];
 
 class ErrorValidacion extends Exception
@@ -42,11 +50,74 @@ function crearEsquema(PDO $pdo): void
         $pdo->exec('PRAGMA foreign_keys = ON');
     }
     $pdo->exec("CREATE TABLE IF NOT EXISTS cuentas (
-        codigo VARCHAR(20) NOT NULL PRIMARY KEY,
-        nombre VARCHAR(120) NOT NULL
+        empresa_id INT NOT NULL DEFAULT 0,
+        codigo VARCHAR(20) NOT NULL,
+        nombre VARCHAR(120) NOT NULL,
+        PRIMARY KEY (empresa_id, codigo)
     )$motor");
-    $pdo->exec("CREATE TABLE IF NOT EXISTS vouchers (
+    $pdo->exec(tablaVouchers('vouchers', $id, $motor));
+    migrarVouchersPorEmpresa($pdo, $mysql, $id, $motor);
+    $pdo->exec(tablaLineas('voucher_lineas', $id, $motor));
+    migrarCuentasPorEmpresa($pdo, $mysql, $id, $motor);
+}
+
+// La cuenta de cada línea se valida en PHP contra el plan de la empresa del voucher (validarVoucher).
+function tablaLineas(string $nombre, string $id, string $motor): string
+{
+    return "CREATE TABLE IF NOT EXISTS $nombre (
         id $id,
+        voucher_id INT NOT NULL,
+        orden INT NOT NULL,
+        cuenta VARCHAR(20) NOT NULL,
+        glosa VARCHAR(200) NOT NULL DEFAULT '',
+        debe BIGINT NOT NULL DEFAULT 0,
+        haber BIGINT NOT NULL DEFAULT 0,
+        FOREIGN KEY (voucher_id) REFERENCES vouchers(id) ON DELETE CASCADE
+    )$motor";
+}
+
+// Antes el plan de cuentas era uno solo y voucher_lineas.cuenta apuntaba a cuentas(codigo).
+function migrarCuentasPorEmpresa(PDO $pdo, bool $mysql, string $id, string $motor): void
+{
+    if (columna_existe($pdo, 'cuentas', 'empresa_id')) {
+        return;
+    }
+    $empresa = empresa_para_datos_previos($pdo);
+    if ($mysql) {
+        $fks = $pdo->query("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'voucher_lineas' AND REFERENCED_TABLE_NAME = 'cuentas'")->fetchAll(PDO::FETCH_COLUMN);
+        foreach ($fks as $fk) {
+            $pdo->exec("ALTER TABLE voucher_lineas DROP FOREIGN KEY `$fk`");
+        }
+        $pdo->exec('ALTER TABLE cuentas ADD COLUMN empresa_id INT NOT NULL DEFAULT 0 FIRST, DROP PRIMARY KEY, ADD PRIMARY KEY (empresa_id, codigo)');
+        $pdo->prepare('UPDATE cuentas SET empresa_id = ?')->execute([$empresa]);
+        return;
+    }
+    $pdo->exec('PRAGMA foreign_keys = OFF');
+    $pdo->beginTransaction();
+    try {
+        $pdo->exec("CREATE TABLE cuentas_nueva (empresa_id INT NOT NULL DEFAULT 0, codigo VARCHAR(20) NOT NULL, nombre VARCHAR(120) NOT NULL, PRIMARY KEY (empresa_id, codigo))");
+        $pdo->prepare('INSERT INTO cuentas_nueva (empresa_id, codigo, nombre) SELECT ?, codigo, nombre FROM cuentas')->execute([$empresa]);
+        $pdo->exec('DROP TABLE cuentas');
+        $pdo->exec('ALTER TABLE cuentas_nueva RENAME TO cuentas');
+        $pdo->exec(tablaLineas('voucher_lineas_nueva', $id, $motor));
+        $pdo->exec('INSERT INTO voucher_lineas_nueva (id, voucher_id, orden, cuenta, glosa, debe, haber) SELECT id, voucher_id, orden, cuenta, glosa, debe, haber FROM voucher_lineas');
+        $pdo->exec('DROP TABLE voucher_lineas');
+        $pdo->exec('ALTER TABLE voucher_lineas_nueva RENAME TO voucher_lineas');
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    } finally {
+        $pdo->exec('PRAGMA foreign_keys = ON');
+    }
+}
+
+function tablaVouchers(string $nombre, string $id, string $motor): string
+{
+    return "CREATE TABLE IF NOT EXISTS $nombre (
+        id $id,
+        empresa_id INT NOT NULL DEFAULT 0,
         tipo CHAR(1) NOT NULL,
         periodo CHAR(7) NOT NULL,
         numero INT NOT NULL,
@@ -55,30 +126,101 @@ function crearEsquema(PDO $pdo): void
         glosa VARCHAR(500) NOT NULL DEFAULT '',
         creado VARCHAR(25) NOT NULL,
         modificado VARCHAR(25) NOT NULL,
-        UNIQUE (tipo, periodo, numero)
-    )$motor");
-    $pdo->exec("CREATE TABLE IF NOT EXISTS voucher_lineas (
-        id $id,
-        voucher_id INT NOT NULL,
-        orden INT NOT NULL,
-        cuenta VARCHAR(20) NOT NULL,
-        glosa VARCHAR(200) NOT NULL DEFAULT '',
-        debe BIGINT NOT NULL DEFAULT 0,
-        haber BIGINT NOT NULL DEFAULT 0,
-        FOREIGN KEY (voucher_id) REFERENCES vouchers(id) ON DELETE CASCADE,
-        FOREIGN KEY (cuenta) REFERENCES cuentas(codigo)
-    )$motor");
-    if ((int) $pdo->query('SELECT COUNT(*) FROM cuentas')->fetchColumn() === 0) {
-        $insertar = $pdo->prepare('INSERT INTO cuentas (codigo, nombre) VALUES (?, ?)');
-        foreach (PLAN_BASE as $cuenta) {
-            $insertar->execute($cuenta);
-        }
+        UNIQUE (empresa_id, tipo, periodo, numero)
+    )$motor";
+}
+
+// Los vouchers creados antes de separar por empresa no tienen empresa_id y su correlativo era único para todas las empresas.
+function migrarVouchersPorEmpresa(PDO $pdo, bool $mysql, string $id, string $motor): void
+{
+    if (columna_existe($pdo, 'vouchers', 'empresa_id')) {
+        return;
+    }
+    $empresa = empresa_para_datos_previos($pdo);
+    if ($mysql) {
+        $pdo->exec('ALTER TABLE vouchers ADD COLUMN empresa_id INT NOT NULL DEFAULT 0 AFTER id, DROP INDEX tipo, ADD UNIQUE KEY uq_vouchers_numero (empresa_id, tipo, periodo, numero)');
+        $pdo->prepare('UPDATE vouchers SET empresa_id = ?')->execute([$empresa]);
+        return;
+    }
+    // SQLite no permite cambiar una restricción UNIQUE: se reconstruye la tabla sin activar el borrado en cascada de las líneas.
+    $pdo->exec('PRAGMA foreign_keys = OFF');
+    $pdo->beginTransaction();
+    try {
+        $pdo->exec(tablaVouchers('vouchers_nueva', $id, $motor));
+        $pdo->prepare('INSERT INTO vouchers_nueva (id, empresa_id, tipo, periodo, numero, fecha, registro, glosa, creado, modificado)
+            SELECT id, ?, tipo, periodo, numero, fecha, registro, glosa, creado, modificado FROM vouchers')->execute([$empresa]);
+        $pdo->exec('DROP TABLE vouchers');
+        $pdo->exec('ALTER TABLE vouchers_nueva RENAME TO vouchers');
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    } finally {
+        $pdo->exec('PRAGMA foreign_keys = ON');
     }
 }
 
-function planCuentas(PDO $pdo): array
+function planCuentas(PDO $pdo, int $empresa = 0): array
 {
-    return $pdo->query('SELECT codigo, nombre FROM cuentas ORDER BY codigo')->fetchAll();
+    $consulta = $pdo->prepare('SELECT codigo, nombre FROM cuentas WHERE empresa_id = ? ORDER BY codigo');
+    $consulta->execute([$empresa]);
+    return $consulta->fetchAll();
+}
+
+// Agrega al plan de la empresa las cuentas de ejemplo que le falten y devuelve cuántas agregó.
+function cargarPlanEjemplo(PDO $pdo, int $empresa = 0): int
+{
+    $existentes = array_column(planCuentas($pdo, $empresa), 'codigo');
+    $insertar = $pdo->prepare('INSERT INTO cuentas (empresa_id, codigo, nombre) VALUES (?, ?, ?)');
+    $agregadas = 0;
+    $pdo->beginTransaction();
+    try {
+        foreach (PLAN_EJEMPLO as [$codigo, $nombre]) {
+            if (!in_array($codigo, $existentes, true)) {
+                $insertar->execute([$empresa, $codigo, $nombre]);
+                $agregadas++;
+            }
+        }
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
+    return $agregadas;
+}
+
+function agregarCuenta(PDO $pdo, array $datos, int $empresa = 0): array
+{
+    $codigo = trim((string) ($datos['codigo'] ?? ''));
+    $nombre = trim((string) ($datos['nombre'] ?? ''));
+    $errores = [];
+    if (!preg_match('/^[0-9][0-9.\-]{0,19}$/', $codigo)) {
+        $errores[] = 'El código debe empezar con un dígito (1 activo, 2 pasivo, 3 gastos, 4 ingresos) y tener solo números, puntos o guiones.';
+    }
+    if ($nombre === '') {
+        $errores[] = 'Ingrese el nombre de la cuenta.';
+    }
+    if (!$errores && in_array($codigo, array_column(planCuentas($pdo, $empresa), 'codigo'), true)) {
+        $errores[] = "La cuenta $codigo ya existe.";
+    }
+    if ($errores) {
+        throw new ErrorValidacion($errores);
+    }
+    $pdo->prepare('INSERT INTO cuentas (empresa_id, codigo, nombre) VALUES (?, ?, ?)')->execute([$empresa, $codigo, mb_substr($nombre, 0, 120)]);
+    return ['codigo' => $codigo, 'nombre' => mb_substr($nombre, 0, 120)];
+}
+
+// Solo se puede eliminar una cuenta que ningún voucher de la empresa usa.
+function eliminarCuenta(PDO $pdo, string $codigo, int $empresa = 0): bool
+{
+    $uso = $pdo->prepare('SELECT COUNT(*) FROM voucher_lineas l JOIN vouchers v ON v.id = l.voucher_id WHERE v.empresa_id = ? AND l.cuenta = ?');
+    $uso->execute([$empresa, $codigo]);
+    if ((int) $uso->fetchColumn() > 0) {
+        throw new ErrorValidacion(["La cuenta $codigo tiene movimientos en vouchers y no se puede eliminar."]);
+    }
+    $consulta = $pdo->prepare('DELETE FROM cuentas WHERE empresa_id = ? AND codigo = ?');
+    $consulta->execute([$empresa, $codigo]);
+    return $consulta->rowCount() > 0;
 }
 
 function monto(mixed $valor): ?int
@@ -160,10 +302,10 @@ function formato(int $n): string
     return number_format($n, 0, ',', '.');
 }
 
-function obtenerVoucher(PDO $pdo, int $id): ?array
+function obtenerVoucher(PDO $pdo, int $id, int $empresa = 0): ?array
 {
-    $consulta = $pdo->prepare('SELECT * FROM vouchers WHERE id = ?');
-    $consulta->execute([$id]);
+    $consulta = $pdo->prepare('SELECT * FROM vouchers WHERE id = ? AND empresa_id = ?');
+    $consulta->execute([$id, $empresa]);
     $voucher = $consulta->fetch();
     if (!$voucher) {
         return null;
@@ -184,9 +326,11 @@ function formatearVoucher(array $v, array $lineas): array
     ];
 }
 
-function listarVouchers(PDO $pdo, array $filtros = []): array
+function listarVouchers(PDO $pdo, array $filtros = [], int $empresa = 0): array
 {
     [$where, $params] = condiciones($filtros);
+    array_unshift($where, 'v.empresa_id = ?');
+    array_unshift($params, $empresa);
     if (($filtros['numero'] ?? '') !== '') {
         $where[] = 'v.numero = ?';
         $params[] = (int) $filtros['numero'];
@@ -223,9 +367,9 @@ function condiciones(array $filtros): array
 }
 
 // Crea un voucher (sin $id) o reemplaza uno existente. El número es correlativo por tipo y mes.
-function guardarVoucher(PDO $pdo, array $datos, ?int $id = null): array
+function guardarVoucher(PDO $pdo, array $datos, ?int $id = null, int $empresa = 0): array
 {
-    $codigos = array_column(planCuentas($pdo), 'codigo');
+    $codigos = array_column(planCuentas($pdo, $empresa), 'codigo');
     $v = validarVoucher($datos, $codigos);
     $periodo = substr($v['fecha'], 0, 7);
     $ahora = gmdate('Y-m-d\TH:i:s\Z');
@@ -233,8 +377,8 @@ function guardarVoucher(PDO $pdo, array $datos, ?int $id = null): array
     try {
         $previo = null;
         if ($id !== null) {
-            $previo = $pdo->prepare('SELECT * FROM vouchers WHERE id = ?');
-            $previo->execute([$id]);
+            $previo = $pdo->prepare('SELECT * FROM vouchers WHERE id = ? AND empresa_id = ?');
+            $previo->execute([$id, $empresa]);
             $previo = $previo->fetch() ?: null;
             if (!$previo) {
                 throw new ErrorValidacion(['El voucher no existe.']);
@@ -243,8 +387,8 @@ function guardarVoucher(PDO $pdo, array $datos, ?int $id = null): array
         if ($previo && $previo['tipo'] === $v['tipo'] && $previo['periodo'] === $periodo) {
             $numero = (int) $previo['numero'];
         } else {
-            $max = $pdo->prepare('SELECT COALESCE(MAX(numero), 0) FROM vouchers WHERE tipo = ? AND periodo = ?');
-            $max->execute([$v['tipo'], $periodo]);
+            $max = $pdo->prepare('SELECT COALESCE(MAX(numero), 0) FROM vouchers WHERE empresa_id = ? AND tipo = ? AND periodo = ?');
+            $max->execute([$empresa, $v['tipo'], $periodo]);
             $numero = (int) $max->fetchColumn() + 1;
         }
         if ($previo) {
@@ -252,8 +396,8 @@ function guardarVoucher(PDO $pdo, array $datos, ?int $id = null): array
                 ->execute([$v['tipo'], $periodo, $numero, $v['fecha'], $v['registro'], $v['glosa'], $ahora, $id]);
             $pdo->prepare('DELETE FROM voucher_lineas WHERE voucher_id = ?')->execute([$id]);
         } else {
-            $pdo->prepare('INSERT INTO vouchers (tipo, periodo, numero, fecha, registro, glosa, creado, modificado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-                ->execute([$v['tipo'], $periodo, $numero, $v['fecha'], $v['registro'], $v['glosa'], $ahora, $ahora]);
+            $pdo->prepare('INSERT INTO vouchers (empresa_id, tipo, periodo, numero, fecha, registro, glosa, creado, modificado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+                ->execute([$empresa, $v['tipo'], $periodo, $numero, $v['fecha'], $v['registro'], $v['glosa'], $ahora, $ahora]);
             $id = (int) $pdo->lastInsertId();
         }
         $insertar = $pdo->prepare('INSERT INTO voucher_lineas (voucher_id, orden, cuenta, glosa, debe, haber) VALUES (?, ?, ?, ?, ?, ?)');
@@ -265,34 +409,37 @@ function guardarVoucher(PDO $pdo, array $datos, ?int $id = null): array
         $pdo->rollBack();
         throw $e;
     }
-    return obtenerVoucher($pdo, $id);
+    return obtenerVoucher($pdo, $id, $empresa);
 }
 
-function eliminarVoucher(PDO $pdo, int $id): bool
+function eliminarVoucher(PDO $pdo, int $id, int $empresa = 0): bool
 {
+    if (!obtenerVoucher($pdo, $id, $empresa)) {
+        return false;
+    }
     $pdo->prepare('DELETE FROM voucher_lineas WHERE voucher_id = ?')->execute([$id]);
     $consulta = $pdo->prepare('DELETE FROM vouchers WHERE id = ?');
     $consulta->execute([$id]);
     return $consulta->rowCount() > 0;
 }
 
-function libroDiario(PDO $pdo, array $filtros = []): array
+function libroDiario(PDO $pdo, array $filtros = [], int $empresa = 0): array
 {
-    $nombres = array_column(planCuentas($pdo), 'nombre', 'codigo');
+    $nombres = array_column(planCuentas($pdo, $empresa), 'nombre', 'codigo');
     $asientos = array_map(function ($v) use ($nombres) {
         $v['lineas'] = array_map(fn($l) => $l + ['nombre' => $nombres[$l['cuenta']] ?? $l['cuenta']], $v['lineas']);
         return $v;
-    }, listarVouchers($pdo, ['desde' => $filtros['desde'] ?? null, 'hasta' => $filtros['hasta'] ?? null, 'registro' => $filtros['registro'] ?? null]));
+    }, listarVouchers($pdo, ['desde' => $filtros['desde'] ?? null, 'hasta' => $filtros['hasta'] ?? null, 'registro' => $filtros['registro'] ?? null], $empresa));
     return ['asientos' => $asientos, 'debe' => array_sum(array_column($asientos, 'debe')), 'haber' => array_sum(array_column($asientos, 'haber'))];
 }
 
-function libroMayor(PDO $pdo, array $filtros = []): array
+function libroMayor(PDO $pdo, array $filtros = [], int $empresa = 0): array
 {
     $desde = fechaValida($filtros['desde'] ?? null) ? $filtros['desde'] : null;
     $cuenta = (string) ($filtros['cuenta'] ?? '');
     $porCuenta = [];
     // Se leen los movimientos hasta "hasta"; los anteriores a "desde" forman el saldo anterior.
-    foreach (listarVouchers($pdo, ['hasta' => $filtros['hasta'] ?? null, 'registro' => $filtros['registro'] ?? null]) as $v) {
+    foreach (listarVouchers($pdo, ['hasta' => $filtros['hasta'] ?? null, 'registro' => $filtros['registro'] ?? null], $empresa) as $v) {
         foreach ($v['lineas'] as $l) {
             if ($cuenta !== '' && $l['cuenta'] !== $cuenta) {
                 continue;
@@ -309,7 +456,7 @@ function libroMayor(PDO $pdo, array $filtros = []): array
         }
     }
     $resultado = [];
-    foreach (planCuentas($pdo) as $c) {
+    foreach (planCuentas($pdo, $empresa) as $c) {
         if (!isset($porCuenta[$c['codigo']])) {
             continue;
         }
@@ -328,6 +475,86 @@ function libroMayor(PDO $pdo, array $filtros = []): array
     return $resultado;
 }
 
+// Clasificación por el primer dígito del código: 1 activo, 2 pasivo y patrimonio, 3 pérdidas (gastos), 4 ganancias (ingresos).
+function claseCuenta(string $codigo): string
+{
+    return match ($codigo[0] ?? '') {
+        '1' => 'activo', '2' => 'pasivo', '3' => 'perdida', '4' => 'ganancia', default => 'otra',
+    };
+}
+
+// Sumas de Debe y Haber por cuenta entre "desde" y "hasta".
+function sumasPorCuenta(PDO $pdo, array $filtros, int $empresa): array
+{
+    $sumas = [];
+    foreach (listarVouchers($pdo, ['desde' => $filtros['desde'] ?? null, 'hasta' => $filtros['hasta'] ?? null, 'registro' => $filtros['registro'] ?? null], $empresa) as $v) {
+        foreach ($v['lineas'] as $l) {
+            $sumas[$l['cuenta']] ??= ['debe' => 0, 'haber' => 0];
+            $sumas[$l['cuenta']]['debe'] += $l['debe'];
+            $sumas[$l['cuenta']]['haber'] += $l['haber'];
+        }
+    }
+    return $sumas;
+}
+
+// Balance General de 8 columnas: sumas, saldos, inventario y resultado.
+function balanceGeneral(PDO $pdo, array $filtros = [], int $empresa = 0): array
+{
+    $sumas = sumasPorCuenta($pdo, $filtros, $empresa);
+    $cuentas = [];
+    $totales = array_fill_keys(['debitos', 'creditos', 'deudor', 'acreedor', 'activo', 'pasivo', 'perdida', 'ganancia'], 0);
+    foreach (planCuentas($pdo, $empresa) as $c) {
+        if (!isset($sumas[$c['codigo']])) {
+            continue;
+        }
+        ['debe' => $debe, 'haber' => $haber] = $sumas[$c['codigo']];
+        $deudor = max($debe - $haber, 0);
+        $acreedor = max($haber - $debe, 0);
+        $clase = claseCuenta($c['codigo']);
+        // Las cuentas de balance van a inventario y las de resultado a pérdidas o ganancias según su saldo.
+        $balance = $clase !== 'perdida' && $clase !== 'ganancia';
+        $fila = ['codigo' => $c['codigo'], 'nombre' => $c['nombre'], 'debitos' => $debe, 'creditos' => $haber, 'deudor' => $deudor, 'acreedor' => $acreedor,
+            'activo' => $balance ? $deudor : 0, 'pasivo' => $balance ? $acreedor : 0, 'perdida' => $balance ? 0 : $deudor, 'ganancia' => $balance ? 0 : $acreedor];
+        foreach ($totales as $k => $_) {
+            $totales[$k] += $fila[$k];
+        }
+        $cuentas[] = $fila;
+    }
+    // El resultado del ejercicio cuadra el inventario con las cuentas de resultado.
+    $resultado = $totales['ganancia'] - $totales['perdida'];
+    $ajuste = [
+        'activo' => $resultado < 0 ? -$resultado : 0, 'pasivo' => $resultado > 0 ? $resultado : 0,
+        'perdida' => $resultado > 0 ? $resultado : 0, 'ganancia' => $resultado < 0 ? -$resultado : 0,
+    ];
+    $sumasIguales = [];
+    foreach (['activo', 'pasivo', 'perdida', 'ganancia'] as $k) {
+        $sumasIguales[$k] = $totales[$k] + $ajuste[$k];
+    }
+    return ['cuentas' => $cuentas, 'totales' => $totales, 'resultado' => $resultado, 'ajuste' => $ajuste, 'sumasIguales' => $sumasIguales];
+}
+
+// Estado de Resultado: ingresos (clase 4) menos costos y gastos (clase 3).
+function estadoResultado(PDO $pdo, array $filtros = [], int $empresa = 0): array
+{
+    $sumas = sumasPorCuenta($pdo, $filtros, $empresa);
+    $ingresos = $gastos = [];
+    foreach (planCuentas($pdo, $empresa) as $c) {
+        if (!isset($sumas[$c['codigo']])) {
+            continue;
+        }
+        $clase = claseCuenta($c['codigo']);
+        $neto = $sumas[$c['codigo']]['haber'] - $sumas[$c['codigo']]['debe'];
+        if ($clase === 'ganancia') {
+            $ingresos[] = ['codigo' => $c['codigo'], 'nombre' => $c['nombre'], 'monto' => $neto];
+        } elseif ($clase === 'perdida') {
+            $gastos[] = ['codigo' => $c['codigo'], 'nombre' => $c['nombre'], 'monto' => -$neto];
+        }
+    }
+    $totalIngresos = array_sum(array_column($ingresos, 'monto'));
+    $totalGastos = array_sum(array_column($gastos, 'monto'));
+    return ['ingresos' => $ingresos, 'gastos' => $gastos, 'totalIngresos' => $totalIngresos, 'totalGastos' => $totalGastos, 'resultado' => $totalIngresos - $totalGastos];
+}
+
 // ---------- Respuestas HTTP ----------
 function responder(mixed $datos, int $estado = 200): never
 {
@@ -341,9 +568,12 @@ function responder(mixed $datos, int $estado = 200): never
 function ejecutar(callable $accion): never
 {
     try {
-        responder($accion(conectar()));
+        $pdo = conectar();
+        responder($accion($pdo, empresa_actual($pdo)));
     } catch (ErrorValidacion $e) {
         responder(['errores' => $e->errores], 422);
+    } catch (EmpresaError $e) {
+        responder(['errores' => [$e->getMessage()]], 422);
     } catch (Throwable $e) {
         error_log('iContador API: ' . $e);
         responder(['errores' => ['Error interno de la base de datos. Revise el registro del servidor PHP.']], 500);

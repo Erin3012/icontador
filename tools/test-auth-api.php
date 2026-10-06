@@ -1,6 +1,7 @@
 <?php
 // Pruebas de registro, aprobación e inicio de sesión con SQLite en memoria: php tools/test-auth-api.php
 declare(strict_types=1);
+require __DIR__ . '/base-prueba.php';
 require dirname(__DIR__) . '/api/lib/auth.php';
 
 $fallas = 0;
@@ -20,7 +21,7 @@ function motivo(callable $f): string
     return '';
 }
 
-$pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+$pdo = base_prueba();
 auth_schema($pdo);
 
 $admin = auth_registrar($pdo, 'Mary', 'Mary@Ejemplo.cl', 'clave-segura', 'admin', 'activo');

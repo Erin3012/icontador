@@ -1,6 +1,7 @@
 -- Liquidaciones de sueldo guardadas desde la calculadora (MySQL 5.7+ / MariaDB). api/lib/liquidaciones.php la crea si no existe.
 CREATE TABLE IF NOT EXISTS liquidaciones (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  empresa_id INT NOT NULL DEFAULT 0,
   periodo CHAR(7) NOT NULL,
   trabajador VARCHAR(120) NOT NULL,
   sueldo_base BIGINT NOT NULL DEFAULT 0,
@@ -16,5 +17,5 @@ CREATE TABLE IF NOT EXISTS liquidaciones (
   costo_empresa BIGINT NOT NULL DEFAULT 0,
   detalle TEXT NOT NULL,
   creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  KEY idx_liquidaciones_periodo (periodo)
+  KEY idx_liquidaciones_empresa_periodo (empresa_id, periodo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
