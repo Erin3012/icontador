@@ -26,7 +26,7 @@ Sin configuración usa SQLite en `data/icontador.sqlite`. Para MySQL, copia `api
 
 Las pantallas **Voucher**, **Crear Voucher**, **Libro Diario** y **Libro Mayor** guardan y leen la misma base de datos que el RCV, así que también necesitan `npm run start:php` (o Apache/XAMPP); con `npm start` muestran un aviso.
 
-- Las tablas `cuentas`, `vouchers` y `voucher_lineas` se crean al primer uso, con un plan de cuentas base.
+- Las tablas `cuentas`, `vouchers` y `voucher_lineas` se crean al primer uso; el plan de cuentas se carga por empresa desde Plan de Cuenta.
 - Un voucher solo se guarda si Debe = Haber, tiene al menos dos líneas y cada línea usa una cuenta del plan con un monto en Debe o en Haber. La validación se hace en PHP (`api/lib/vouchers.php`).
 - El número de comprobante es correlativo por tipo (Ingreso, Egreso, Traspaso) y mes.
 - Libro Diario y Libro Mayor se generan desde la base de datos con filtros de fecha y tipo de contabilidad (Tributario/IFRS). PDF imprime el reporte; EXCEL y CSV descargan un CSV.
@@ -34,14 +34,14 @@ Las pantallas **Voucher**, **Crear Voucher**, **Libro Diario** y **Libro Mayor**
 
 ## Datos por empresa
 
-Vouchers, RCV y liquidaciones se guardan por empresa. La pantalla de inicio pide elegir la empresa y cada pantalla envía su id a la API en la cabecera `X-Empresa-Id` (la función `empresa_actual()` de `api/lib/empresas.php` la lee y valida). Al actualizar una base anterior, los datos guardados pasan a la única empresa importada; si hay varias, quedan sin empresa y solo se ven sin empresa seleccionada. El plan de cuentas (`cuentas`) sigue siendo común a todas las empresas.
+Vouchers, RCV y liquidaciones se guardan por empresa. La pantalla de inicio pide elegir la empresa y cada pantalla envía su id a la API en la cabecera `X-Empresa-Id` (la función `empresa_actual()` de `api/lib/empresas.php` la lee y valida). Al actualizar una base anterior, los datos guardados pasan a la única empresa importada; si hay varias, quedan sin empresa y solo se ven sin empresa seleccionada. Cada empresa tiene su propio plan de cuentas: en **Plan de Cuenta**, “Cargar plan de ejemplo” agrega un plan base de pyme (63 cuentas, sin pisar las existentes) y también se pueden agregar o eliminar cuentas una a una (solo las que no tienen movimientos). La importación desde iContador (`tools/importar-empresa.php`) guarda el plan en la empresa importada.
 
 ## Balance, Estado de Resultado y Libros de Compras y Ventas (PHP)
 
 - **Balance General** (8 columnas) y **Estado de Resultado** se calculan desde los vouchers guardados, con los mismos filtros de fecha y tipo de contabilidad que el Libro Diario. Las cuentas se clasifican por el primer dígito del código: 1 activo, 2 pasivo y patrimonio, 3 costos y gastos, 4 ingresos.
 - **Libro Compras** y **Libro Ventas** leen los documentos del RCV ya importados (`api/rcv.php?libro=compras|ventas&desde=&hasta=&tipo=`). Las notas de crédito restan en los totales.
 - PDF imprime el reporte; EXCEL y CSV descargan un CSV. Los formatos propios del SII (Libro Compra Electrónico, Caracterización) aún no están disponibles.
-- **Plan de Cuenta** muestra las cuentas importadas de la empresa seleccionada (`api/plan-cuentas.php`).
+- **Plan de Cuenta** muestra el plan de la empresa seleccionada, con el detalle importado de iContador cuando existe (`api/plan-cuentas.php`).
 
 ## Trabajar con los archivos
 

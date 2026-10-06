@@ -22,7 +22,8 @@ function errores(callable $f): array
 
 $pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
 crearEsquema($pdo);
-comprobar(count(planCuentas($pdo)) === count(PLAN_BASE), 'plan de cuentas inicial cargado');
+comprobar(planCuentas($pdo) === [], 'una base nueva no trae plan de cuentas');
+comprobar(cargarPlanEjemplo($pdo) === count(PLAN_EJEMPLO) && cargarPlanEjemplo($pdo) === 0, 'el plan de ejemplo se carga una vez');
 
 $venta = ['tipo' => 'I', 'fecha' => '2026-10-01', 'registro' => 'Ambos', 'glosa' => 'Venta al contado', 'lineas' => [
     ['cuenta' => '1.1.01', 'debe' => '119000'], ['cuenta' => '4.1.01', 'haber' => 100000], ['cuenta' => '2.1.02', 'haber' => 19000],

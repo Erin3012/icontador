@@ -10,6 +10,15 @@ function base(): PDO { return new PDO('sqlite::memory:', null, null, [PDO::ATTR_
 // Base nueva: cada empresa ve solo sus datos y tiene su propio correlativo.
 $db = base();
 crearEsquema($db);
+cargarPlanEjemplo($db, 1);
+check(planCuentas($db, 2) === [] && count(planCuentas($db, 1)) === count(PLAN_EJEMPLO), 'plan de cuentas propio de cada empresa');
+try { guardarVoucher($db, ['tipo' => 'I', 'fecha' => '2026-10-01', 'registro' => 'Ambos', 'lineas' => [['cuenta' => '1.1.01', 'debe' => 1], ['cuenta' => '4.1.01', 'haber' => 1]]], null, 2); check(false, 'sin plan no hay voucher'); } catch (ErrorValidacion) {}
+check(agregarCuenta($db, ['codigo' => '1.1.01', 'nombre' => 'Caja chica'], 2)['nombre'] === 'Caja chica' && planCuentas($db, 1)[0]['nombre'] === 'Caja', 'el mismo código puede tener otro nombre en otra empresa');
+foreach ([['codigo' => 'X1', 'nombre' => 'a'], ['codigo' => '1.1.01', 'nombre' => 'b'], ['codigo' => '5', 'nombre' => '']] as $mala) {
+    try { agregarCuenta($db, $mala, 2); check(false, 'debió rechazar ' . json_encode($mala)); } catch (ErrorValidacion) {}
+}
+cargarPlanEjemplo($db, 2);
+check(planCuentas($db, 2)[0]['nombre'] === 'Caja chica', 'el plan de ejemplo no pisa cuentas existentes');
 $voucher = ['tipo' => 'I', 'fecha' => '2026-10-01', 'registro' => 'Ambos', 'glosa' => 'Venta', 'lineas' => [['cuenta' => '1.1.01', 'debe' => 100], ['cuenta' => '4.1.01', 'haber' => 100]]];
 $a = guardarVoucher($db, $voucher, null, 1);
 $b = guardarVoucher($db, $voucher, null, 2);
@@ -17,6 +26,8 @@ check($a['numero'] === 1 && $b['numero'] === 1, 'correlativo independiente por e
 check(count(listarVouchers($db, [], 1)) === 1 && count(listarVouchers($db, [], 3)) === 0, 'listado filtrado por empresa');
 check(obtenerVoucher($db, $a['id'], 2) === null && !eliminarVoucher($db, $a['id'], 2), 'otra empresa no ve ni borra el voucher');
 try { guardarVoucher($db, $voucher, $a['id'], 2); check(false, 'otra empresa no edita'); } catch (ErrorValidacion) {}
+try { eliminarCuenta($db, '1.1.01', 1); check(false, 'no elimina cuentas con movimientos'); } catch (ErrorValidacion) {}
+check(eliminarCuenta($db, '1.1.12', 1) && !eliminarCuenta($db, '9.9', 1), 'elimina cuentas sin movimientos');
 check(balanceGeneral($db, [], 1)['totales']['debitos'] === 100 && estadoResultado($db, [], 3)['resultado'] === 0, 'reportes por empresa');
 
 rcv_schema($db);
@@ -47,8 +58,11 @@ crearEsquema($db); // idempotente
 rcv_schema($db);
 $migrado = listarVouchers($db, [], 1);
 check(count($migrado) === 1 && $migrado[0]['debe'] === 500 && count($migrado[0]['lineas']) === 2, 'los vouchers anteriores pasan a la empresa importada con sus líneas');
+check(count(planCuentas($db, 1)) === 2 && planCuentas($db, 2) === [], 'el plan anterior pasa a la empresa importada');
+cargarPlanEjemplo($db, 2);
 check(guardarVoucher($db, ['fecha' => '2026-09-02'] + $voucher, null, 2)['numero'] === 1, 'tras migrar, otra empresa puede usar el mismo número');
 check(guardarVoucher($db, ['fecha' => '2026-09-03'] + $voucher, null, 1)['numero'] === 2, 'la empresa migrada continúa su correlativo');
 check(rcv_periodos($db, 1) === [['period' => '2026-09', 'compras' => 1, 'ventas' => 0]], 'el RCV anterior pasa a la empresa importada');
-check($db->query("SELECT COUNT(*) FROM sqlite_master WHERE name = 'vouchers_nueva'")->fetchColumn() == 0, 'sin tabla temporal');
+check($db->query("SELECT COUNT(*) FROM sqlite_master WHERE name LIKE '%_nueva'")->fetchColumn() == 0, 'sin tablas temporales');
+check($db->query('PRAGMA foreign_key_check')->fetchAll() === [], 'claves foráneas consistentes tras migrar');
 echo "Empresas PHP: separación de datos y migración verificadas\n";

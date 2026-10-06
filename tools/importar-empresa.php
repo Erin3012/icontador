@@ -1,11 +1,12 @@
 <?php
 declare(strict_types=1);
-require dirname(__DIR__) . '/api/lib/empresas.php';
+require dirname(__DIR__) . '/api/lib/vouchers.php';
 $payload=json_decode(stream_get_contents(STDIN),true,512,JSON_THROW_ON_ERROR);
 $db=icontador_db();
 if($db->getAttribute(PDO::ATTR_DRIVER_NAME)!=='sqlite')throw new RuntimeException('Importador preparado para la base SQLite local.');
 $db->exec('PRAGMA foreign_keys=ON');
 empresas_schema($db);
+crearEsquema($db);
 $db->beginTransaction();
 try{
  $e=$payload['empresa'];$now=gmdate('c');
@@ -23,7 +24,7 @@ try{
   $tabla=(string)($table['id']??'tabla');
   $json=json_encode(['columnas'=>$columnas,'origen_id'=>$row['id']??null,'celdas'=>$row['celdas']??[]],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);$stmt->execute([$eid,$view,$tabla,hash('sha256',$json),$json]);$count+=$stmt->rowCount();
   if($view==='plan-cuentas'&&isset($row['celdas'][2])&&preg_match('/^(\d+)\s+(.+)$/u',trim($row['celdas'][2]),$m)){
-   $db->exec('CREATE TABLE IF NOT EXISTS cuentas (codigo VARCHAR(20) PRIMARY KEY,nombre VARCHAR(120) NOT NULL)');$a=$db->prepare('INSERT INTO cuentas(codigo,nombre) VALUES(?,?) ON CONFLICT(codigo) DO UPDATE SET nombre=excluded.nombre');$a->execute([$m[1],$m[2]]);$accounts++;
+   $a=$db->prepare('INSERT INTO cuentas(empresa_id,codigo,nombre) VALUES(?,?,?) ON CONFLICT(empresa_id,codigo) DO UPDATE SET nombre=excluded.nombre');$a->execute([$eid,$m[1],$m[2]]);$accounts++;
   }
  }}
  $db->commit();echo json_encode(['empresa_id'=>$eid,'vista'=>$view,'nuevos_registros'=>$count,'cuentas'=>$accounts]);

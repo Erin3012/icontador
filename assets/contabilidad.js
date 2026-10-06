@@ -83,6 +83,7 @@ async function pantallaCrear(){
  let plan=[],existente=null;
  try{[plan,existente]=await Promise.all([api('cuentas.php'),id?api('vouchers.php?id='+encodeURIComponent(id)):null]);}
  catch(e){caja.innerHTML=alerta(e.errores||[e.message]);if(!plan.length)return;}
+ if(!plan.length){caja.innerHTML=alerta(['Esta empresa aún no tiene plan de cuentas. Cárguelo en Plan de Cuenta (“Cargar plan de ejemplo”) antes de crear vouchers.']);return;}
  const v=existente||{tipo:'',fecha:hoy(),registro:'Ambos',glosa:'',lineas:[{},{}]};
  tv.value=v.tipo;fecha.value=v.fecha;glosa.value=v.glosa;(radios.find(r=>r.value===v.registro)||radios[0]).checked=true;
  if(existente){$('#ui-id-1').textContent=`Editar Voucher · ${TIPOS[v.tipo]} N° ${v.numero}`;numero.textContent=`${TIPOS[v.tipo]} N° ${v.numero}`;}
