@@ -118,7 +118,10 @@ function rcv_fecha_iso(string $fecha): ?string {
 /** Libro de compras o ventas entre dos fechas (AAAA-MM-DD, opcionales), con notas de crédito restando en los totales. */
 function rcv_libro(PDO $db, string $libro, ?string $desde = null, ?string $hasta = null, ?int $tipo = null, int $empresa = 0): array {
     $libro = rcv_validar_libro($libro);
-    foreach ([$desde, $hasta] as $f) if ($f !== null && $f !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $f)) throw new RcvError('Fecha inválida; use AAAA-MM-DD.');
+    foreach ([$desde, $hasta] as $f) {
+        if ($f !== null && $f !== '' && !(preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $f, $m) && checkdate((int)$m[2], (int)$m[3], (int)$m[1]))) throw new RcvError('Fecha inválida; use AAAA-MM-DD.');
+    }
+    if ($desde && $hasta && $desde > $hasta) throw new RcvError('La fecha Desde es posterior a Hasta.');
     $sql = 'SELECT * FROM rcv_documentos WHERE empresa_id = ? AND libro = ?';
     $params = [$empresa, $libro];
     if ($desde) { $sql .= ' AND periodo >= ?'; $params[] = substr($desde, 0, 7); }

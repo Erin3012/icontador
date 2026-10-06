@@ -28,6 +28,8 @@ check(count($lc['docs']) === 2 && $lc['totales']['neto'] === 950000 && $lc['tota
 check(count(rcv_libro($db, 'compras', '2026-09-04', '2026-09-30')['docs']) === 1, 'Libro de Compras filtra por fecha del documento');
 check(count(rcv_libro($db, 'compras', null, null, 61)['docs']) === 1 && rcv_libro($db, 'ventas', '2026-10-01')['docs'] === [], 'Libro filtra por tipo y período');
 check(rcv_libro($db, 'ventas')['totales']['total'] === 2380000, 'Libro de Ventas');
-try { rcv_libro($db, 'compras', '01-09-2026'); check(false, 'debió rechazar la fecha'); } catch (RcvError) {}
+foreach ([['01-09-2026', null], [null, '2026-02-30'], ['2026-09-30', '2026-09-01']] as [$d, $h]) {
+    try { rcv_libro($db, 'compras', $d, $h); check(false, "debió rechazar $d $h"); } catch (RcvError) {}
+}
 check(rcv_borrar($db, '2026-09') === 3 && rcv_periodos($db) === [], 'borrar');
 echo "RCV PHP: guardar, reemplazar, leer, validar y borrar verificados\n";
