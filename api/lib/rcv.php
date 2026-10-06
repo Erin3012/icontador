@@ -4,29 +4,42 @@ declare(strict_types=1);
 require_once __DIR__ . '/empresas.php';
 
 const RCV_LIBROS = ['compras', 'ventas'];
-const RCV_MONTOS = ['exento', 'neto', 'iva', 'iva_no_rec', 'iva_uso_comun', 'iva_retenido', 'otros', 'total'];
+const RCV_MONTOS = ['exento', 'neto', 'iva', 'iva_no_rec', 'iva_uso_comun', 'iva_retenido', 'otros', 'total', 'neto_activo_fijo', 'iva_activo_fijo', 'imp_sin_credito'];
 // Nombre en la API (JavaScript) => columna
 const RCV_CAMPOS = ['tipo' => 'tipo_doc', 'tipoOperacion' => 'tipo_operacion', 'rut' => 'rut', 'razon' => 'razon_social', 'folio' => 'folio', 'fecha' => 'fecha',
-    'exento' => 'exento', 'neto' => 'neto', 'iva' => 'iva', 'ivaNoRec' => 'iva_no_rec', 'ivaUsoComun' => 'iva_uso_comun', 'ivaRetenido' => 'iva_retenido', 'otros' => 'otros', 'total' => 'total'];
-const RCV_TEXTOS = ['tipo_operacion' => 60, 'rut' => 12, 'razon_social' => 255, 'folio' => 20, 'fecha' => 10];
+    'exento' => 'exento', 'neto' => 'neto', 'iva' => 'iva', 'ivaNoRec' => 'iva_no_rec', 'ivaUsoComun' => 'iva_uso_comun', 'ivaRetenido' => 'iva_retenido', 'otros' => 'otros', 'total' => 'total',
+    'netoActivoFijo' => 'neto_activo_fijo', 'ivaActivoFijo' => 'iva_activo_fijo', 'impSinCredito' => 'imp_sin_credito', 'ivaNoRecCodigo' => 'cod_iva_no_rec',
+    'otroImpCodigo' => 'cod_otro_imp', 'otroImpTasa' => 'tasa_otro_imp', 'fechaRecepcion' => 'fecha_recepcion', 'refTipo' => 'ref_tipo', 'refFolio' => 'ref_folio'];
+const RCV_TEXTOS = ['tipo_operacion' => 60, 'rut' => 12, 'razon_social' => 255, 'folio' => 20, 'fecha' => 10,
+    'cod_iva_no_rec' => 5, 'cod_otro_imp' => 10, 'tasa_otro_imp' => 10, 'fecha_recepcion' => 19, 'ref_tipo' => 5, 'ref_folio' => 20];
+// Columnas agregadas después de la primera versión de la tabla: se crean al vuelo en bases existentes.
+const RCV_COLUMNAS_NUEVAS = ['neto_activo_fijo', 'iva_activo_fijo', 'imp_sin_credito', 'cod_iva_no_rec', 'cod_otro_imp', 'tasa_otro_imp', 'fecha_recepcion', 'ref_tipo', 'ref_folio'];
+// Archivos del RCV de compras que no forman parte del registro (y no dan crédito fiscal).
+const RCV_COMPRAS_FUERA = ['PENDIENTE' => 'pendientes', 'NO_INCLUIR' => 'no incluidos', 'RECLAMADO' => 'reclamados'];
 const RCV_MAX_DOCUMENTOS = 20000;
 const RCV_NOTAS_CREDITO = [60, 61, 106, 112];
 
 final class RcvError extends RuntimeException {}
 
 function rcv_schema(PDO $db): void {
-    if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+    $mysql = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+    if ($mysql) {
         $db->exec(file_get_contents(dirname(__DIR__) . '/schema/rcv.mysql.sql'));
-        agregar_empresa_id($db, 'rcv_documentos');
-        return;
+    } else {
+        $textos = implode(', ', array_map(fn($c) => "$c TEXT NOT NULL DEFAULT ''", array_intersect(RCV_COLUMNAS_NUEVAS, array_keys(RCV_TEXTOS))));
+        $montos = implode(', ', array_map(fn($c) => "$c INTEGER NOT NULL DEFAULT 0", RCV_MONTOS));
+        $db->exec("CREATE TABLE IF NOT EXISTS rcv_documentos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, empresa_id INTEGER NOT NULL DEFAULT 0, periodo TEXT NOT NULL, libro TEXT NOT NULL, archivo TEXT NOT NULL DEFAULT '',
+            tipo_doc INTEGER NOT NULL, tipo_operacion TEXT NOT NULL DEFAULT '', rut TEXT NOT NULL DEFAULT '', razon_social TEXT NOT NULL DEFAULT '',
+            folio TEXT NOT NULL DEFAULT '', fecha TEXT NOT NULL DEFAULT '', $montos, $textos, creado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)");
     }
-    $montos = implode(', ', array_map(fn($c) => "$c INTEGER NOT NULL DEFAULT 0", RCV_MONTOS));
-    $db->exec("CREATE TABLE IF NOT EXISTS rcv_documentos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, empresa_id INTEGER NOT NULL DEFAULT 0, periodo TEXT NOT NULL, libro TEXT NOT NULL, archivo TEXT NOT NULL DEFAULT '',
-        tipo_doc INTEGER NOT NULL, tipo_operacion TEXT NOT NULL DEFAULT '', rut TEXT NOT NULL DEFAULT '', razon_social TEXT NOT NULL DEFAULT '',
-        folio TEXT NOT NULL DEFAULT '', fecha TEXT NOT NULL DEFAULT '', $montos, creado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)");
     agregar_empresa_id($db, 'rcv_documentos');
-    $db->exec('CREATE INDEX IF NOT EXISTS idx_rcv_empresa_periodo ON rcv_documentos (empresa_id, periodo, libro)');
+    if (!$mysql) $db->exec('CREATE INDEX IF NOT EXISTS idx_rcv_empresa_periodo ON rcv_documentos (empresa_id, periodo, libro)');
+    foreach (RCV_COLUMNAS_NUEVAS as $columna) {
+        if (columna_existe($db, 'rcv_documentos', $columna)) continue;
+        $tipo = isset(RCV_TEXTOS[$columna]) ? ($mysql ? 'VARCHAR(' . RCV_TEXTOS[$columna] . ") NOT NULL DEFAULT ''" : "TEXT NOT NULL DEFAULT ''") : ($mysql ? 'BIGINT' : 'INTEGER') . ' NOT NULL DEFAULT 0';
+        $db->exec("ALTER TABLE rcv_documentos ADD COLUMN $columna $tipo");
+    }
 }
 
 function rcv_validar_periodo($periodo): string {
@@ -46,6 +59,10 @@ function rcv_guardar(PDO $db, array $datos, int $empresa = 0): int {
     if (!is_array($docs) || !array_is_list($docs)) throw new RcvError('Faltan los documentos.');
     if (count($docs) > RCV_MAX_DOCUMENTOS) throw new RcvError('Demasiados documentos en un solo archivo.');
     $archivo = mb_substr(is_string($datos['fileName'] ?? null) ? $datos['fileName'] : '', 0, 255);
+    if ($libro === 'compras' && preg_match('/RCV_COMPRA_(' . implode('|', array_keys(RCV_COMPRAS_FUERA)) . ')/i', $archivo, $m)) {
+        throw new RcvError('Este archivo trae los documentos ' . RCV_COMPRAS_FUERA[strtoupper($m[1])] . ' del RCV, que no forman parte del Libro de Compras. Importe el archivo RCV_COMPRA_REGISTRO.');
+    }
+    empresa_validar_rut($db, $empresa, $datos['rutEmpresa'] ?? null);
     $filas = [];
     foreach ($docs as $i => $doc) {
         if (!is_array($doc)) throw new RcvError('Documento ' . ($i + 1) . ' inválido.');

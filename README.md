@@ -20,7 +20,11 @@ La pantalla RCV importa los CSV de detalle de compras y ventas que se descargan 
 npm run start:php
 ```
 
-Sin configuración usa SQLite en `data/icontador.sqlite`. Para MySQL, copia `api/config.example.php` como `api/config.php` con tus datos de conexión (o usa las variables `ICONTADOR_DB_DSN`, `ICONTADOR_DB_USER` e `ICONTADOR_DB_PASS`); la tabla está en `api/schema/rcv.mysql.sql` y se crea sola. Con `npm start` la importación funciona igual, pero no guarda nada. Hay CSV ficticios en `samples/`; `npm test` y `npm run test:php` comprueban el cálculo y el guardado. Para correr las pruebas PHP contra MySQL/MariaDB (como en cPanel), define `ICONTADOR_TEST_MYSQL="host=127.0.0.1;port=3306"`, `ICONTADOR_TEST_USER` e `ICONTADOR_TEST_PASS`: cada prueba crea y borra su propia base.
+Sin configuración usa SQLite en `data/icontador.sqlite`. Para MySQL, copia `api/config.example.php` como `api/config.php` con tus datos de conexión (o usa las variables `ICONTADOR_DB_DSN`, `ICONTADOR_DB_USER` e `ICONTADOR_DB_PASS`); la tabla está en `api/schema/rcv.mysql.sql` y se crea sola. Con `npm start` la importación funciona igual, pero no guarda nada. Lee el formato completo del SII: además de los montos guarda el código de IVA no recuperable, el código, valor y tasa de otros impuestos, el IVA de activo fijo, el impuesto sin derecho a crédito, la fecha de recepción y la referencia de las notas de crédito, y muestra los totales por código. Rechaza los archivos `RCV_COMPRA_PENDIENTE`, `NO_INCLUIR` y `RECLAMADO` (no son parte del libro) y los de un RUT distinto al de la empresa elegida. Hay CSV ficticios en `samples/`; `npm test` y `npm run test:php` comprueban el cálculo y el guardado. Para correr las pruebas PHP contra MySQL/MariaDB (como en cPanel), define `ICONTADOR_TEST_MYSQL="host=127.0.0.1;port=3306"`, `ICONTADOR_TEST_USER` e `ICONTADOR_TEST_PASS`: cada prueba crea y borra su propia base.
+
+## Boletas de honorarios
+
+La pantalla **Honorarios** importa el informe mensual de boletas de honorarios recibidas del SII (`informeMensualREC.xls`, una tabla HTML en ISO-8859-1) con `assets/honorarios-import.js`, y guarda las boletas por empresa y período en la tabla `honorarios_boletas` (API `api/honorarios.php`, esquema MySQL en `api/schema/honorarios.mysql.sql`). Muestra bruto, retención (F29 código 151) y líquido; las boletas anuladas se listan pero no suman, igual que en el SII. **Libro de Honorarios** (Reportes) lee esas boletas por rango de fechas. Pruebas: `tools/test-honorarios.cjs` y `tools/test-honorarios-api.php`.
 
 ## Vouchers y libros contables (PHP)
 
@@ -86,7 +90,7 @@ npm test
 
 Activos Fijos, Tributario y Cont. Express muestran avisos de servicio no contratado; se conservan esos avisos. Contratos, finiquitos y cargas familiares dependen de guardar un empleado. El detalle de una cartola bancaria necesita una cartola creada. No se crearon registros ni se cambiaron permisos, datos contables o credenciales.
 
-Salvo las pantallas descritas arriba (Voucher, Libro Diario, Libro Mayor, Balance General, Estado de Resultado, Libros de Compras y Ventas, RCV, Plan de Cuenta, Calculadora de liquidación y el selector de empresa), los formularios y filtros son referencias visuales. No hay autenticación local. En las demás pantallas, guardar, borrar, enviar, pagar, sincronizar e importar archivos están desactivados y los reportes conservan solo su pantalla de configuración. Tampoco se descargaron informes con registros reales.
+Salvo las pantallas descritas arriba (Voucher, Libro Diario, Libro Mayor, Balance General, Estado de Resultado, Libros de Compras, Ventas y Honorarios, RCV, Honorarios, Plan de Cuenta, Calculadora de liquidación y el selector de empresa), los formularios y filtros son referencias visuales. No hay autenticación local. En las demás pantallas, guardar, borrar, enviar, pagar, sincronizar e importar archivos están desactivados y los reportes conservan solo su pantalla de configuración. Tampoco se descargaron informes con registros reales.
 
 Las tablas contienen ejemplos; los campos personales y contraseñas están vacíos; las series de gráficos fueron sustituidas por barras ficticias. Los scripts originales, eventos inline, enlaces externos y llamadas al servidor se eliminan de las vistas activas. Una política CSP bloquea conexiones y envíos de formularios. No se guardan cookies, tokens ni contraseñas.
 

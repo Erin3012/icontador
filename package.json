@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node tools/serve.cjs",
     "start:php": "php -S 127.0.0.1:4173 tools/php-router.php",
-    "test": "node tools/verify.cjs && node tools/test-rcv.cjs && node tools/test-contabilidad.cjs && node tools/test-liquidacion.cjs",
-    "test:php": "php tools/test-rcv-api.php && php tools/test-vouchers-api.php && php tools/test-liquidaciones-api.php && php tools/test-empresas-api.php && php tools/test-auth-api.php && php tools/test-sugerencias-api.php",
+    "test": "node tools/verify.cjs && node tools/test-rcv.cjs && node tools/test-honorarios.cjs && node tools/test-contabilidad.cjs && node tools/test-liquidacion.cjs",
+    "test:php": "php tools/test-rcv-api.php && php tools/test-honorarios-api.php && php tools/test-vouchers-api.php && php tools/test-liquidaciones-api.php && php tools/test-empresas-api.php && php tools/test-auth-api.php && php tools/test-sugerencias-api.php",
     "prepare-local": "node tools/prepare.cjs"
   },
   "keywords": [],
