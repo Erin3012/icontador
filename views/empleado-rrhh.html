@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RR.HH. - Contratos y Documentos</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .tabs { display: flex; gap: 0; border-bottom: 2px solid #ddd; margin-bottom: 20px; }
+        .tab { padding: 12px 20px; cursor: pointer; background: #f9f9f9; border: 1px solid #ddd; border-bottom: none; }
+        .tab.active { background: white; border-top: 3px solid #0066cc; border-bottom: 2px solid white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; background: white; padding: 20px; border-radius: 4px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 500; }
+        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #0066cc; box-shadow: 0 0 0 3px rgba(0,102,204,0.1); }
+        textarea { resize: vertical; min-height: 80px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-row.three { grid-template-columns: repeat(3, 1fr); }
+        button { padding: 10px 20px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #0052a3; }
+        button.secondary { background: #6c757d; }
+        button.secondary:hover { background: #5a6268; }
+        .button-group { display: flex; gap: 10px; }
+        .alert { padding: 12px; margin-bottom: 15px; border-radius: 4px; }
+        .alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .document-list { margin-top: 20px; }
+        .document-item { background: #f9f9f9; padding: 15px; border-left: 4px solid #0066cc; margin-bottom: 10px; border-radius: 4px; }
+        .document-item.finiquito { border-left-color: #dc3545; }
+        .document-item.permiso { border-left-color: #ffc107; }
+        .document-item.feriado { border-left-color: #28a745; }
+        .document-item .actions { margin-top: 10px; }
+        .document-item .actions button { padding: 6px 12px; font-size: 12px; }
+        .info-text { color: #666; font-size: 13px; margin-top: 5px; }
+        h2 { margin-top: 0; color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 10px; }
+        h3 { color: #555; margin-top: 20px; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 500; }
+        .badge.active { background: #d4edda; color: #155724; }
+        .badge.borrador { background: #fff3cd; color: #856404; }
+        .badge.finalizado { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Recursos Humanos - Contratos y Documentos</h1>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('contrato')">Contrato de Trabajo</div>
+        <div class="tab" onclick="switchTab('anexo')">Anexo al Contrato</div>
+        <div class="tab" onclick="switchTab('permiso')">Permiso sin Goce</div>
+        <div class="tab" onclick="switchTab('feriado')">Feriado Legal</div>
+        <div class="tab" onclick="switchTab('comprobante')">Comprobante Feriado</div>
+        <div class="tab" onclick="switchTab('finiquito')">Finiquito</div>
+    </div>
+
+    <!-- CONTRATO DE TRABAJO -->
+    <div id="contrato" class="tab-content active">
+        <h2>Contrato de Trabajo</h2>
+        <form id="form-contrato" onsubmit="guardarContrato(event)">
+            <div id="msg-contrato"></div>
+
+            <h3>Datos del Empleado</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>RUT Empleado:</label>
+                    <input type="text" name="empleado_rut" required>
+                </div>
+                <div class="form-group">
+                    <label>Nombre Empleado:</label>
+                    <input type="text" name="empleado_nombre" required>
+                </div>
+            </div>
+
+            <h3>Datos del Contrato</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Cargo:</label>
+                    <input type="text" name="cargo" required>
+                </div>
+                <div class="form-group">
+                    <label>Lugar de Prestación:</label>
+                    <input type="text" name="lugar_prestacion" required>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Inicio:</label>
+                    <input type="date" name="fecha_inicio" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tipo de Contrato:</label>
+                    <select name="tipo_contrato" required>
+                        <option value="indefinido">Indefinido</option>
+                        <option value="plazo_fijo">Plazo Fijo</option>
+                        <option value="obra">Por Obra</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Jornada de Trabajo:</label>
+                    <select name="jornada_tipo" required>
+                        <option value="completa">Completa (44 hrs)</option>
+                        <option value="parcial">Parcial</option>
+                        <option value="obra">Por Obra</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Horas Semanales:</label>
+                    <input type="number" name="jornada_horas" value="44" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Sueldo Base Mensual ($):</label>
+                    <input type="number" name="sueldo_base" required>
+                </div>
+                <div class="form-group">
+                    <label>Beneficios:</label>
+                    <input type="text" name="beneficios" placeholder="Ej: Gratificación, Asignación de Movilización">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Observaciones:</label>
+                <textarea name="observaciones" placeholder="Notas adicionales..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit">Guardar Contrato</button>
+                <button type="button" class="secondary" onclick="previewContrato()">Vista Previa PDF</button>
+            </div>
+        </form>
+
+        <div class="document-list" id="lista-contratos"></div>
+    </div>
+
+    <!-- ANEXO AL CONTRATO -->
+    <div id="anexo" class="tab-content">
+        <h2>Anexo al Contrato</h2>
+        <form id="form-anexo" onsubmit="guardarAnexo(event)">
+            <div id="msg-anexo"></div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>ID Contrato:</label>
+                    <input type="number" name="contrato_id" placeholder="Ingrese ID del contrato" required>
+                </div>
+                <div class="form-group">
+                    <label>RUT Empleado:</label>
+                    <input type="text" name="empleado_rut" required>
+                </div>
+                <div class="form-group">
+                    <label>Fecha del Anexo:</label>
+                    <input type="date" name="fecha" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Detalle del Anexo (modificaciones, adiciones):</label>
+                <textarea name="detalle" required placeholder="Describa los cambios al contrato..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit">Guardar Anexo</button>
+                <button type="button" class="secondary" onclick="previewAnexo()">Vista Previa PDF</button>
+            </div>
+        </form>
+
+        <div class="document-list" id="lista-anexos"></div>
+    </div>
+
+    <!-- PERMISO SIN GOCE -->
+    <div id="permiso" class="tab-content">
+        <h2>Solicitud de Permiso sin Goce de Remuneraciones</h2>
+        <form id="form-permiso" onsubmit="guardarPermiso(event)">
+            <div id="msg-permiso"></div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>RUT Empleado:</label>
+                    <input type="text" name="empleado_rut" required>
+                </div>
+                <div class="form-group">
+                    <label>Nombre Empleado:</label>
+                    <input type="text" name="empleado_nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Servicio/Departamento:</label>
+                    <input type="text" name="servicio" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Desde:</label>
+                    <input type="date" name="fecha_desde" required>
+                </div>
+                <div class="form-group">
+                    <label>Hasta:</label>
+                    <input type="date" name="fecha_hasta" required>
+                </div>
+                <div class="form-group">
+                    <label>Cantidad de Días:</label>
+                    <input type="number" name="dias" readonly>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Observaciones:</label>
+                <textarea name="observaciones" placeholder="Motivo del permiso..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit">Guardar Solicitud</button>
+                <button type="button" class="secondary" onclick="previewPermiso()">Vista Previa PDF</button>
+            </div>
+        </form>
+
+        <div class="document-list" id="lista-permisos"></div>
+    </div>
+
+    <!-- FERIADO LEGAL -->
+    <div id="feriado" class="tab-content">
+        <h2>Solicitud de Feriado Legal</h2>
+        <form id="form-feriado" onsubmit="guardarFeriado(event)">
+            <div id="msg-feriado"></div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>RUT Empleado:</label>
+                    <input type="text" name="empleado_rut" required>
+                </div>
+                <div class="form-group">
+                    <label>Nombre Empleado:</label>
+                    <input type="text" name="empleado_nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Servicio/Departamento:</label>
+                    <input type="text" name="servicio" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Desde:</label>
+                    <input type="date" name="fecha_desde" required>
+                </div>
+                <div class="form-group">
+                    <label>Hasta:</label>
+                    <input type="date" name="fecha_hasta" required>
+                </div>
+                <div class="form-group">
+                    <label>Cantidad de Días:</label>
+                    <input type="number" name="dias" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Año de Feriado:</label>
+                    <input type="number" name="anio_feriado" value="2026" required>
+                </div>
+                <div class="form-group">
+                    <label>Observaciones:</label>
+                    <input type="text" name="observaciones">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit">Guardar Feriado</button>
+                <button type="button" class="secondary" onclick="previewFeriado()">Vista Previa PDF</button>
+            </div>
+        </form>
+
+        <div class="document-list" id="lista-feriados"></div>
+    </div>
+
+    <!-- COMPROBANTE FERIADO -->
+    <div id="comprobante" class="tab-content">
+        <h2>Comprobante de Feriado Usado</h2>
+        <form id="form-comprobante" onsubmit="guardarComprobante(event)">
+            <div id="msg-comprobante"></div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>RUT Empleado:</label>
+                    <input type="text" name="empleado_rut" required>
+                </div>
+                <div class="form-group">
+                    <label>Nombre Empleado:</label>
+                    <input type="text" name="empleado_nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Lugar:</label>
+                    <input type="text" name="lugar" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Desde:</label>
+                    <input type="date" name="fecha_desde" required>
+                </div>
+                <div class="form-group">
+                    <label>Hasta:</label>
+                    <input type="date" name="fecha_hasta" required>
+                </div>
+                <div class="form-group">
+                    <label>Días Utilizados:</label>
+                    <input type="number" name="dias_usados" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Valor Diario ($):</label>
+                    <input type="number" name="valor_diario" required>
+                </div>
+                <div class="form-group">
+                    <label>Total ($):</label>
+                    <input type="number" name="total" readonly>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit">Guardar Comprobante</button>
+                <button type="button" class="secondary" onclick="previewComprobante()">Vista Previa PDF</button>
+            </div>
+        </form>
+
+        <div class="document-list" id="lista-comprobantes"></div>
+    </div>
+
+    <!-- FINIQUITO -->
+    <div id="finiquito" class="tab-content">
+        <h2>Finiquito</h2>
+        <form id="form-finiquito" onsubmit="guardarFiniquito(event)">
+            <div id="msg-finiquito"></div>
+
+            <h3>Datos Básicos</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>RUT Empleado:</label>
+                    <input type="text" name="empleado_rut" required>
+                </div>
+                <div class="form-group">
+                    <label>Nombre Empleado:</label>
+                    <input type="text" name="empleado_nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Cargo:</label>
+                    <input type="text" name="cargo" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Fecha de Inicio:</label>
+                    <input type="date" name="fecha_inicio" required>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Término:</label>
+                    <input type="date" name="fecha_termino" required>
+                </div>
+                <div class="form-group">
+                    <label>Días Trabajados:</label>
+                    <input type="number" name="dias_trabajados" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Lugar de Prestación:</label>
+                    <input type="text" name="lugar_prestacion" required>
+                </div>
+                <div class="form-group">
+                    <label>Causal de Término:</label>
+                    <select name="causal_termino" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Mutuo acuerdo de las partes">Mutuo acuerdo</option>
+                        <option value="Necesidades de la empresa">Necesidades de la empresa</option>
+                        <option value="Desahucio">Desahucio</option>
+                        <option value="Vencimiento de plazo">Vencimiento de plazo</option>
+                        <option value="Terminación de la obra">Terminación de la obra</option>
+                        <option value="Falta de probidad">Falta de probidad</option>
+                        <option value="Otras causas">Otras causas</option>
+                    </select>
+                </div>
+            </div>
+
+            <h3>Conceptos a Pagar</h3>
+            <div class="form-row three">
+                <div class="form-group">
+                    <label>Sueldo Líquido ($):</label>
+                    <input type="number" name="sueldo_liquido" required>
+                </div>
+                <div class="form-group">
+                    <label>Vacaciones Proporcional ($):</label>
+                    <input type="number" name="vacaciones_proporcional">
+                </div>
+                <div class="form-group">
+                    <label>Feriado Proporcional ($):</label>
+                    <input type="number" name="feriado_proporcional">
+                </div>
+            </div>
+
+            <div class="form-row three">
+                <div class="form-group">
+                    <label>Indemnización Aviso ($):</label>
+                    <input type="number" name="indemnizacion_aviso">
+                </div>
+                <div class="form-group">
+                    <label>Indemnización Años de Servicio ($):</label>
+                    <input type="number" name="indemnizacion_anos">
+                </div>
+                <div class="form-group">
+                    <label>Otros Conceptos ($):</label>
+                    <input type="number" name="otros_conceptos">
+                </div>
+            </div>
+
+            <h3>Descuentos</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Descuentos Previsionales ($):</label>
+                    <input type="number" name="descuentos_prev">
+                </div>
+                <div class="form-group">
+                    <label>Retención Pensión Alimenticia ($):</label>
+                    <input type="number" name="retencion_pension_alimenticia">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Observaciones:</label>
+                <textarea name="observaciones" placeholder="Notas adicionales sobre el finiquito..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit">Guardar Finiquito</button>
+                <button type="button" class="secondary" onclick="previewFiniquito()">Vista Previa PDF</button>
+            </div>
+        </form>
+
+        <div class="document-list" id="lista-finiquitos"></div>
+    </div>
+</div>
+
+<script>
+function switchTab(tabName) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById(tabName).classList.add('active');
+}
+
+function showMessage(elementId, message, type) {
+    const msg = document.getElementById(elementId);
+    msg.className = 'alert ' + type;
+    msg.textContent = message;
+    msg.style.display = 'block';
+}
+
+function calcularDias(form) {
+    const desde = new Date(form.fecha_desde.value);
+    const hasta = new Date(form.fecha_hasta.value);
+    if (desde && hasta) {
+        const dias = Math.floor((hasta - desde) / (1000 * 60 * 60 * 24)) + 1;
+        if (form.dias) form.dias.value = dias;
+    }
+}
+
+// Contratos
+document.getElementById('form-contrato')?.addEventListener('change', function(e) {
+    if (e.target.name === 'fecha_inicio') {
+        console.log('Fecha inicio:', e.target.value);
+    }
+});
+
+function guardarContrato(e) {
+    e.preventDefault();
+    const form = document.getElementById('form-contrato');
+    const datos = new FormData(form);
+
+    fetch('/api/rrhh.php?op=contrato_crear', {
+        method: 'POST',
+        body: datos
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            showMessage('msg-contrato', 'Contrato guardado exitosamente.', 'success');
+            form.reset();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showMessage('msg-contrato', 'Error: ' + (data.error || 'No se pudo guardar'), 'error');
+        }
+    })
+    .catch(err => showMessage('msg-contrato', 'Error de conexión', 'error'));
+}
+
+function previewContrato() {
+    const id = prompt('Ingrese ID del contrato a vista previa:');
+    if (id) window.open('/api/pdf-generator.php?tipo=contrato&id=' + id + '#print', '_blank');
+}
+
+// Anexo
+function guardarAnexo(e) {
+    e.preventDefault();
+    const form = document.getElementById('form-anexo');
+    const datos = new FormData(form);
+
+    fetch('/api/rrhh.php?op=anexo_crear', {
+        method: 'POST',
+        body: datos
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            showMessage('msg-anexo', 'Anexo guardado exitosamente.', 'success');
+            form.reset();
+        } else {
+            showMessage('msg-anexo', 'Error: ' + (data.error || 'No se pudo guardar'), 'error');
+        }
+    })
+    .catch(err => showMessage('msg-anexo', 'Error de conexión', 'error'));
+}
+
+function previewAnexo() {
+    const id = prompt('Ingrese ID del anexo a vista previa:');
+    if (id) window.open('/api/pdf-generator.php?tipo=anexo&id=' + id + '#print', '_blank');
+}
+
+// Permiso
+document.getElementById('form-permiso')?.addEventListener('change', function(e) {
+    if (e.target.name === 'fecha_desde' || e.target.name === 'fecha_hasta') {
+        calcularDias(this);
+    }
+});
+
+function guardarPermiso(e) {
+    e.preventDefault();
+    const form = document.getElementById('form-permiso');
+    const datos = new FormData(form);
+
+    fetch('/api/rrhh.php?op=permiso_crear', {
+        method: 'POST',
+        body: datos
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            showMessage('msg-permiso', 'Permiso guardado exitosamente.', 'success');
+            form.reset();
+        } else {
+            showMessage('msg-permiso', 'Error: ' + (data.error || 'No se pudo guardar'), 'error');
+        }
+    })
+    .catch(err => showMessage('msg-permiso', 'Error de conexión', 'error'));
+}
+
+function previewPermiso() {
+    const id = prompt('Ingrese ID del permiso a vista previa:');
+    if (id) window.open('/api/pdf-generator.php?tipo=permiso&id=' + id + '#print', '_blank');
+}
+
+// Feriado
+document.getElementById('form-feriado')?.addEventListener('change', function(e) {
+    if (e.target.name === 'fecha_desde' || e.target.name === 'fecha_hasta') {
+        calcularDias(this);
+    }
+});
+
+function guardarFeriado(e) {
+    e.preventDefault();
+    const form = document.getElementById('form-feriado');
+    const datos = new FormData(form);
+
+    fetch('/api/rrhh.php?op=feriado_crear', {
+        method: 'POST',
+        body: datos
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            showMessage('msg-feriado', 'Feriado guardado exitosamente.', 'success');
+            form.reset();
+        } else {
+            showMessage('msg-feriado', 'Error: ' + (data.error || 'No se pudo guardar'), 'error');
+        }
+    })
+    .catch(err => showMessage('msg-feriado', 'Error de conexión', 'error'));
+}
+
+function previewFeriado() {
+    const id = prompt('Ingrese ID del feriado a vista previa:');
+    if (id) window.open('/api/pdf-generator.php?tipo=feriado&id=' + id + '#print', '_blank');
+}
+
+// Comprobante
+document.getElementById('form-comprobante')?.addEventListener('change', function(e) {
+    if (e.target.name === 'valor_diario' || e.target.name === 'dias_usados') {
+        const valor = parseFloat(document.querySelector('[name="valor_diario"]').value) || 0;
+        const dias = parseInt(document.querySelector('[name="dias_usados"]').value) || 0;
+        document.querySelector('[name="total"]').value = valor * dias;
+    }
+});
+
+function guardarComprobante(e) {
+    e.preventDefault();
+    const form = document.getElementById('form-comprobante');
+    const datos = new FormData(form);
+
+    fetch('/api/rrhh.php?op=comprobante_feriado_crear', {
+        method: 'POST',
+        body: datos
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            showMessage('msg-comprobante', 'Comprobante guardado exitosamente.', 'success');
+            form.reset();
+        } else {
+            showMessage('msg-comprobante', 'Error: ' + (data.error || 'No se pudo guardar'), 'error');
+        }
+    })
+    .catch(err => showMessage('msg-comprobante', 'Error de conexión', 'error'));
+}
+
+function previewComprobante() {
+    const id = prompt('Ingrese ID del comprobante a vista previa:');
+    if (id) window.open('/api/pdf-generator.php?tipo=comprobante&id=' + id + '#print', '_blank');
+}
+
+// Finiquito
+function guardarFiniquito(e) {
+    e.preventDefault();
+    const form = document.getElementById('form-finiquito');
+    const datos = new FormData(form);
+
+    fetch('/api/rrhh.php?op=finiquito_crear', {
+        method: 'POST',
+        body: datos
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            showMessage('msg-finiquito', 'Finiquito guardado exitosamente. ID: ' + data.id, 'success');
+            form.reset();
+        } else {
+            showMessage('msg-finiquito', 'Error: ' + (data.error || 'No se pudo guardar'), 'error');
+        }
+    })
+    .catch(err => showMessage('msg-finiquito', 'Error de conexión', 'error'));
+}
+
+function previewFiniquito() {
+    const id = prompt('Ingrese ID del finiquito a vista previa:');
+    if (id) window.open('/api/pdf-generator.php?tipo=finiquito&id=' + id + '#print', '_blank');
+}
+
+// Auto-cálculo de días
+document.querySelectorAll('input[name="fecha_desde"], input[name="fecha_hasta"]').forEach(input => {
+    input.addEventListener('change', function() {
+        calcularDias(this.closest('form'));
+    });
+});
+
+console.log('RR.HH. módulo cargado');
+</script>
+</body>
+</html>

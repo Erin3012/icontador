@@ -21,7 +21,6 @@ CREATE TABLE IF NOT EXISTS empleados (
   KEY idx_empleados_empresa (empresa_id),
   KEY idx_empleados_estado (estado)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- Contratos de trabajo
 CREATE TABLE IF NOT EXISTS contratos (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,

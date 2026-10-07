@@ -1,6 +1,7 @@
 <?php
 // Pruebas de la lógica contable en PHP con una base SQLite en memoria: php tools/test-api.php
 declare(strict_types=1);
+require __DIR__ . '/base-prueba.php';
 require dirname(__DIR__) . '/api/lib/vouchers.php';
 
 $fallas = 0;
@@ -20,9 +21,10 @@ function errores(callable $f): array
     return [];
 }
 
-$pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+$pdo = base_prueba();
 crearEsquema($pdo);
-comprobar(count(planCuentas($pdo)) === count(PLAN_BASE), 'plan de cuentas inicial cargado');
+comprobar(planCuentas($pdo) === [], 'una base nueva no trae plan de cuentas');
+comprobar(cargarPlanEjemplo($pdo) === count(PLAN_EJEMPLO) && cargarPlanEjemplo($pdo) === 0, 'el plan de ejemplo se carga una vez');
 
 $venta = ['tipo' => 'I', 'fecha' => '2026-10-01', 'registro' => 'Ambos', 'glosa' => 'Venta al contado', 'lineas' => [
     ['cuenta' => '1.1.01', 'debe' => '119000'], ['cuenta' => '4.1.01', 'haber' => 100000], ['cuenta' => '2.1.02', 'haber' => 19000],
@@ -65,8 +67,32 @@ comprobar($mayor[0]['saldo'] === 69010 && end($mayor[0]['movimientos'])['saldo']
 $caja = array_values(array_filter(libroMayor($pdo), fn($c) => $c['codigo'] === '4.1.01'))[0];
 comprobar($caja['haber'] === 100010 && $caja['saldo'] === -100010, 'Libro Mayor de Ventas con saldo acreedor');
 
+$balance = balanceGeneral($pdo, ['desde' => '2026-10-01', 'hasta' => '2026-10-31']);
+$t = $balance['totales'];
+comprobar($t['debitos'] === 170000 && $t['creditos'] === 170000 && $t['deudor'] === $t['acreedor'], 'Balance General cuadra sumas y saldos');
+comprobar($balance['resultado'] === 50000 && $balance['ajuste']['pasivo'] === 50000 && $balance['ajuste']['perdida'] === 50000, 'Balance General calcula la utilidad (ventas 100.000 menos arriendo 50.000)');
+comprobar($balance['sumasIguales']['activo'] === $balance['sumasIguales']['pasivo'] && $balance['sumasIguales']['perdida'] === $balance['sumasIguales']['ganancia'], 'Balance General termina con sumas iguales');
+comprobar(balanceGeneral($pdo, ['registro' => 'IFRS'])['totales']['debitos'] === 120010, 'Balance IFRS excluye vouchers solo tributarios');
+$eerr = estadoResultado($pdo, ['desde' => '2026-10-01', 'hasta' => '2026-10-31']);
+comprobar($eerr['totalIngresos'] === 100000 && $eerr['totalGastos'] === 50000 && $eerr['resultado'] === 50000, 'Estado de Resultado: ingresos, gastos y utilidad');
+comprobar(count($eerr['ingresos']) === 1 && $eerr['gastos'][0]['nombre'] === 'Arriendos', 'Estado de Resultado detalla cuentas');
+
 comprobar(eliminarVoucher($pdo, $v2['id']) && count(listarVouchers($pdo)) === 3, 'eliminar voucher');
 comprobar((int) $pdo->query('SELECT COUNT(*) FROM voucher_lineas WHERE voucher_id = ' . $v2['id'])->fetchColumn() === 0, 'eliminar borra sus líneas');
+
+
+// Editar y eliminar cuentas del plan (por empresa).
+comprobar(editarCuenta($pdo, '1.1.01', ['codigo' => '1.1.01', 'nombre' => 'Caja chica']) === ['codigo' => '1.1.01', 'nombre' => 'Caja chica'], 'se cambia el nombre de una cuenta con movimientos');
+comprobar(libroDiario($pdo)['asientos'][0]['lineas'][0]['nombre'] === 'Caja chica', 'el nuevo nombre aparece en el Libro Diario');
+comprobar(errores(fn() => editarCuenta($pdo, '1.1.01', ['codigo' => '1.1.99', 'nombre' => 'Caja'])) !== [], 'no cambia el código de una cuenta con movimientos');
+comprobar(errores(fn() => eliminarCuenta($pdo, '1.1.01')) !== [], 'no elimina una cuenta con movimientos');
+comprobar(errores(fn() => editarCuenta($pdo, '3.1.05', ['codigo' => '3.1.04', 'nombre' => 'X'])) === ['La cuenta 3.1.04 ya existe.'], 'no repite un código existente');
+comprobar(errores(fn() => editarCuenta($pdo, '3.1.05', ['codigo' => '3.1.05', 'nombre' => ' '])) === ['Ingrese el nombre de la cuenta.'], 'exige nombre al editar');
+comprobar(editarCuenta($pdo, 'no-existe', ['codigo' => '9', 'nombre' => 'X']) === null, 'editar una cuenta inexistente devuelve null');
+comprobar(editarCuenta($pdo, '3.1.05', ['codigo' => '3.1.50', 'nombre' => 'Servicios básicos']) !== null
+    && in_array('3.1.50', array_column(planCuentas($pdo), 'codigo'), true) && !in_array('3.1.05', array_column(planCuentas($pdo), 'codigo'), true), 'cambia el código de una cuenta sin movimientos');
+comprobar(editarCuenta($pdo, '3.1.50', ['codigo' => '3.1.50', 'nombre' => 'Otra'], 7) === null, 'no edita cuentas de otra empresa');
+comprobar(eliminarCuenta($pdo, '3.1.50', 7) === false && eliminarCuenta($pdo, '3.1.50') === true, 'elimina solo en la empresa propia');
 
 echo $fallas ? "$fallas pruebas fallaron" . PHP_EOL : 'Todas las pruebas pasaron' . PHP_EOL;
 exit($fallas ? 1 : 0);

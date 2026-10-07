@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' blob:; style-src 'self'; script-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sugerencias y reportes · Cifrax</title>
+<link rel="stylesheet" href="../assets/sugerencias.css">
+<link rel="icon" type="image/png" href="../assets/cifrax-favicon.png"><link rel="apple-touch-icon" href="../assets/cifrax-apple-touch-icon.png"></head><body>
+<header class="sug-barra"><strong>Cifrax</strong><span>Sugerencias y reportes</span><a id="sug-volver" href="../index.html">Volver a Cifrax</a></header>
+<main class="sug-main">
+ <section class="sug-card" aria-labelledby="sug-nuevo-titulo">
+  <h1 id="sug-nuevo-titulo">Reportar un problema o enviar una sugerencia</h1>
+  <p class="sug-ayuda">Cuéntanos qué pasó o qué mejorarías. Puedes adjuntar capturas de pantalla o archivos; también puedes pegar una captura con Ctrl+V.</p>
+  <form id="sug-form" novalidate>
+   <fieldset class="sug-tipo"><legend>Tipo</legend>
+    <label><input type="radio" name="tipo" value="problema" checked> Problema</label>
+    <label><input type="radio" name="tipo" value="sugerencia"> Sugerencia</label>
+   </fieldset>
+   <label for="sug-pagina">Pantalla</label>
+   <input id="sug-pagina" name="pagina" maxlength="255" placeholder="Ej.: Crear Voucher">
+   <label for="sug-comentario">Comentario</label>
+   <textarea id="sug-comentario" name="comentario" rows="6" maxlength="5000" required placeholder="Qué hiciste, qué esperabas y qué pasó."></textarea>
+   <label for="sug-archivos">Adjuntos</label>
+   <input id="sug-archivos" type="file" multiple accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.txt,.csv,.xls,.xlsx,.docx">
+   <p class="sug-ayuda">Hasta 5 archivos de 10 MB: imágenes (PNG, JPG, GIF, WEBP), PDF, TXT, CSV, Excel o Word.</p>
+   <ul id="sug-lista-archivos" class="sug-archivos"></ul>
+   <p id="sug-mensaje" class="sug-mensaje" role="status" hidden></p>
+   <button id="sug-enviar" type="submit">Enviar</button>
+  </form>
+ </section>
+ <section class="sug-card" aria-labelledby="sug-lista-titulo">
+  <div class="sug-cabecera"><h2 id="sug-lista-titulo">Mis reportes</h2>
+   <div id="sug-filtros" class="sug-filtros" hidden>
+    <button type="button" data-estado="" class="activo">Todos</button><button type="button" data-estado="nueva">Nuevos</button><button type="button" data-estado="en_revision">En revisión</button><button type="button" data-estado="resuelta">Resueltos</button>
+   </div>
+  </div>
+  <div id="sug-lista" aria-live="polite"><p class="sug-ayuda">Cargando…</p></div>
+ </section>
+</main>
+<script src="../assets/sugerencias.js"></script>
+</body></html>
