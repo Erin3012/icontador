@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vouchers.php';
 require_once __DIR__ . '/rcv.php';
+require_once __DIR__ . '/honorarios.php';
 require_once __DIR__ . '/liquidaciones.php';
 
 const PAQUETE_FORMATO = 'icontador-empresa';
@@ -13,8 +14,14 @@ const EMPRESA_CAMPOS = ['rut' => 12, 'giro' => 120, 'regimen' => 60, 'telefono' 
 const PAQUETE_COLUMNAS = [
     'vouchers' => ['tipo', 'periodo', 'numero', 'fecha', 'registro', 'glosa', 'creado', 'modificado'],
     'voucher_lineas' => ['orden', 'cuenta', 'glosa', 'debe', 'haber'],
-    'rcv_documentos' => ['periodo', 'libro', 'archivo', 'tipo_doc', 'tipo_operacion', 'rut', 'razon_social', 'folio', 'fecha', 'exento', 'neto', 'iva', 'iva_no_rec', 'iva_uso_comun', 'iva_retenido', 'otros', 'total'],
+    'rcv_documentos' => ['periodo', 'libro', 'archivo', 'tipo_doc', 'tipo_operacion', 'rut', 'razon_social', 'folio', 'fecha', 'exento', 'neto', 'iva', 'iva_no_rec', 'iva_uso_comun', 'iva_retenido', 'otros', 'total',
+        'neto_activo_fijo', 'iva_activo_fijo', 'imp_sin_credito', 'cod_iva_no_rec', 'cod_otro_imp', 'tasa_otro_imp', 'fecha_recepcion', 'ref_tipo', 'ref_folio'],
+    'honorarios_boletas' => ['periodo', 'libro', 'archivo', 'numero', 'fecha', 'estado', 'fecha_anulacion', 'rut', 'nombre', 'soc_prof', 'bruto', 'retenido', 'pagado'],
     'liquidaciones' => ['periodo', 'trabajador', 'sueldo_base', 'gratificacion', 'imponible', 'total_haberes', 'afp', 'salud', 'afc', 'impuesto', 'total_descuentos', 'liquido', 'costo_empresa', 'detalle'],
+];
+// Valor de las columnas que no traen los archivos exportados antes de que existieran.
+const PAQUETE_DEFECTOS = [
+    'rcv_documentos' => ['neto_activo_fijo' => 0, 'iva_activo_fijo' => 0, 'imp_sin_credito' => 0, 'cod_iva_no_rec' => '', 'cod_otro_imp' => '', 'tasa_otro_imp' => '', 'fecha_recepcion' => '', 'ref_tipo' => '', 'ref_folio' => ''],
 ];
 
 function empresas_esquema_completo(PDO $db): void
@@ -22,6 +29,7 @@ function empresas_esquema_completo(PDO $db): void
     empresas_schema($db);
     crearEsquema($db);
     rcv_schema($db);
+    hon_schema($db);
     liq_schema($db);
 }
 
@@ -191,6 +199,7 @@ function empresa_exportar(PDO $db, int $id): ?array
         'empresa' => ['origen_id' => $empresa['origen_id'], 'razon_social' => $empresa['razon_social'], 'datos' => json_decode((string) $empresa['datos_json'], true) ?: new stdClass()],
         'vistas' => $vistas->fetchAll(), 'registros' => $registros->fetchAll(), 'cuentas' => planCuentas($db, $id), 'vouchers' => $vouchers,
         'rcv' => filas_empresa($db, 'rcv_documentos', $id), 'liquidaciones' => filas_empresa($db, 'liquidaciones', $id),
+        'honorarios' => filas_empresa($db, 'honorarios_boletas', $id),
     ];
 }
 
@@ -218,7 +227,7 @@ function insertar_filas(PDO $db, string $tabla, int $empresa, array $filas): voi
     $columnas = PAQUETE_COLUMNAS[$tabla];
     $insertar = $db->prepare("INSERT INTO $tabla (empresa_id, " . implode(', ', $columnas) . ') VALUES (?' . str_repeat(', ?', count($columnas)) . ')');
     foreach ($filas as $fila) {
-        $insertar->execute(array_merge([$empresa], valores($fila, $columnas)));
+        $insertar->execute(array_merge([$empresa], valores($fila + (PAQUETE_DEFECTOS[$tabla] ?? []), $columnas)));
     }
 }
 
@@ -235,7 +244,7 @@ function empresa_importar(PDO $db, array $paquete, array $usuario): array
         throw new ErrorValidacion(['El archivo no trae la identificación de la empresa.']);
     }
     $listas = [];
-    foreach (['vistas', 'registros', 'cuentas', 'vouchers', 'rcv', 'liquidaciones'] as $clave) {
+    foreach (['vistas', 'registros', 'cuentas', 'vouchers', 'rcv', 'liquidaciones', 'honorarios'] as $clave) {
         $listas[$clave] = paquete_lista($paquete, $clave);
     }
     foreach ($listas['vouchers'] as $v) {
@@ -254,7 +263,7 @@ function empresa_importar(PDO $db, array $paquete, array $usuario): array
             $id = (int) $id;
             $db->prepare('UPDATE empresas SET razon_social = ?, datos_json = ?, actualizado = ? WHERE id = ?')->execute([$razon, $datos, gmdate('c'), $id]);
             $db->prepare('DELETE FROM voucher_lineas WHERE voucher_id IN (SELECT id FROM vouchers WHERE empresa_id = ?)')->execute([$id]);
-            foreach (['vouchers', 'cuentas', 'rcv_documentos', 'liquidaciones', 'importacion_registros', 'importacion_vistas'] as $tabla) {
+            foreach (['vouchers', 'cuentas', 'rcv_documentos', 'honorarios_boletas', 'liquidaciones', 'importacion_registros', 'importacion_vistas'] as $tabla) {
                 $db->prepare("DELETE FROM $tabla WHERE empresa_id = ?")->execute([$id]);
             }
         } else {
@@ -284,6 +293,7 @@ function empresa_importar(PDO $db, array $paquete, array $usuario): array
         }
         insertar_filas($db, 'rcv_documentos', $id, $listas['rcv']);
         insertar_filas($db, 'liquidaciones', $id, $listas['liquidaciones']);
+        insertar_filas($db, 'honorarios_boletas', $id, $listas['honorarios']);
         empresa_asignar($db, $id, (int) $usuario['id']);
         $db->commit();
     } catch (PDOException $e) {

@@ -109,3 +109,19 @@ function agregar_empresa_id(PDO $db, string $tabla): void {
     $db->exec("ALTER TABLE $tabla ADD COLUMN empresa_id INTEGER NOT NULL DEFAULT 0");
     $db->prepare("UPDATE $tabla SET empresa_id = ?")->execute([empresa_para_datos_previos($db)]);
 }
+
+function rut_limpio($rut): string {
+    return is_string($rut) ? strtoupper(preg_replace('/[^0-9kK]/', '', $rut)) : '';
+}
+
+/** Evita cargar libros del SII de otro contribuyente: compara el RUT que trae el archivo con el de la empresa elegida (si ambos se conocen). */
+function empresa_validar_rut(PDO $db, int $empresa, $rutArchivo): void {
+    $archivo = rut_limpio($rutArchivo);
+    if ($empresa <= 0 || $archivo === '') return;
+    $st = $db->prepare('SELECT datos_json FROM empresas WHERE id = ?');
+    $st->execute([$empresa]);
+    $rut = (json_decode((string)$st->fetchColumn(), true) ?: [])['rut'] ?? '';
+    if (rut_limpio($rut) !== '' && rut_limpio($rut) !== $archivo) {
+        throw new EmpresaError("El archivo es del RUT $rutArchivo y la empresa elegida tiene RUT $rut. Cambie de empresa antes de importarlo.");
+    }
+}

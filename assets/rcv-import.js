@@ -5,22 +5,32 @@
 (function(root){
  const DOC_TYPES={29:'Factura de inicio',30:'Factura',32:'Factura de venta exenta',33:'Factura electrónica',34:'Factura no afecta o exenta electrónica',35:'Boleta',38:'Boleta exenta',39:'Boleta electrónica',40:'Liquidación factura',41:'Boleta exenta electrónica',43:'Liquidación factura electrónica',45:'Factura de compra',46:'Factura de compra electrónica',48:'Comprobante de pago electrónico',55:'Nota de débito',56:'Nota de débito electrónica',60:'Nota de crédito',61:'Nota de crédito electrónica',101:'Factura de exportación',104:'Nota de débito de exportación',106:'Nota de crédito de exportación',110:'Factura de exportación electrónica',111:'Nota de débito de exportación electrónica',112:'Nota de crédito de exportación electrónica',914:'Declaración de ingreso (DIN)'};
  const CREDIT_NOTES=new Set([60,61,106,112]);
+ // Códigos de "otros impuestos" del SII más comunes (los demás se muestran solo con su código).
+ const OTROS_IMP={14:'IVA de margen de comercialización',15:'IVA retenido total',17:'IVA anticipado faenamiento carne',18:'IVA anticipado carne',19:'IVA anticipado harina',23:'Impuesto adicional art. 37 letras a, b, c',24:'Licores, piscos, destilados',25:'Vinos',26:'Cervezas y bebidas alcohólicas',27:'Bebidas analcohólicas y minerales',271:'Bebidas analcohólicas con elevado contenido de azúcar',28:'Impuesto específico diésel',35:'Impuesto específico gasolinas'};
+ // Códigos de IVA no recuperable del RCV de compras.
+ const IVA_NO_REC={1:'Compras destinadas a operaciones no gravadas o exentas',2:'Facturas registradas fuera de plazo',3:'Gastos rechazados',4:'Entregas gratuitas (premios, bonificaciones) recibidas',9:'Otros'};
  const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
  const norm=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
  // Columnas por libro: nombre interno -> encabezados posibles del CSV del SII (normalizados).
  const COLUMNS={
-  compras:{tipo:['tipo doc'],tipoOperacion:['tipo compra'],rut:['rut proveedor'],razon:['razon social'],folio:['folio'],fecha:['fecha docto'],exento:['monto exento'],neto:['monto neto'],iva:['monto iva recuperable'],ivaNoRec:['monto iva no recuperable'],ivaUsoComun:['iva uso comun'],otros:['valor otro impuesto'],total:['monto total']},
-  ventas:{tipo:['tipo doc'],tipoOperacion:['tipo venta'],rut:['rut cliente'],razon:['razon social'],folio:['folio'],fecha:['fecha docto'],exento:['monto exento'],neto:['monto neto'],iva:['monto iva'],ivaRetenido:['iva retenido total'],otros:['valor otro imp','valor otro impuesto'],total:['monto total']}
+  compras:{tipo:['tipo doc'],tipoOperacion:['tipo compra'],rut:['rut proveedor'],razon:['razon social'],folio:['folio'],fecha:['fecha docto'],fechaRecepcion:['fecha recepcion'],exento:['monto exento'],neto:['monto neto'],iva:['monto iva recuperable'],ivaNoRec:['monto iva no recuperable'],ivaNoRecCodigo:['codigo iva no rec'],ivaUsoComun:['iva uso comun'],netoActivoFijo:['monto neto activo fijo'],ivaActivoFijo:['iva activo fijo'],impSinCredito:['impto sin derecho a credito'],otroImpCodigo:['codigo otro impuesto'],otros:['valor otro impuesto'],otroImpTasa:['tasa otro impuesto'],total:['monto total']},
+  ventas:{tipo:['tipo doc'],tipoOperacion:['tipo venta'],rut:['rut cliente'],razon:['razon social'],folio:['folio'],fecha:['fecha docto'],fechaRecepcion:['fecha recepcion'],exento:['monto exento'],neto:['monto neto'],iva:['monto iva'],ivaRetenido:['iva retenido total'],refTipo:['tipo docto referencia'],refFolio:['folio docto referencia'],otroImpCodigo:['codigo otro imp','codigo otro impuesto'],otros:['valor otro imp','valor otro impuesto'],otroImpTasa:['tasa otro imp','tasa otro impuesto'],total:['monto total']}
  };
+ // Archivos de compras del RCV que no son el registro (no dan crédito fiscal).
+ const COMPRAS_FUERA={PENDIENTE:'pendientes',NO_INCLUIR:'no incluidos',RECLAMADO:'reclamados'};
 
  function splitLine(line,sep){const out=[];let cur='',quoted=false;for(let i=0;i<line.length;i++){const c=line[i];if(quoted){if(c==='"'&&line[i+1]==='"'){cur+='"';i++;}else if(c==='"')quoted=false;else cur+=c;}else if(c==='"')quoted=true;else if(c===sep){out.push(cur);cur='';}else cur+=c;}out.push(cur);return out.map(v=>v.trim());}
  function amount(v){v=String(v||'').trim();if(!v)return 0;if(/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(v))v=v.replace(/\./g,'').replace(',','.');else v=v.replace(',','.');const n=Number(v);return Number.isFinite(n)?Math.round(n):0;}
  function detectKind(headers){const h=headers.map(norm);if(h.includes('rut proveedor')||h.includes('tipo compra'))return 'compras';if(h.includes('rut cliente')||h.includes('tipo venta'))return 'ventas';return null;}
+ function rutFromName(name){const m=/RCV_[A-Z_]+?_(\d{7,8}-[\dkK])_/i.exec(String(name||''));return m?m[1].toUpperCase():'';}
  function periodFromName(name){const m=/(20\d{2})(0[1-9]|1[0-2])(?!\d)/.exec(String(name||''));return m?m[1]+'-'+m[2]:null;}
 
  function parseRcv(text,fileName){
   text=String(text).replace(/^﻿/,'');
+  if(/<table/i.test(text)&&/honorarios/i.test(text))throw new Error('Es el informe de boletas de honorarios: impórtalo en el módulo Honorarios.');
+  const fuera=/RCV_COMPRA_(PENDIENTE|NO_INCLUIR|RECLAMADO)/i.exec(String(fileName||''));
+  if(fuera)throw new Error('Trae los documentos '+COMPRAS_FUERA[fuera[1].toUpperCase()]+' del RCV, que no forman parte del Libro de Compras. Importa el archivo RCV_COMPRA_REGISTRO.');
   const lines=text.split(/\r?\n/).filter(l=>l.trim());
   if(!lines.length)throw new Error('El archivo está vacío.');
   const sep=(lines[0].match(/;/g)||[]).length>=(lines[0].match(/,/g)||[]).length?';':',';
@@ -34,11 +44,12 @@
    const cells=splitLine(line,sep);const get=k=>index[k]>=0?cells[index[k]]||'':'';
    const tipo=parseInt(get('tipo'),10);if(!tipo)continue;
    const doc={tipo,tipoNombre:DOC_TYPES[tipo]||('Documento '+tipo),tipoOperacion:get('tipoOperacion'),rut:get('rut'),razon:get('razon'),folio:get('folio'),fecha:get('fecha'),exento:amount(get('exento')),neto:amount(get('neto')),iva:amount(get('iva')),otros:amount(get('otros')),total:amount(get('total')),signo:CREDIT_NOTES.has(tipo)?-1:1};
-   if(kind==='compras'){doc.ivaNoRec=amount(get('ivaNoRec'));doc.ivaUsoComun=amount(get('ivaUsoComun'));}
-   else doc.ivaRetenido=amount(get('ivaRetenido'));
+   doc.fechaRecepcion=get('fechaRecepcion');doc.otroImpCodigo=get('otroImpCodigo');doc.otroImpTasa=get('otroImpTasa');
+   if(kind==='compras'){doc.ivaNoRec=amount(get('ivaNoRec'));doc.ivaNoRecCodigo=get('ivaNoRecCodigo');doc.ivaUsoComun=amount(get('ivaUsoComun'));doc.netoActivoFijo=amount(get('netoActivoFijo'));doc.ivaActivoFijo=amount(get('ivaActivoFijo'));doc.impSinCredito=amount(get('impSinCredito'));}
+   else{doc.ivaRetenido=amount(get('ivaRetenido'));doc.refTipo=get('refTipo');doc.refFolio=get('refFolio');}
    docs.push(doc);
   }
-  return {kind,fileName:fileName||'',period:periodFromName(fileName)||periodFromDocs(docs),docs};
+  return {kind,fileName:fileName||'',rutEmpresa:rutFromName(fileName),period:periodFromName(fileName)||periodFromDocs(docs),docs};
  }
  function periodFromDocs(docs){const count={};for(const d of docs){const m=/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/.exec(d.fecha)||null;const k=m?m[3]+'-'+m[2].padStart(2,'0'):(/^(\d{4})-(\d{2})/.exec(d.fecha)||[])[0];if(k)count[k]=(count[k]||0)+1;}return Object.keys(count).sort((a,b)=>count[b]-count[a])[0]||null;}
 
@@ -46,7 +57,9 @@
  function totals(docs,fields){const t={documentos:docs.length};for(const f of fields)t[f]=docs.reduce((s,d)=>s+d.signo*(d[f]||0),0);return t;}
  function summaryByType(docs,fields){const groups=new Map();for(const d of docs){if(!groups.has(d.tipo))groups.set(d.tipo,[]);groups.get(d.tipo).push(d);}return [...groups.entries()].sort((a,b)=>a[0]-b[0]).map(([tipo,list])=>({tipo,tipoNombre:list[0].tipoNombre,...totals(list,fields)}));}
 
- const COMPRAS_FIELDS=['exento','neto','iva','ivaNoRec','ivaUsoComun','otros','total'];
+ // Suma con signo agrupada por un código (otro impuesto o IVA no recuperable); omite documentos sin código o sin monto.
+ function summaryByCode(docs,codeField,amountField,names){const groups=new Map();for(const d of docs){const code=String(d[codeField]||'').trim();if(!code||!d[amountField])continue;const g=groups.get(code)||{codigo:code,nombre:names[code]||'Código '+code,documentos:0,monto:0};g.documentos++;g.monto+=d.signo*d[amountField];groups.set(code,g);}return [...groups.values()].sort((a,b)=>Number(a.codigo)-Number(b.codigo));}
+ const COMPRAS_FIELDS=['exento','neto','iva','ivaNoRec','ivaUsoComun','ivaActivoFijo','impSinCredito','otros','total'];
  const VENTAS_FIELDS=['exento','neto','iva','ivaRetenido','otros','total'];
  function buildBooks(parsed){
   // Los documentos leídos desde la base de datos no traen nombre de tipo ni signo: se recalculan aquí.
@@ -58,14 +71,14 @@
   const periods=[...new Set(parsed.map(p=>p.period).filter(Boolean))].sort();
   return {
    period:periods.length?periods[periods.length-1]:null,periods,
-   compras:{docs:compras,totales:tc,resumen:summaryByType(compras,COMPRAS_FIELDS)},
-   ventas:{docs:ventas,totales:tv,resumen:summaryByType(ventas,VENTAS_FIELDS)},
-   iva:{debito,credito,ivaPagar:Math.max(diferencia,0),remanente:Math.max(-diferencia,0),ivaNoRecuperable:tc.ivaNoRec,ivaUsoComun:tc.ivaUsoComun,ivaRetenido:tv.ivaRetenido}
+   compras:{docs:compras,totales:tc,resumen:summaryByType(compras,COMPRAS_FIELDS),otrosImpuestos:summaryByCode(compras,'otroImpCodigo','otros',OTROS_IMP),ivaNoRecuperable:summaryByCode(compras,'ivaNoRecCodigo','ivaNoRec',IVA_NO_REC)},
+   ventas:{docs:ventas,totales:tv,resumen:summaryByType(ventas,VENTAS_FIELDS),otrosImpuestos:summaryByCode(ventas,'otroImpCodigo','otros',OTROS_IMP)},
+   iva:{debito,credito,ivaPagar:Math.max(diferencia,0),remanente:Math.max(-diferencia,0),ivaNoRecuperable:tc.ivaNoRec,ivaUsoComun:tc.ivaUsoComun,ivaRetenido:tv.ivaRetenido,ivaActivoFijo:tc.ivaActivoFijo}
   };
  }
  const formatPeriod=p=>{if(!p)return 'sin período';const [y,m]=p.split('-');return MONTHS[Number(m)-1]+' '+y;};
 
- const api={parseRcv,buildBooks,formatPeriod,DOC_TYPES};
+ const api={parseRcv,buildBooks,formatPeriod,DOC_TYPES,OTROS_IMP,IVA_NO_REC};
  if(typeof module!=='undefined'&&module.exports){module.exports=api;return;}
  root.RcvImport=api;
 
@@ -82,12 +95,16 @@
   const sumRows=book.resumen.map(r=>({cells:[r.tipo+' · '+r.tipoNombre,r.documentos,money(r.exento),money(r.neto),money(r.iva),money(r.total)]}));
   const section=el('section',{class:'rcv-book','data-book':kind},el('h3',null,isC?'Libro de Compras':'Libro de Ventas'));
   if(!book.docs.length){section.append(el('p',{class:'rcv-empty'},'No se cargó un archivo de '+kind+'.'));return section;}
-  section.append(el('h4',null,'Resumen por tipo de documento'),table(sumHead,sumRows),el('h4',null,'Detalle'),table(head,rows,foot));return section;
+  section.append(el('h4',null,'Resumen por tipo de documento'),table(sumHead,sumRows));
+  const codeHead=[{label:'Código'},{label:'Descripción'},{label:'Documentos',num:1},{label:'Monto',num:1}],codeRows=list=>list.map(r=>({cells:[r.codigo,r.nombre,r.documentos,money(r.monto)]}));
+  if(book.otrosImpuestos.length)section.append(el('h4',null,'Otros impuestos por código'),table(codeHead,codeRows(book.otrosImpuestos)));
+  if(isC&&book.ivaNoRecuperable.length)section.append(el('h4',null,'IVA no recuperable por código'),table(codeHead,codeRows(book.ivaNoRecuperable)));
+  section.append(el('h4',null,'Detalle'),table(head,rows,foot));return section;
  }
  function ivaSection(books){
   const i=books.iva;const result=i.ivaPagar>0?['IVA a pagar',money(i.ivaPagar),'rcv-pay']:['Remanente de crédito fiscal',money(i.remanente),'rcv-credit'];
   const card=(label,value,cls)=>el('div',{class:'rcv-card '+(cls||'')},el('span',null,label),el('strong',null,value));
-  const notes=[];if(i.ivaRetenido)notes.push('El débito descuenta '+money(i.ivaRetenido)+' de IVA retenido por los compradores.');if(i.ivaUsoComun)notes.push('Hay '+money(i.ivaUsoComun)+' de IVA de uso común: el crédito usa la columna IVA recuperable del SII; revisa la proporcionalidad.');if(i.ivaNoRecuperable)notes.push(money(i.ivaNoRecuperable)+' de IVA no recuperable no se usa como crédito.');
+  const notes=[];if(i.ivaRetenido)notes.push('El débito descuenta '+money(i.ivaRetenido)+' de IVA retenido por los compradores.');if(i.ivaUsoComun)notes.push('Hay '+money(i.ivaUsoComun)+' de IVA de uso común: el crédito usa la columna IVA recuperable del SII; revisa la proporcionalidad.');if(i.ivaNoRecuperable)notes.push(money(i.ivaNoRecuperable)+' de IVA no recuperable no se usa como crédito.');if(i.ivaActivoFijo)notes.push('El crédito incluye '+money(i.ivaActivoFijo)+' de IVA por compras de activo fijo.');
   return el('section',{class:'rcv-iva'},el('h3',null,'IVA del período · '+formatPeriod(books.period)),el('div',{class:'rcv-cards'},card('Débito fiscal (ventas)',money(i.debito)),card('Crédito fiscal (compras)',money(i.credito)),card(result[0],result[1],result[2])),...notes.map(n=>el('p',{class:'rcv-note'},n)));
  }
 
@@ -126,7 +143,7 @@
    let saved=null;
    for(const parsed of parsedFiles){
     if(!parsed.period){errors.push(parsed.fileName+': no se pudo determinar el período.');continue;}
-    try{await request('POST','',{kind:parsed.kind,period:parsed.period,fileName:parsed.fileName,docs:parsed.docs});saved=parsed.period;}catch(e){errors.push(parsed.fileName+': '+e.message);}
+    try{await request('POST','',{kind:parsed.kind,period:parsed.period,fileName:parsed.fileName,rutEmpresa:parsed.rutEmpresa,docs:parsed.docs});saved=parsed.period;}catch(e){errors.push(parsed.fileName+': '+e.message);}
    }
    try{await refreshPeriods();if(saved)await openPeriod(saved);else render();}catch(e){errors.push(e.message);}
   }else{
