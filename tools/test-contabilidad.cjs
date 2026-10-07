@@ -17,4 +17,13 @@ assert.equal(eerr.at(-1)[1],'Pérdida del ejercicio');
 const lc=c.filasLibroRcv({libro:'compras',docs:[{periodo:'2026-09',fecha:'03/09/2026',tipo:61,folio:'9',rut:'1-9',razon:'P',exento:0,neto:50,iva:10,ivaNoRec:0,ivaUsoComun:0,otros:0,total:60,signo:-1}],totales:{documentos:1,exento:0,neto:-50,iva:-10,ivaNoRec:0,ivaUsoComun:0,otros:0,total:-60}});
 assert.equal(lc[0][5],'Proveedor');assert.equal(lc[1][2],'Nota de crédito electrónica');assert.equal(lc[1][7],-50);assert.equal(lc[0].length,lc[1].length);assert.equal(lc[2].at(-1),-60);
 assert.equal(c.filasLibroRcv({libro:'ventas',docs:[],totales:{documentos:0,exento:0,neto:0,iva:0,ivaRetenido:0,otros:0,total:0}})[0].includes('IVA retenido'),true);
+// Excel: ZIP válido (CRC conocido) con la cabecera arriba, números como números y totales en negrita.
+assert.equal(c.crc32(new TextEncoder().encode('hello')),0x3610a686);
+const libroXlsx=Buffer.from(c.xlsx({hoja:'Libro Diario',cabecera:['Libro Diario','Empresa & Cía'],filas:[['Glosa','Debe'],['Venta <contado>',119000],['Total',119000]],destacar:f=>f[0]==='Total'}));
+assert.equal(libroXlsx.readUInt32LE(0),0x04034b50);assert.equal(libroXlsx.readUInt32LE(libroXlsx.length-22),0x06054b50);
+const hojaXlsx=libroXlsx.toString('utf8');
+for(const parte of ['[Content_Types].xml','xl/workbook.xml','xl/worksheets/sheet1.xml','xl/styles.xml'])assert(hojaXlsx.includes(parte),parte);
+assert(hojaXlsx.includes('Empresa &amp; Cía'));assert(hojaXlsx.includes('Venta &lt;contado&gt;'));
+assert(hojaXlsx.includes('<c r="B5" s="2"><v>119000</v></c>'));assert(hojaXlsx.includes('<c r="B6" s="3"><v>119000</v></c>'));
+assert(hojaXlsx.includes('<pane ySplit="4"'));
 console.log('contabilidad.js: pruebas superadas');

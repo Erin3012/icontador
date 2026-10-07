@@ -33,7 +33,7 @@ Las pantallas **Voucher**, **Crear Voucher**, **Libro Diario** y **Libro Mayor**
 - Las tablas `cuentas`, `vouchers` y `voucher_lineas` se crean al primer uso; el plan de cuentas se carga por empresa desde Plan de Cuenta.
 - Un voucher solo se guarda si Debe = Haber, tiene al menos dos líneas y cada línea usa una cuenta del plan con un monto en Debe o en Haber. La validación se hace en PHP (`api/lib/vouchers.php`).
 - El número de comprobante es correlativo por tipo (Ingreso, Egreso, Traspaso) y mes.
-- Libro Diario y Libro Mayor se generan desde la base de datos con filtros de fecha y tipo de contabilidad (Tributario/IFRS). PDF imprime el reporte; EXCEL y CSV descargan un CSV.
+- Libro Diario y Libro Mayor se generan desde la base de datos con filtros de fecha y tipo de contabilidad (Tributario/IFRS). PDF imprime el reporte; EXCEL descarga un archivo .xlsx con la empresa, el período y los montos como números, y CSV descarga un CSV.
 - API: `api/vouchers.php` (GET, POST, PUT, DELETE), `api/cuentas.php` (plan de cuentas) y `api/libros.php?libro=diario|mayor|balance|resultado`.
 
 ## Datos por empresa
@@ -46,7 +46,7 @@ Vouchers, RCV y liquidaciones se guardan por empresa. La pantalla de inicio pide
 
 - **Balance General** (8 columnas) y **Estado de Resultado** se calculan desde los vouchers guardados, con los mismos filtros de fecha y tipo de contabilidad que el Libro Diario. Las cuentas se clasifican por el primer dígito del código: 1 activo, 2 pasivo y patrimonio, 3 costos y gastos, 4 ingresos.
 - **Libro Compras** y **Libro Ventas** leen los documentos del RCV ya importados (`api/rcv.php?libro=compras|ventas&desde=&hasta=&tipo=`). Las notas de crédito restan en los totales.
-- PDF imprime el reporte; EXCEL y CSV descargan un CSV. Los formatos propios del SII (Libro Compra Electrónico, Caracterización) aún no están disponibles.
+- PDF imprime el reporte; EXCEL descarga un .xlsx (generado en el navegador, sin librerías) y CSV un CSV. Los formatos propios del SII (Libro Compra Electrónico, Caracterización) aún no están disponibles.
 - **Plan de Cuenta** muestra el plan de la empresa seleccionada, con el detalle importado de iContador cuando existe (`api/plan-cuentas.php`).
 
 ## Acceso con usuario y clave (PHP)
