@@ -72,3 +72,4 @@
 .cifrax-volver-flotante:hover,.cifrax-volver-flotante:focus{background:#1b3a63}
 /* Pie de las ventanas emergentes: logo de Cifrax en lugar del de iContador. */
 .ui-dialog .ui-dialog-buttonpane{background-image:url("cifrax-logo.png")!important;background-size:auto 28px!important;background-position:12px center!important}
+@media print{.icontador-footer{display:none!important}}
