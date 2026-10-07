@@ -53,6 +53,26 @@ function filasLibroHonorarios(libro){
  const t=libro.totales,vig=t.boletas-t.anuladas;filas.push(['','',`Total: ${vig} ${vig===1?'boleta vigente':'boletas vigentes'}`+(t.anuladas?` (${t.anuladas} anuladas no suman)`:''),'','','','',t.bruto,t.retenido,t.pagado]);return filas;
 }
 
+function filasLibroInventario(datos){
+ const filas=[['Categoría','Código','Descripción','Cantidad','Valor Unitario','Valor Total']];
+ if(datos.inventario&&datos.inventario.categorias){
+  for(const cat of datos.inventario.categorias){
+   for(const item of cat.items){
+    filas.push([cat.nombre,item.codigo,item.descripcion,item.cantidad,item.valor_unitario,item.cantidad*item.valor_unitario]);
+   }
+   filas.push(['SUBTOTAL '+cat.nombre,'','',cat.cantidad,'',cat.valor_total]);
+  }
+  const inv=datos.inventario;filas.push(['','','TOTAL INVENTARIO',inv.total_cantidad,'',inv.total_valor]);
+ }
+ filas.push(['','','','','','']);
+ filas.push(['BALANCE GENERAL (al cierre del período)','','','','','']);
+ if(datos.balance&&datos.balance.cuentas){
+  for(const c of datos.balance.cuentas)filas.push([c.codigo,c.nombre,'',c.debitos,c.creditos,'']);
+  const b=datos.balance.totales;filas.push(['TOTALES','','',b.debitos,b.creditos,'']);
+ }
+ return filas;
+}
+
 // ---------- Excel (.xlsx) ----------
 // Libro de una hoja escrito a mano (ZIP sin compresión + SpreadsheetML), sin librerías externas.
 // Arriba van las líneas de cabecera (empresa, título, período); los números quedan como números con formato #.##0.
@@ -317,6 +337,8 @@ const INFORMES={
  'reportes-libro-ventas.html':{form:'#reporteLibroVenta_form',des:'#fdes',has:'#fhas',titulo:'Libro de Ventas',archivo:'libro-ventas',horizontal:true,rcv:'ventas'},
  // La captura de esta pantalla reutiliza el formulario del Libro de Ventas.
  'reportes-libro-honorarios.html':{form:'#reporteLibroVenta_form',des:'#fdes',has:'#fhas',titulo:'Libro de Honorarios (boletas recibidas)',archivo:'libro-honorarios',horizontal:true,honorarios:'recibidas'},
+ 'reportes-libro-inventario.html':{form:'#reporteInventBalan_form',des:'#fdeslib',has:'#fhaslib',titulo:'Libro de Inventario y Balance',archivo:'libro-inventario-balance',
+  ruta:f=>'libros.php?'+consulta({libro:'inventario',desde:f.desde,hasta:f.hasta}),filas:filasLibroInventario,vacio:i=>!i.inventario||!i.inventario.categorias||i.inventario.categorias.length===0},
 };
 function tablaFilas(filas,{destacar=()=>false}={}){
  const [cab,...cuerpo]=filas,num=v=>typeof v==='number';

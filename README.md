@@ -49,6 +49,14 @@ Vouchers, RCV y liquidaciones se guardan por empresa. La pantalla de inicio pide
 - PDF imprime el reporte; EXCEL descarga un .xlsx (generado en el navegador, sin librerías) y CSV un CSV. Los formatos propios del SII (Libro Compra Electrónico, Caracterización) aún no están disponibles.
 - **Plan de Cuenta** muestra el plan de la empresa seleccionada, con el detalle importado de iContador cuando existe (`api/plan-cuentas.php`).
 
+## Libro de Inventario y Balance (PHP)
+
+- **Libro de Inventario y Balance** combina un registro de activos inventariados con el balance general. Los items se guardan en la tabla `inventario_items` por empresa, con código, descripción, categoría, cantidad, valor unitario y ubicación. El reporte agrupa items por categoría, totalizando cantidades y valores, e incluye el balance general al cierre del período.
+- Permite crear, actualizar y eliminar items de inventario (`api/inventario.php`). Cada empresa tiene su propio inventario.
+- El endpoint `api/libros.php?libro=inventario` genera el libro combinando inventario + balance, con filtros de fecha.
+- PDF imprime el reporte; EXCEL descarga un .xlsx con formato #.##0 para números, CSV descarga un CSV.
+- Pruebas: `php tools/test-inventario-api.php`.
+
 ## Acceso con usuario y clave (PHP)
 
 Con `npm run start:php` (o Apache/cPanel) la copia exige iniciar sesión: las pantallas redirigen a `/auth/login.php` y cada `api/*.php` responde 401 sin una sesión aprobada.
