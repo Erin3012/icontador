@@ -1,0 +1,195 @@
+/* Dark Mode Theme System */
+
+:root {
+    --color-primary: #667eea;
+    --color-primary-dark: #764ba2;
+    --color-success: #28a745;
+    --color-warning: #ffc107;
+    --color-danger: #dc3545;
+    --color-info: #17a2b8;
+    
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-tertiary: #e9ecef;
+    
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+    
+    --border-color: #e0e0e0;
+    --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 10px 20px rgba(0, 0, 0, 0.15);
+    --shadow-dark: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root[data-theme="auto"],
+    :root:not([data-theme]) {
+        --color-primary: #8b9eff;
+        --color-primary-dark: #a878d8;
+        
+        --bg-primary: #1a1a1a;
+        --bg-secondary: #2d2d2d;
+        --bg-tertiary: #3a3a3a;
+        
+        --text-primary: #e0e0e0;
+        --text-secondary: #b0b0b0;
+        --text-muted: #808080;
+        
+        --border-color: #404040;
+        --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.5);
+        --shadow-medium: 0 10px 20px rgba(0, 0, 0, 0.6);
+        --shadow-dark: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+}
+
+:root[data-theme="dark"] {
+    --color-primary: #8b9eff;
+    --color-primary-dark: #a878d8;
+    
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-tertiary: #3a3a3a;
+    
+    --text-primary: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --text-muted: #808080;
+    
+    --border-color: #404040;
+    --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.5);
+    --shadow-medium: 0 10px 20px rgba(0, 0, 0, 0.6);
+    --shadow-dark: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+:root[data-theme="light"] {
+    --color-primary: #667eea;
+    --color-primary-dark: #764ba2;
+    
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-tertiary: #e9ecef;
+    
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+    
+    --border-color: #e0e0e0;
+    --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 10px 20px rgba(0, 0, 0, 0.15);
+    --shadow-dark: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.container {
+    background-color: var(--bg-primary);
+    box-shadow: var(--shadow-dark);
+}
+
+header {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+}
+
+.tabs {
+    background-color: var(--bg-secondary);
+    border-bottom-color: var(--border-color);
+}
+
+.form-section {
+    background-color: var(--bg-secondary);
+}
+
+.kpi-card {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+}
+
+input, select, textarea {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+table {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+thead {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+th, td {
+    border-bottom-color: var(--border-color);
+}
+
+tbody tr:hover {
+    background-color: var(--bg-secondary);
+}
+
+.tab-btn {
+    color: var(--text-secondary);
+}
+
+.tab-btn.active {
+    color: var(--color-primary);
+}
+
+.error-message {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--color-danger);
+    border-left-color: var(--color-danger);
+}
+
+.success-message {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: var(--color-success);
+    border-left-color: var(--color-success);
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-medium);
+    transition: all 0.3s;
+    z-index: 1000;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-dark);
+}
+
+/* Smooth transitions for theme changes */
+* {
+    transition-property: background-color, color, border-color;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-in-out;
+}
+
+/* Preserve input focus transitions */
+input:focus, select:focus, textarea:focus {
+    transition: none;
+}
