@@ -47,7 +47,66 @@ function filasLibroRcv(libro){
  const t=libro.totales;filas.push(['','',`Total: ${t.documentos} ${t.documentos===1?'documento':'documentos'}`,'','','',t.exento,t.neto,t.iva,...extra.map(e=>t[e[0]]),t.otros,t.total]);return filas;
 }
 
-const core={TIPOS,REGISTROS,monto,totales,formato,fechaCorta,csv,filasDiario,filasMayor,filasBalance,filasResultado,filasLibroRcv,nombreDoc};
+function filasLibroHonorarios(libro){
+ const filas=[['Período','Fecha','N°','Estado','RUT','Nombre o razón social','Soc. prof.','Bruto','Retenido','Pagado']];
+ for(const b of libro.boletas)filas.push([b.periodo,b.fecha,b.numero,b.estado,b.rut,b.nombre,b.socProf?'Sí':'No',b.bruto,b.retenido,b.pagado]);
+ const t=libro.totales,vig=t.boletas-t.anuladas;filas.push(['','',`Total: ${vig} ${vig===1?'boleta vigente':'boletas vigentes'}`+(t.anuladas?` (${t.anuladas} anuladas no suman)`:''),'','','','',t.bruto,t.retenido,t.pagado]);return filas;
+}
+
+// ---------- Excel (.xlsx) ----------
+// Libro de una hoja escrito a mano (ZIP sin compresión + SpreadsheetML), sin librerías externas.
+// Arriba van las líneas de cabecera (empresa, título, período); los números quedan como números con formato #.##0.
+const CRC_TABLA=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(bytes){let c=0xFFFFFFFF;for(const b of bytes)c=CRC_TABLA[(c^b)&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function zip(archivos){
+ const cod=new TextEncoder(),partes=[],central=[];let offset=0;
+ const u16=n=>[n&255,(n>>>8)&255],u32=n=>[n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255];
+ for(const [nombre,texto] of archivos){
+  const n=cod.encode(nombre),d=cod.encode(texto),crc=crc32(d);
+  // Versión 2.0, bit 11 = nombres UTF-8, método 0 (sin compresión), fecha 1/1/1980.
+  const comun=[...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(d.length),...u32(d.length),...u16(n.length),...u16(0)];
+  const local=Uint8Array.from([...u32(0x04034b50),...comun]);
+  partes.push(local,n,d);
+  central.push(Uint8Array.from([...u32(0x02014b50),...u16(20),...comun,...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset)]),n);
+  offset+=local.length+n.length+d.length;
+ }
+ const tamCentral=central.reduce((t,p)=>t+p.length,0);
+ const fin=Uint8Array.from([...u32(0x06054b50),...u16(0),...u16(0),...u16(archivos.length),...u16(archivos.length),...u32(tamCentral),...u32(offset),...u16(0)]);
+ const todo=[...partes,...central,fin],salida=new Uint8Array(todo.reduce((t,p)=>t+p.length,0));
+ let i=0;for(const p of todo){salida.set(p,i);i+=p.length;}
+ return salida;
+}
+const xml=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'');
+function columna(i){let s='';for(i++;i;i=Math.floor((i-1)/26))s=String.fromCharCode(65+(i-1)%26)+s;return s;}
+// Estilos: 0 normal, 1 negrita, 2 número, 3 número en negrita, 4 título, 5 encabezado de tabla.
+function xlsx({hoja='Reporte',cabecera=[],filas,destacar=()=>false}){
+ const [titulos,...cuerpo]=filas,ancho=titulos.map(t=>String(t).length);
+ const celda=(v,f,c,estilo)=>{const ref=columna(c)+f;
+  if(typeof v==='number'&&Number.isFinite(v))return `<c r="${ref}" s="${estilo&1?3:2}"><v>${v}</v></c>`;
+  if(v===''||v==null)return estilo?`<c r="${ref}" s="${estilo}"/>`:'';
+  return `<c r="${ref}" t="inlineStr"${estilo?` s="${estilo}"`:''}><is><t xml:space="preserve">${xml(v)}</t></is></c>`;};
+ const filasXml=[];let f=0;
+ cabecera.forEach((linea,i)=>{f++;filasXml.push(`<row r="${f}">${celda(linea,f,0,i===0?4:1)}</row>`);});
+ if(cabecera.length)f++;
+ f++;const filaTitulos=f;filasXml.push(`<row r="${f}">${titulos.map((t,c)=>celda(t,f,c,5)).join('')}</row>`);
+ cuerpo.forEach((fila,j)=>{f++;const neg=destacar(fila,j,cuerpo.length)?1:0;
+  fila.forEach((v,c)=>{const largo=typeof v==='number'?formato(v).length+1:String(v??'').length;if(largo>(ancho[c]||0))ancho[c]=largo;});
+  filasXml.push(`<row r="${f}">${fila.map((v,c)=>celda(v,f,c,neg)).join('')}</row>`);});
+ const cols=ancho.map((a,c)=>`<col min="${c+1}" max="${c+1}" width="${Math.min(Math.max(a+2,8),60)}" customWidth="1"/>`).join('');
+ const nombre=String(hoja).replace(/[\[\]:*?\/\\]/g,' ').slice(0,31)||'Reporte';
+ const hojaXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0"><pane ySplit="${filaTitulos}" topLeftCell="A${filaTitulos+1}" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${cols}</cols><sheetData>${filasXml.join('')}</sheetData><pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>`;
+ const estilos=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="3"><font><sz val="10"/><name val="Arial"/></font><font><b/><sz val="10"/><name val="Arial"/></font><font><b/><sz val="14"/><name val="Arial"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFDCE6F1"/></patternFill></fill></fills><borders count="2"><border/><border><bottom style="thin"><color rgb="FF7F7F7F"/></bottom></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf xfId="0"/><xf xfId="0" fontId="1" applyFont="1"/><xf xfId="0" numFmtId="3" applyNumberFormat="1"/><xf xfId="0" numFmtId="3" fontId="1" applyNumberFormat="1" applyFont="1"/><xf xfId="0" fontId="2" applyFont="1"/><xf xfId="0" fontId="1" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+ return zip([
+  ['[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
+  ['_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+  ['xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${xml(nombre)}" sheetId="1" r:id="rId1"/></sheets></workbook>`],
+  ['xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
+  ['xl/worksheets/sheet1.xml',hojaXml],
+  ['xl/styles.xml',estilos],
+ ]);
+}
+
+const core={TIPOS,REGISTROS,monto,totales,formato,fechaCorta,csv,filasDiario,filasMayor,filasBalance,filasResultado,filasLibroRcv,filasLibroHonorarios,nombreDoc,crc32,zip,xlsx};
 if(typeof module!=='undefined'&&module.exports){module.exports=core;return;}
 
 // ---------- Navegador ----------
@@ -69,7 +128,7 @@ const $=(s,r=document)=>r.querySelector(s);
 const alerta=errores=>`<div class="alert alert-danger conta-errores" role="alert"><b>No se pudo completar la operación:</b><ul>${errores.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
 function aviso(texto){document.querySelector('.offline-message')?.remove();const e=document.createElement('div');e.className='offline-message conta-aviso';e.setAttribute('role','status');e.textContent=texto;document.body.append(e);setTimeout(()=>e.remove(),4000);}
 function aFecha(input){if(!input)return;input.type='date';input.removeAttribute('maxlength');input.classList.remove('hasDatepicker');}
-function descargar(nombre,contenido){const url=URL.createObjectURL(new Blob([contenido],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=nombre;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function descargar(nombre,contenido,tipo='text/csv;charset=utf-8'){const url=URL.createObjectURL(new Blob([contenido],{type:tipo}));const a=document.createElement('a');a.href=url;a.download=nombre;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 const opcionesPlan=(plan,sel)=>plan.map(c=>`<option value="${esc(c.codigo)}"${c.codigo===sel?' selected':''}>${esc(c.codigo)} · ${esc(c.nombre)}</option>`).join('');
 
 
@@ -92,6 +151,12 @@ async function cargarEmpresaImpresion(){
 }
 const rutConPuntos=r=>String(r||'').replace(/^(\d+)-/,(m,n)=>Number(n).toLocaleString('es-CL')+'-');
 function lineaEmpresa(e){return e?[e.razon_social,e.rut&&'RUT '+rutConPuntos(e.rut)].filter(Boolean).join(' · '):'';}
+// Excel con la empresa, el título y el período arriba, igual que el PDF.
+function descargarExcel({titulo,periodo,archivo,filas,destacar}){
+ const e=empresaImpresion||{};
+ const cabecera=[titulo,e.razon_social,e.rut&&'RUT '+rutConPuntos(e.rut),periodo,'Emitido el '+fechaCorta(hoy())].filter(Boolean);
+ descargar(archivo+'.xlsx',xlsx({hoja:titulo.replace(/\s*\(.*\)$/,''),cabecera,filas,destacar}),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+}
 function imprimirInforme({titulo,periodo,salida,horizontal=false,firma={firmas:FIRMAS.ambos,ubicacion:'centro'}}){
  document.getElementById('conta-impresion')?.remove();
  const e=empresaImpresion||{},hoyTexto=fechaCorta(hoy());
@@ -230,11 +295,15 @@ async function pantallaReporte(tipo){
    salida.innerHTML=`<h3 class="conta-titulo">${tipo==='mayor'?'Libro Mayor':'Libro Diario'}</h3><p class="conta-empresa">${esc(lineaEmpresa(empresaImpresion))}</p><p class="conta-periodo">${esc(periodo(f))}</p>`+(tipo==='mayor'?mayor(datos):diario(datos));}
   catch(e){if(yo===pedido)salida.innerHTML=alerta(e.errores||[e.message]);}
  };
- const exportar=async()=>{try{const datos=await api('libros.php?'+consulta(filtros()));descargar(`libro-${tipo}.csv`,csv(tipo==='mayor'?filasMayor(datos):filasDiario(datos)));}catch(e){aviso(e.message);}};
+ const nombre=tipo==='mayor'?'Libro Mayor':'Libro Diario';
+ const destacar=tipo==='mayor'?f=>f[5]==='Total'||f[5]==='Saldo anterior':f=>f[6]==='Total';
+ const exportar=async formato=>{try{const f=filtros(),datos=await api('libros.php?'+consulta(f)),filas=tipo==='mayor'?filasMayor(datos):filasDiario(datos);
+  if(formato==='xlsx')descargarExcel({titulo:nombre,periodo:periodo(f),archivo:`libro-${tipo}`,filas,destacar});else descargar(`libro-${tipo}.csv`,csv(filas));}catch(e){aviso(e.message);}};
  form.addEventListener('change',pintar);
  form.addEventListener('submit',e=>e.preventDefault());
  form.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault();
-  if(/PDF/.test(b.textContent))imprimirInforme({titulo:tipo==='mayor'?'Libro Mayor':'Libro Diario',periodo:periodo(filtros()),salida,firma:firma()});else exportar();});
+  const texto=b.textContent;
+  if(/PDF/.test(texto))imprimirInforme({titulo:nombre,periodo:periodo(filtros()),salida,firma:firma()});else if(/CSV/.test(texto))exportar('csv');else if(/EXCEL/.test(texto))exportar('xlsx');});
  pintar();
 }
 
@@ -246,6 +315,8 @@ const INFORMES={
   ruta:f=>'libros.php?'+consulta({libro:'resultado',desde:f.desde,hasta:f.hasta,registro:f.registro}),filas:filasResultado,vacio:r=>!r.ingresos.length&&!r.gastos.length},
  'reportes-libro-compras.html':{form:'#reporteLibroCompra_form',des:'#fdeslc',has:'#fhaslc',titulo:'Libro de Compras',archivo:'libro-compras',horizontal:true,rcv:'compras'},
  'reportes-libro-ventas.html':{form:'#reporteLibroVenta_form',des:'#fdes',has:'#fhas',titulo:'Libro de Ventas',archivo:'libro-ventas',horizontal:true,rcv:'ventas'},
+ // La captura de esta pantalla reutiliza el formulario del Libro de Ventas.
+ 'reportes-libro-honorarios.html':{form:'#reporteLibroVenta_form',des:'#fdes',has:'#fhas',titulo:'Libro de Honorarios (boletas recibidas)',archivo:'libro-honorarios',horizontal:true,honorarios:'recibidas'},
 };
 function tablaFilas(filas,{destacar=()=>false}={}){
  const [cab,...cuerpo]=filas,num=v=>typeof v==='number';
@@ -255,7 +326,8 @@ function tablaFilas(filas,{destacar=()=>false}={}){
 function pantallaInforme(cfg){
  const form=$(cfg.form);if(!form)return;
  form.dataset.conta='';
- const des=$(cfg.des,form),has=$(cfg.has,form),reg=$('#idTpCONTAB',form),tipo=cfg.rcv?$('#tDocto',form):null;
+ const des=$(cfg.des,form),has=$(cfg.has,form),reg=$('#idTpCONTAB',form),tipo=cfg.rcv?$('#tDocto',form):null,sii=cfg.rcv||cfg.honorarios;
+ if(cfg.honorarios)$('#tDocto',form)?.closest('.col-lg-12')?.remove();
  [des,has].forEach(aFecha);
  if(reg)reg.innerHTML='<option value="Tributario">Tributario</option><option value="IFRS">IFRS</option>';
  if(tipo){tipo.nextElementSibling?.classList.contains('select2')&&tipo.nextElementSibling.remove();
@@ -265,28 +337,30 @@ function pantallaInforme(cfg){
  form.parentElement.after(salida);
  const filtros=()=>({desde:des.value,hasta:has.value,registro:reg?.value,tipo:tipo?.value});
  const firma=prepararFirma(form);cargarEmpresaImpresion().then(()=>pintar());
- const ruta=f=>cfg.rcv?'rcv.php?'+consulta({libro:cfg.rcv,desde:f.desde,hasta:f.hasta,tipo:f.tipo}):cfg.ruta(f);
- const filas=cfg.rcv?filasLibroRcv:cfg.filas;
+ const ruta=f=>cfg.rcv?'rcv.php?'+consulta({libro:cfg.rcv,desde:f.desde,hasta:f.hasta,tipo:f.tipo}):cfg.honorarios?'honorarios.php?'+consulta({libro:cfg.honorarios,desde:f.desde,hasta:f.hasta}):cfg.ruta(f);
+ const filas=cfg.rcv?filasLibroRcv:cfg.honorarios?filasLibroHonorarios:cfg.filas;
  const leer=f=>api(ruta(f));
- const periodo=f=>`${f.desde?fechaCorta(f.desde):'inicio'} al ${f.hasta?fechaCorta(f.hasta):'hoy'}`+(cfg.rcv?'':` · Contabilidad ${f.registro}`);
- const vacio=cfg.rcv?'<p class="conta-vacio">No hay documentos del RCV en este período. <a href="rcv.html">Importar el RCV</a></p>':'<p class="conta-vacio">No hay vouchers en este período. <a href="voucher-crear.html">Crear un voucher</a></p>';
+ const periodo=f=>`${f.desde?fechaCorta(f.desde):'inicio'} al ${f.hasta?fechaCorta(f.hasta):'hoy'}`+(sii?'':` · Contabilidad ${f.registro}`);
+ const vacio=cfg.honorarios?'<p class="conta-vacio">No hay boletas de honorarios en este período. <a href="honorarios.html">Importar el informe del SII</a></p>':cfg.rcv?'<p class="conta-vacio">No hay documentos del RCV en este período. <a href="rcv.html">Importar el RCV</a></p>':'<p class="conta-vacio">No hay vouchers en este período. <a href="voucher-crear.html">Crear un voucher</a></p>';
  // Las filas de totales (sin código ni período) se destacan.
  const destacar=f=>f[0]==='';
  let pedido=0;
  const pintar=async()=>{const yo=++pedido,f=filtros();
   try{const datos=await leer(f);if(yo!==pedido)return;
-   const sinDatos=cfg.rcv?!datos.docs.length:cfg.vacio(datos);
+   const sinDatos=cfg.rcv?!datos.docs.length:cfg.honorarios?!datos.boletas.length:cfg.vacio(datos);
    salida.innerHTML=`<h3 class="conta-titulo">${cfg.titulo}</h3><p class="conta-empresa">${esc(lineaEmpresa(empresaImpresion))}</p><p class="conta-periodo">${esc(periodo(f))}</p>`+(sinDatos?vacio:tablaFilas(filas(datos),{destacar}));}
   catch(e){if(yo===pedido)salida.innerHTML=alerta(e.errores||[e.message]);}
  };
- const exportar=async()=>{try{descargar(cfg.archivo+'.csv',csv(filas(await leer(filtros()))));}catch(e){aviso(e.message);}};
+ const exportar=async formato=>{try{const f=filtros(),tabla=filas(await leer(f));
+  if(formato==='xlsx')descargarExcel({titulo:cfg.titulo,periodo:periodo(f),archivo:cfg.archivo,filas:tabla,destacar});else descargar(cfg.archivo+'.csv',csv(tabla));}catch(e){aviso(e.message);}};
  form.addEventListener('change',pintar);
  form.addEventListener('submit',e=>e.preventDefault());
  form.addEventListener('click',e=>{const b=e.target.closest('button,a');if(!b)return;e.preventDefault();
   if(b.classList.contains('dropdown-toggle')){const menu=b.parentElement.querySelector('.dropdown-menu');if(menu)menu.style.display=menu.style.display==='block'?'none':'block';return;}
+  const menu=b.closest('.dropdown-menu');if(menu)menu.style.display='none';
   const texto=b.textContent;
-  if(/PDF/.test(texto))imprimirInforme({titulo:cfg.titulo,periodo:periodo(filtros()),salida,horizontal:Boolean(cfg.horizontal),firma:firma()});else if(/EXCEL|CSV/.test(texto))exportar();else if(/Ver/.test(texto))pintar();
-  else aviso('Este formato del SII aún no está disponible; use PDF o CSV.');});
+  if(/PDF/.test(texto))imprimirInforme({titulo:cfg.titulo,periodo:periodo(filtros()),salida,horizontal:Boolean(cfg.horizontal),firma:firma()});else if(/CSV/.test(texto))exportar('csv');else if(/EXCEL/.test(texto))exportar('xlsx');else if(/Ver/.test(texto))pintar();
+  else aviso('Este formato del SII aún no está disponible; use PDF, Excel o CSV.');});
  pintar();
 }
 

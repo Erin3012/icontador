@@ -11,7 +11,7 @@
 .rcv-card span{display:block;font-size:13px;color:#4a5a69}.rcv-card strong{display:block;font-size:22px;margin-top:4px}
 .rcv-card.rcv-pay{border-color:#c0392b;background:#fdf1ef}.rcv-card.rcv-credit{border-color:#1e8449;background:#eefaf2}
 .rcv-note{margin:8px 0 0;font-size:13px;color:#4a5a69}
-.rcv-table-wrap{overflow-x:auto}.rcv-table{width:100%;border-collapse:collapse;font-size:13px}
+.rcv-table-wrap{overflow-x:auto;margin-top:8px}.rcv-table{width:100%;border-collapse:collapse;font-size:13px}
 .rcv-table th,.rcv-table td{padding:6px 8px;border-bottom:1px solid #e3e8ee;text-align:left;white-space:nowrap}
 .rcv-table th{background:#10233f;color:#fff}.rcv-table .num{text-align:right;font-variant-numeric:tabular-nums}
 .rcv-table tfoot td{font-weight:bold;border-top:2px solid #10233f}.rcv-table tr.rcv-nc td{color:#a33a00}.rcv-empty{color:#4a5a69}

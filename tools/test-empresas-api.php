@@ -87,11 +87,13 @@ check(empresa_crear($origen, ['razon_social' => 'SIN PLAN'], $mary)['empresa']['
 guardarVoucher($origen, $voucher, null, $eid);
 rcv_guardar($origen, ['kind' => 'compras', 'period' => '2026-09', 'docs' => [['tipo' => 33, 'folio' => '7', 'neto' => 100, 'iva' => 19, 'total' => 119]]], $eid);
 liq_guardar($origen, $liq, $eid);
+hon_guardar($origen, ['kind' => 'recibidas', 'period' => '2026-09', 'boletas' => [['numero' => '58', 'estado' => 'VIGENTE', 'bruto' => 1000, 'retenido' => 153, 'pagado' => 847]]], $eid);
 $origen->prepare("INSERT INTO importacion_vistas (empresa_id, vista, datos_json, actualizado) VALUES (?, 'plan-cuentas', '{}', '')")->execute([$eid]);
 $origen->prepare("INSERT INTO importacion_registros (empresa_id, vista, tabla, huella, datos_json) VALUES (?, 'plan-cuentas', 't', 'h1', '{\"celdas\":[]}')")->execute([$eid]);
 $paquete = json_decode(json_encode(empresa_exportar($origen, $eid)), true);
 check($paquete['formato'] === 'icontador-empresa' && count($paquete['vouchers'][0]['lineas']) === 2 && count($paquete['rcv']) === 1, 'exportar empresa con sus datos');
 check(empresa_exportar($origen, 999) === null, 'exportar empresa inexistente');
+check(count($paquete['honorarios']) === 1 && $paquete['rcv'][0]['cod_otro_imp'] === '', 'exportar incluye honorarios y columnas nuevas del RCV');
 
 $destino = base();
 empresas_esquema_completo($destino);
@@ -101,6 +103,12 @@ $nid = $r['empresa']['id'];
 check($r['empresa']['razon_social'] === 'ENYEL SPA' && $r['empresa']['rut'] === '76086428-5' && $r['importado']['vouchers'] === 1, 'importar en otra base');
 check(count(planCuentas($destino, $nid)) === count(PLAN_EJEMPLO) && listarVouchers($destino, [], $nid)[0]['debe'] === 100, 'plan y vouchers importados');
 check(rcv_libro($destino, 'compras', null, null, null, $nid)['totales']['total'] === 119 && count(liq_listar($destino, null, $nid)) === 1, 'RCV y liquidaciones importados');
+check(hon_libro($destino, 'recibidas', null, null, $nid)['totales']['retenido'] === 153, 'honorarios importados');
+// Un archivo exportado antes de las columnas nuevas del RCV y de honorarios también se importa.
+$viejo = $paquete;
+unset($viejo['honorarios']);
+$viejo['rcv'] = array_map(fn($f) => array_diff_key($f, array_flip(['neto_activo_fijo', 'iva_activo_fijo', 'imp_sin_credito', 'cod_iva_no_rec', 'cod_otro_imp', 'tasa_otro_imp', 'fecha_recepcion', 'ref_tipo', 'ref_folio'])), $viejo['rcv']);
+check(empresa_importar($destino, $viejo, $mary)['empresa']['id'] === $nid && rcv_libro($destino, 'compras', null, null, null, $nid)['totales']['total'] === 119, 'importar archivo exportado con la versión anterior');
 check(empresa_importar($destino, $paquete, $mary)['empresa']['id'] === $nid && count(listarVouchers($destino, [], $nid)) === 1 && count(empresas_listar($destino)) === 2, 'reimportar reemplaza sin duplicar');
 foreach ([['formato' => 'otro'], ['formato' => 'icontador-empresa', 'empresa' => ['origen_id' => 'x', 'razon_social' => 'Y'], 'vouchers' => 'no'],
     ['formato' => 'icontador-empresa', 'empresa' => ['origen_id' => 'z', 'razon_social' => 'Z'], 'cuentas' => [['codigo' => '1', 'nombre' => 'a'], ['codigo' => '1', 'nombre' => 'b']]]] as $malo) {
