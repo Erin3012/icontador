@@ -1,0 +1,44 @@
+body{margin:0;background:#f5f7fa;color:#24354a;font:15px Arial,sans-serif}
+[hidden]{display:none!important}
+.ban-barra{display:flex;gap:16px;align-items:center}
+.ban-barra span{opacity:.85}.ban-barra a:last-child{margin-left:auto}
+.ban-main{max-width:1280px;margin:24px auto;padding:0 16px}
+.ban-card{background:#fff;border:1px solid #d9e0e8;border-radius:8px;padding:20px 24px;margin-bottom:20px}
+.ban-card h1,.ban-card h2{font-size:20px;margin:0 0 6px;color:#10233f}.ban-card h3{font-size:16px;margin:16px 0 8px;color:#10233f}
+.ban-ayuda{color:#596b7a;font-size:13px;margin:4px 0 12px;line-height:1.45}
+.ban-fila{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}
+.ban-fila label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:bold}
+.ban-fila input:not([type=file]),.ban-fila select{padding:7px 9px;border:1px solid #b9c5d3;border-radius:6px;font:inherit;font-weight:normal;min-width:130px}
+.ban-fila input[type=search]{min-width:220px}
+.ban-archivo input{font-weight:normal}
+button,.ban-boton{display:inline-block;padding:8px 16px;border:0;border-radius:6px;background:#ec9124;color:#fff;font:inherit;cursor:pointer;text-decoration:none}
+button:disabled{opacity:.55;cursor:not-allowed}
+.ban-secundario{background:#e8edf3;color:#24354a}
+.ban-mini{padding:3px 9px;font-size:12px;background:#e8edf3;color:#24354a}.ban-peligro{background:#fde8e7;color:#8a1c12}
+.ban-mensaje{margin-top:12px;padding:10px 12px;border-radius:6px;background:#fde8e7;color:#8a1c12;font-size:14px}.ban-mensaje.ok{background:#e5f5ea;color:#145c2c}
+.ban-mensaje ul{margin:6px 0 0;padding-left:20px}
+.ban-columnas{display:grid;grid-template-columns:3fr 2fr;gap:20px}
+.ban-tabla-envoltura{max-height:460px;overflow:auto;border:1px solid #e3e8ef;border-radius:6px}
+.ban-tabla{width:100%;border-collapse:collapse;font-size:13px}
+.ban-tabla th{position:sticky;top:0;background:#10233f;color:#fff;text-align:left;padding:7px 8px;font-weight:bold}
+.ban-tabla td{padding:6px 8px;border-top:1px solid #e3e8ef;vertical-align:top}
+.ban-tabla tbody tr:nth-child(even){background:#fafbfd}
+.ban-tabla tr.coincide{background:#fff3d4!important}
+.ban-tabla .num{text-align:right;white-space:nowrap}.ban-tabla .neg{color:#a12a1d}
+.ban-tabla small{color:#596b7a}
+.ban-vacio{text-align:center;color:#596b7a;padding:18px!important}
+.ban-chip{padding:2px 8px;border-radius:10px;font-size:12px;white-space:nowrap}.ban-chip.pendiente{background:#fff3d4}.ban-chip.conciliado{background:#e5f5ea}
+.ban-contador{font-weight:normal;color:#596b7a;font-size:13px}
+.ban-acciones{margin-top:14px;align-items:center}.ban-acciones .ban-ayuda{margin:0}
+.ban-oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.ban-periodo{margin:16px 0 10px;color:#596b7a;font-size:13px}
+.ban-saldos{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.ban-saldo{border:1px solid #d9e0e8;border-radius:8px;padding:12px 14px}.ban-saldo span{display:block;font-size:12px;color:#596b7a}.ban-saldo strong{font-size:19px}
+.ban-saldo.pos strong{color:#145c2c}.ban-saldo.neg strong{color:#a12a1d}.ban-saldo.final{background:#10233f;color:#fff}.ban-saldo.final span{color:#cdd6e2}
+.ban-tabla tr.ban-total td{font-weight:bold;background:#eef2f7}
+@media (max-width:900px){.ban-columnas{grid-template-columns:1fr}.ban-saldos{grid-template-columns:repeat(2,1fr)}}
+@media print{
+ .offline-banner,.ban-card:not(:last-child),.sug-flotante,.cifrax-volver,form,#ban-reporte-msg{display:none!important}
+ body{background:#fff}.ban-main{margin:0;max-width:none}.ban-card{border:0;padding:0}
+ .ban-tabla th{position:static;background:#eee;color:#000}.ban-saldo.final{background:#eee;color:#000}
+}

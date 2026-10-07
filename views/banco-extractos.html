@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banco: cartola y conciliación · Cifrax</title>
+<link rel="stylesheet" href="../assets/offline.css"><link rel="stylesheet" href="../assets/banco-extractos.css">
+<link rel="icon" type="image/png" href="../assets/cifrax-favicon.png"><link rel="apple-touch-icon" href="../assets/cifrax-apple-touch-icon.png"></head><body>
+<header class="offline-banner ban-barra"><strong>Banco</strong><span id="ban-empresa"></span><a href="banco.html">Módulo Banco</a></header>
+<main class="ban-main" data-conta>
+ <section class="ban-card" aria-labelledby="ban-cargar-titulo">
+  <h1 id="ban-cargar-titulo">1. Cargar la cartola</h1>
+  <p class="ban-ayuda">Descargue la plantilla, copie en ella los movimientos de la cartola del banco y súbala. Columnas: <b>Fecha</b> (DD-MM-AAAA), <b>Descripción</b>, <b>Monto</b> (abonos positivos, cargos con signo menos, sin decimales) y <b>Referencia</b> (opcional: N° de documento, cheque o transferencia). Para que el reporte parta del saldo correcto, agregue como primera línea el saldo inicial de la cuenta (por ejemplo: <i>01-09-2026; Saldo inicial; 1.500.000</i>).</p>
+  <form id="ban-importar" class="ban-fila" novalidate>
+   <a class="ban-boton ban-secundario" href="../api/banco.php?plantilla=1" download="plantilla-cartola-banco.csv">Descargar plantilla</a>
+   <label class="ban-archivo">Archivo CSV completado <input id="ban-csv" type="file" accept=".csv,text/csv" required></label>
+   <button id="ban-subir" type="submit">Importar movimientos</button>
+  </form>
+  <div id="ban-importar-msg" class="ban-mensaje" role="status" hidden></div>
+ </section>
+
+ <section class="ban-card" aria-labelledby="ban-conciliar-titulo">
+  <h2 id="ban-conciliar-titulo">2. Conciliación</h2>
+  <p class="ban-ayuda">Marque un movimiento del banco y el voucher que lo respalda, y presione <b>Conciliar</b>. Al marcar un movimiento se destacan los vouchers con el mismo monto. Si el movimiento no tiene voucher (por ejemplo, una comisión ya contabilizada), puede conciliarlo sin voucher.</p>
+  <form id="ban-filtros" class="ban-fila" novalidate>
+   <label>Buscar <input name="q" type="search" placeholder="Descripción, referencia o glosa" maxlength="100"></label>
+   <label>Monto <input name="monto" inputmode="numeric" placeholder="Ej.: 119.000" maxlength="20"></label>
+   <label>Desde <input name="desde" type="date"></label>
+   <label>Hasta <input name="hasta" type="date"></label>
+   <label>Movimientos <select name="estado"><option value="pendiente">Pendientes</option><option value="conciliado">Conciliados</option><option value="">Todos</option></select></label>
+   <button type="submit">Buscar</button>
+   <button type="button" id="ban-limpiar" class="ban-secundario">Limpiar</button>
+  </form>
+  <div id="ban-conciliar-msg" class="ban-mensaje" role="status" hidden></div>
+  <div class="ban-columnas">
+   <div>
+    <h3>Movimientos del banco <span id="ban-ext-total" class="ban-contador"></span></h3>
+    <div class="ban-tabla-envoltura"><table class="ban-tabla" id="ban-extractos">
+     <thead><tr><th scope="col"><span class="ban-oculto">Elegir</span></th><th scope="col">Fecha</th><th scope="col">Descripción</th><th scope="col">Referencia</th><th scope="col" class="num">Monto</th><th scope="col">Estado</th><th scope="col"><span class="ban-oculto">Acciones</span></th></tr></thead>
+     <tbody><tr><td colspan="7" class="ban-vacio">Cargando…</td></tr></tbody>
+    </table></div>
+   </div>
+   <div>
+    <h3>Vouchers sin conciliar <span id="ban-comp-total" class="ban-contador"></span></h3>
+    <div class="ban-tabla-envoltura"><table class="ban-tabla" id="ban-comprobantes">
+     <thead><tr><th scope="col"><span class="ban-oculto">Elegir</span></th><th scope="col">Fecha</th><th scope="col">Voucher</th><th scope="col">Glosa</th><th scope="col" class="num">Monto</th></tr></thead>
+     <tbody><tr><td colspan="5" class="ban-vacio">Cargando…</td></tr></tbody>
+    </table></div>
+   </div>
+  </div>
+  <div class="ban-fila ban-acciones">
+   <button type="button" id="ban-conciliar">Conciliar seleccionados</button>
+   <span id="ban-seleccion" class="ban-ayuda"></span>
+  </div>
+ </section>
+
+ <section class="ban-card" aria-labelledby="ban-reporte-titulo">
+  <h2 id="ban-reporte-titulo">3. Reporte de saldos</h2>
+  <form id="ban-reporte-form" class="ban-fila" novalidate>
+   <label>Desde <input name="desde" type="date"></label>
+   <label>Hasta <input name="hasta" type="date"></label>
+   <button type="submit">Ver reporte</button>
+   <button type="button" id="ban-imprimir" class="ban-secundario" hidden>Imprimir</button>
+  </form>
+  <div id="ban-reporte-msg" class="ban-mensaje" role="status" hidden></div>
+  <div id="ban-reporte" class="ban-reporte"></div>
+ </section>
+</main>
+<script src="../assets/offline.js"></script>
+<script src="../assets/banco-extractos.js"></script>
+</body></html>
