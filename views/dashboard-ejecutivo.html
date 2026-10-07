@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="stylesheet" href="../assets/theme.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Ejecutivo</title>
+    <link rel="stylesheet" href="../assets/estilos.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-header p {
+            color: #666;
+            margin: 0;
+        }
+
+        .dashboard-refresh {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .refresh-btn {
+            padding: 0.5rem 1rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: #2563eb;
+        }
+
+        .refresh-btn.loading {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .timestamp {
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        /* KPIS Grid */
+        .kpis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .kpi-label {
+            font-size: 0.85rem;
+            color: #999;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.3rem;
+        }
+
+        .kpi-detail {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .kpi-card.positive { border-left-color: #10b981; }
+        .kpi-card.negative { border-left-color: #ef4444; }
+        .kpi-card.warning { border-left-color: #f59e0b; }
+        .kpi-card.info { border-left-color: #06b6d4; }
+
+        /* Alertas */
+        .alertas-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .alertas-section h2 {
+            font-size: 1.2rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .alerta {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 0.8rem;
+            border-left: 4px solid;
+        }
+
+        .alerta-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .alerta-content {
+            flex: 1;
+        }
+
+        .alerta-titulo {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .alerta-mensaje {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .alerta-accion {
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .alerta.error {
+            background: #fee2e2;
+            border-left-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .alerta.warning {
+            background: #fef3c7;
+            border-left-color: #f59e0b;
+            color: #92400e;
+        }
+
+        .alerta.info {
+            background: #cffafe;
+            border-left-color: #06b6d4;
+            color: #164e63;
+        }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Últimos Vouchers */
+        .ultimos-vouchers {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .ultimos-vouchers h2 {
+            font-size: 1.1rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .vouchers-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .vouchers-table th {
+            background: #f8fafc;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .vouchers-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .vouchers-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .voucher-tipo {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .voucher-tipo.ingreso {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .voucher-tipo.egreso {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .voucher-tipo.traspaso {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 1rem;
+            }
+
+            .kpis-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-refresh {
+                position: static;
+                margin-bottom: 1rem;
+                justify-content: flex-start;
+            }
+
+            .chart-wrapper {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>📊 Dashboard Ejecutivo</h1>
+            <p>Resumen financiero en tiempo real</p>
+        </div>
+
+        <div class="dashboard-refresh">
+            <button class="refresh-btn" id="refreshBtn" onclick="cargarDashboard()">🔄 Actualizar</button>
+            <span class="timestamp" id="timestamp"></span>
+        </div>
+
+        <div id="loadingContainer" class="loading" style="display: none;">
+            <span class="spinner"></span>Cargando datos...
+        </div>
+
+        <div id="dashboardContent" style="display: none;">
+            <!-- KPIs -->
+            <div class="kpis-grid" id="kpisContainer"></div>
+
+            <!-- Alertas -->
+            <div id="alertasSection"></div>
+
+            <!-- Gráficos -->
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>Flujo Mensual (últimos 6 meses)</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="flujoChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Distribución Activos</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="activosChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balance de Caja -->
+            <div class="ultimos-vouchers">
+                <h2>Balance de Caja por Cuenta</h2>
+                <table class="vouchers-table" id="cajaTable">
+                    <thead>
+                        <tr>
+                            <th>Banco</th>
+                            <th>Número de Cuenta</th>
+                            <th>Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cajaTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Últimos Vouchers -->
+            <div class="ultimos-vouchers" style="margin-top: 1.5rem;">
+                <h2>Últimos Comprobantes</h2>
+                <table class="vouchers-table" id="vouchersTable">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Número</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>Debe</th>
+                            <th>Haber</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vouchersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let flujoChart = null;
+        let activosChart = null;
+
+        async function cargarDashboard() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            const loadingContainer = document.getElementById('loadingContainer');
+            const dashboardContent = document.getElementById('dashboardContent');
+
+            refreshBtn.classList.add('loading');
+            refreshBtn.disabled = true;
+            loadingContainer.style.display = 'block';
+            dashboardContent.style.display = 'none';
+
+            try {
+                const response = await fetch('../api/dashboard.php');
+                const json = await response.json();
+
+                if (json.success) {
+                    const datos = json.data;
+                    renderizarDashboard(datos);
+                    document.getElementById('timestamp').textContent = 'Actualizado: ' + new Date().toLocaleTimeString();
+                } else {
+                    alert('Error: ' + json.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('No se pudo cargar el dashboard');
+            } finally {
+                refreshBtn.classList.remove('loading');
+                refreshBtn.disabled = false;
+                loadingContainer.style.display = 'none';
+                dashboardContent.style.display = 'block';
+            }
+        }
+
+        function renderizarDashboard(datos) {
+            renderizarKPIs(datos.kpis);
+            renderizarAlertas(datos.alertas);
+            renderizarBalanceCaja(datos.balance_caja);
+            renderizarUltimosVouchers(datos.ultimos_vouchers);
+            renderizarGraficos(datos.flujo_mensual, datos.kpis);
+        }
+
+        function renderizarKPIs(kpis) {
+            const container = document.getElementById('kpisContainer');
+            container.innerHTML = `
+                <div class="kpi-card positive">
+                    <div class="kpi-label">Saldo Caja</div>
+                    <div class="kpi-value">$${formatNumber(kpis.saldo_caja)}</div>
+                </div>
+                <div class="kpi-card info">
+                    <div class="kpi-label">Total Activo</div>
+                    <div class="kpi-value">$${formatNumber(kpis.total_activo)}</div>
+                </div>
+                <div class="kpi-card warning">
+                    <div class="kpi-label">Total Pasivo</div>
+                    <div class="kpi-value">$${formatNumber(kpis.total_pasivo)}</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Patrimonio</div>
+                    <div class="kpi-value">$${formatNumber(kpis.patrimonio)}</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Razón Corriente</div>
+                    <div class="kpi-value">${kpis.razon_corriente}</div>
+                    <div class="kpi-detail">${kpis.razon_corriente >= 1 ? '✓ Sano' : '⚠ Bajo'}</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Endeudamiento</div>
+                    <div class="kpi-value">${(kpis.endeudamiento * 100).toFixed(1)}%</div>
+                    <div class="kpi-detail">${kpis.endeudamiento <= 0.6 ? '✓ Controlado' : '⚠ Alto'}</div>
+                </div>
+            `;
+        }
+
+        function renderizarAlertas(alertas) {
+            const section = document.getElementById('alertasSection');
+
+            if (alertas.length === 0) {
+                section.innerHTML = '';
+                return;
+            }
+
+            let html = '<div class="alertas-section"><h2>⚠️ Alertas</h2>';
+            alertas.forEach(alerta => {
+                const iconos = {
+                    'error': '❌',
+                    'warning': '⚠️',
+                    'info': 'ℹ️',
+                };
+
+                html += `
+                    <div class="alerta ${alerta.tipo}">
+                        <div class="alerta-icon">${iconos[alerta.tipo] || '•'}</div>
+                        <div class="alerta-content">
+                            <div class="alerta-titulo">${alerta.titulo}</div>
+                            <div class="alerta-mensaje">${alerta.mensaje}</div>
+                            <div class="alerta-accion">${alerta.accion}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            section.innerHTML = html;
+        }
+
+        function renderizarBalanceCaja(balance) {
+            const tbody = document.getElementById('cajaTableBody');
+
+            if (balance.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="no-data">Sin movimientos registrados</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = balance.map(cuenta => `
+                <tr>
+                    <td>${cuenta.banco}</td>
+                    <td>${cuenta.numero_cuenta || 'N/A'}</td>
+                    <td><strong>$${formatNumber(cuenta.saldo)}</strong></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderizarUltimosVouchers(vouchers) {
+            const tbody = document.getElementById('vouchersTableBody');
+
+            if (vouchers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="no-data">Sin comprobantes registrados</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = vouchers.map(v => `
+                <tr>
+                    <td>${formatDate(v.fecha)}</td>
+                    <td>${v.numero}</td>
+                    <td><span class="voucher-tipo ${v.tipo.toLowerCase()}">${v.tipo}</span></td>
+                    <td>${v.descripcion || '-'}</td>
+                    <td>$${formatNumber(v.total_debe)}</td>
+                    <td>$${formatNumber(v.total_haber)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderizarGraficos(flujoMensual, kpis) {
+            // Gráfico de Flujo
+            if (flujoChart) flujoChart.destroy();
+
+            const ctxFlujo = document.getElementById('flujoChart').getContext('2d');
+            const meses = flujoMensual.map(f => f.mes);
+            const ingresos = flujoMensual.map(f => f.ingresos);
+            const egresos = flujoMensual.map(f => f.egresos);
+            const neto = flujoMensual.map(f => f.neto);
+
+            flujoChart = new Chart(ctxFlujo, {
+                type: 'line',
+                data: {
+                    labels: meses,
+                    datasets: [
+                        {
+                            label: 'Ingresos',
+                            data: ingresos,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.3,
+                            fill: true,
+                        },
+                        {
+                            label: 'Egresos',
+                            data: egresos,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.3,
+                            fill: true,
+                        },
+                        {
+                            label: 'Neto',
+                            data: neto,
+                            borderColor: '#3b82f6',
+                            borderWidth: 3,
+                            tension: 0.3,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: v => '$' + (v / 1000000).toFixed(0) + 'M'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Activos vs Pasivos
+            if (activosChart) activosChart.destroy();
+
+            const ctxActivos = document.getElementById('activosChart').getContext('2d');
+            activosChart = new Chart(ctxActivos, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Activos', 'Pasivos', 'Patrimonio'],
+                    datasets: [{
+                        data: [
+                            kpis.total_activo,
+                            kpis.total_pasivo,
+                            Math.max(0, kpis.patrimonio)
+                        ],
+                        backgroundColor: ['#3b82f6', '#ef4444', '#10b981'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('es-CL', {
+                style: 'currency',
+                currency: 'CLP',
+                minimumFractionDigits: 0,
+            }).format(num || 0).replace('$', '');
+        }
+
+        function formatDate(date) {
+            return new Date(date).toLocaleDateString('es-CL');
+        }
+
+        // Cargar al iniciar
+        document.addEventListener('DOMContentLoaded', cargarDashboard);
+
+        // Auto-refresh cada 5 minutos
+        setInterval(cargarDashboard, 5 * 60 * 1000);
+    </script>
+<script src="../assets/theme.js"></script>
+<button id="theme-toggle-btn" class="theme-toggle-btn" title="Cambiar tema (claro/oscuro/automático)" aria-label="Alternar tema">🌙</button>
+</body>
+</html>

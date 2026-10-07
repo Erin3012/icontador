@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="stylesheet" href="../assets/theme.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presupuesto vs Real - Cifrax</title>
+    <link rel="stylesheet" href="../assets/estilos.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"></script>
+    <style>
+        :root {
+            --color-primary: #0066cc;
+            --color-success: #00aa44;
+            --color-warning: #ffaa00;
+            --color-danger: #dd2211;
+            --color-info: #0099dd;
+            --color-light: #f5f5f5;
+            --color-border: #ddd;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .header p {
+            margin: 5px 0 0 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        select, input {
+            padding: 8px 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+        }
+
+        button {
+            padding: 8px 16px;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #0052a3;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 16px;
+            color: #666;
+        }
+
+        /* Alertas */
+        .alertas-section {
+            margin-bottom: 30px;
+        }
+
+        .alertas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .alert-card {
+            padding: 16px;
+            border-left: 4px solid;
+            border-radius: 4px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-card.error {
+            border-color: var(--color-danger);
+            background: #fff5f5;
+        }
+
+        .alert-card.warning {
+            border-color: var(--color-warning);
+            background: #fffbf0;
+        }
+
+        .alert-card.info {
+            border-color: var(--color-info);
+            background: #f0f8ff;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .alert-message {
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .alert-detail {
+            font-size: 12px;
+            color: #777;
+            margin-top: 8px;
+        }
+
+        /* Tarjetas de totales */
+        .totales-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .total-card {
+            padding: 20px;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .total-label {
+            font-size: 12px;
+            color: #777;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .total-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .total-value.positive {
+            color: var(--color-success);
+        }
+
+        .total-value.negative {
+            color: var(--color-danger);
+        }
+
+        /* Gráficos */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 16px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Tabla comparativa */
+        .table-container {
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead {
+            background: #f5f5f5;
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        .numero {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .varianza-positiva {
+            color: var(--color-danger);
+            font-weight: 600;
+        }
+
+        .varianza-negativa {
+            color: var(--color-success);
+            font-weight: 600;
+        }
+
+        .varianza-neutral {
+            color: #999;
+        }
+
+        .cuenta-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #e8e8e8;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .no-data {
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            font-size: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .controls {
+                width: 100%;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .totales-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Presupuesto vs Real</h1>
+                <p>Comparativa de gastos presupuestados con ejecución real</p>
+            </div>
+            <div class="controls">
+                <div class="form-group">
+                    <label>Año:</label>
+                    <select id="selectAnio">
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026" selected>2026</option>
+                        <option value="2027">2027</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mes:</label>
+                    <select id="selectMes">
+                        <option value="">Anual</option>
+                        <option value="1">Enero</option>
+                        <option value="2">Febrero</option>
+                        <option value="3">Marzo</option>
+                        <option value="4">Abril</option>
+                        <option value="5">Mayo</option>
+                        <option value="6">Junio</option>
+                        <option value="7">Julio</option>
+                        <option value="8">Agosto</option>
+                        <option value="9">Septiembre</option>
+                        <option value="10" selected>Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                </div>
+                <button id="btnActualizar" onclick="cargarComparativa()">
+                    Actualizar
+                </button>
+            </div>
+        </div>
+
+        <div id="contenido">
+            <div class="loading">
+                <div class="spinner"></div> Cargando datos...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chartVarianza = null;
+        let chartDistribucion = null;
+
+        async function cargarComparativa() {
+            const btnActualizar = document.getElementById('btnActualizar');
+            const anio = document.getElementById('selectAnio').value;
+            const mes = document.getElementById('selectMes').value;
+
+            btnActualizar.disabled = true;
+            document.getElementById('contenido').innerHTML = '<div class="loading"><div class="spinner"></div> Cargando datos...</div>';
+
+            try {
+                const url = new URL('../api/presupuestos.php', window.location.origin);
+                url.searchParams.append('anio', anio);
+                if (mes) url.searchParams.append('mes', mes);
+
+                const response = await fetch(url);
+                const resultado = await response.json();
+
+                if (!resultado.success) {
+                    document.getElementById('contenido').innerHTML = `<div class="no-data">Error: ${resultado.error}</div>`;
+                    return;
+                }
+
+                renderizarComparativa(resultado.data);
+            } catch (error) {
+                document.getElementById('contenido').innerHTML = `<div class="no-data">Error al cargar datos: ${error.message}</div>`;
+            } finally {
+                btnActualizar.disabled = false;
+            }
+        }
+
+        function renderizarComparativa(datos) {
+            let html = '';
+
+            // Sección de alertas
+            if (datos.alertas && datos.alertas.length > 0) {
+                html += '<div class="alertas-section">';
+                html += '<h2 style="margin-top: 0;">⚠️ Alertas (Varianza > 10%)</h2>';
+                html += '<div class="alertas-grid">';
+
+                datos.alertas.forEach(alerta => {
+                    const tipoClass = alerta.tipo === 'warning' ? 'warning' : 'info';
+                    html += `
+                        <div class="alert-card ${tipoClass}">
+                            <div class="alert-title">${alerta.titulo}</div>
+                            <div class="alert-message">${alerta.mensaje}</div>
+                            <div class="alert-detail">
+                                Presupuestado: $${formatearNumero(alerta.presupuestado)}<br>
+                                Real: $${formatearNumero(alerta.real)}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div></div>';
+            }
+
+            // Tarjetas de totales
+            const totales = datos.totales;
+            html += '<div class="totales-grid">';
+            html += `
+                <div class="total-card">
+                    <div class="total-label">Presupuestado</div>
+                    <div class="total-value">$${formatearNumero(totales.presupuestado)}</div>
+                </div>
+                <div class="total-card">
+                    <div class="total-label">Gasto Real</div>
+                    <div class="total-value">$${formatearNumero(totales.real)}</div>
+                </div>
+                <div class="total-card">
+                    <div class="total-label">Varianza</div>
+                    <div class="total-value ${totales.varianza > 0 ? 'negative' : 'positive'}">
+                        ${totales.varianza > 0 ? '+' : ''}$${formatearNumero(totales.varianza)}
+                    </div>
+                </div>
+                <div class="total-card">
+                    <div class="total-label">% Varianza</div>
+                    <div class="total-value ${totales.varianza_pct > 0 ? 'negative' : 'positive'}">
+                        ${totales.varianza_pct > 0 ? '+' : ''}${totales.varianza_pct}%
+                    </div>
+                </div>
+            `;
+            html += '</div>';
+
+            // Gráficos
+            if (datos.lineas && datos.lineas.length > 0) {
+                html += '<div class="charts-grid">';
+                html += '<div class="chart-container"><div class="chart-title">Varianza por Concepto</div><div class="chart-wrapper"><canvas id="chartVarianza"></canvas></div></div>';
+                html += '<div class="chart-container"><div class="chart-title">Distribución Presupuestado vs Real</div><div class="chart-wrapper"><canvas id="chartDistribucion"></canvas></div></div>';
+                html += '</div>';
+            }
+
+            // Tabla comparativa
+            if (datos.lineas && datos.lineas.length > 0) {
+                html += '<div class="table-container"><table>';
+                html += `
+                    <thead>
+                        <tr>
+                            <th>Cuenta</th>
+                            <th>Concepto</th>
+                            <th class="numero">Presupuestado</th>
+                            <th class="numero">Real</th>
+                            <th class="numero">Varianza</th>
+                            <th class="numero">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                `;
+
+                datos.lineas.forEach(linea => {
+                    const clasVarianza = linea.varianza_pct > 10 ? 'varianza-positiva'
+                                       : linea.varianza_pct < -10 ? 'varianza-negativa'
+                                       : 'varianza-neutral';
+
+                    html += `
+                        <tr>
+                            <td><span class="cuenta-badge">${linea.cuenta_codigo}</span></td>
+                            <td>${linea.concepto || 'Sin concepto'}</td>
+                            <td class="numero">$${formatearNumero(linea.monto_presupuestado)}</td>
+                            <td class="numero">$${formatearNumero(linea.monto_real)}</td>
+                            <td class="numero ${clasVarianza}">
+                                ${linea.varianza > 0 ? '+' : ''}$${formatearNumero(linea.varianza)}
+                            </td>
+                            <td class="numero ${clasVarianza}">
+                                ${linea.varianza_pct > 0 ? '+' : ''}${linea.varianza_pct}%
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table></div>';
+
+                // Destruir gráficos anteriores
+                if (chartVarianza) chartVarianza.destroy();
+                if (chartDistribucion) chartDistribucion.destroy();
+            } else {
+                html += '<div class="no-data">No hay presupuesto configurado para este período</div>';
+            }
+
+            document.getElementById('contenido').innerHTML = html;
+
+            // Crear gráficos si hay datos
+            if (datos.lineas && datos.lineas.length > 0) {
+                crearGraficos(datos.lineas, datos.totales);
+            }
+        }
+
+        function crearGraficos(lineas, totales) {
+            // Gráfico de Varianza
+            const ctxVarianza = document.getElementById('chartVarianza');
+            if (ctxVarianza) {
+                const labels = lineas.map(l => l.concepto || l.cuenta_codigo);
+                const varianzas = lineas.map(l => l.varianza_pct);
+                const colores = varianzas.map(v => v > 10 ? '#dd2211' : v < -10 ? '#00aa44' : '#ffaa00');
+
+                chartVarianza = new Chart(ctxVarianza, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '% Varianza',
+                            data: varianzas,
+                            backgroundColor: colores,
+                            borderRadius: 4,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { callback: v => v + '%' },
+                                grid: { color: '#f0f0f0' }
+                            },
+                            y: {
+                                ticks: { font: { size: 11 } }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Gráfico de Distribución
+            const ctxDistribucion = document.getElementById('chartDistribucion');
+            if (ctxDistribucion) {
+                chartDistribucion = new Chart(ctxDistribucion, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Presupuestado', 'Real ejecutado'],
+                        datasets: [{
+                            data: [totales.presupuestado, totales.real],
+                            backgroundColor: ['#0066cc', '#00aa44'],
+                            borderColor: 'white',
+                            borderWidth: 2,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { padding: 15, font: { size: 13 } }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function formatearNumero(num) {
+            return new Intl.NumberFormat('es-CL', {
+                style: 'currency',
+                currency: 'CLP',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(num).replace('CLP', '').trim();
+        }
+
+        // Cargar datos al inicio
+        document.addEventListener('DOMContentLoaded', cargarComparativa);
+    </script>
+<script src="../assets/theme.js"></script>
+<button id="theme-toggle-btn" class="theme-toggle-btn" title="Cambiar tema (claro/oscuro/automático)" aria-label="Alternar tema">🌙</button>
+</body>
+</html>

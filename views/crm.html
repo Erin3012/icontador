@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="stylesheet" href="../assets/theme.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM - Gestión de Contactos y Ventas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+            gap: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .kpi-card .label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .kpi-card .value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-alta {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-media {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-baja {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .currency {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>👥 CRM - Gestión de Contactos y Ventas</h1>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="cambiarTab('dashboard')">📊 Dashboard</button>
+            <button class="tab-btn" onclick="cambiarTab('contactos')">👤 Contactos</button>
+            <button class="tab-btn" onclick="cambiarTab('oportunidades')">🎯 Oportunidades</button>
+            <button class="tab-btn" onclick="cambiarTab('tareas')">✓ Tareas</button>
+        </div>
+
+        <div class="tab-content active" id="tab-dashboard">
+            <div id="contenido-dashboard"></div>
+        </div>
+
+        <div class="tab-content" id="tab-contactos">
+            <div class="form-section">
+                <h2>Crear Nuevo Contacto</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nombre">Nombre</label>
+                        <input type="text" id="nombre" placeholder="Nombre completo">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" placeholder="email@ejemplo.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono</label>
+                        <input type="tel" id="telefono" placeholder="+56912345678">
+                    </div>
+                    <div class="form-group">
+                        <label for="empresa">Empresa</label>
+                        <input type="text" id="empresa" placeholder="Nombre empresa">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="crearContacto()">✓ Crear Contacto</button>
+                <div id="msg-contacto"></div>
+            </div>
+
+            <h2 style="margin-bottom: 20px;">Contactos Activos</h2>
+            <div class="table-container" id="tabla-contactos"></div>
+        </div>
+
+        <div class="tab-content" id="tab-oportunidades">
+            <div class="form-section">
+                <h2>Crear Oportunidad</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="contacto-opp">Contacto</label>
+                        <select id="contacto-opp"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="nombre-opp">Nombre de Oportunidad</label>
+                        <input type="text" id="nombre-opp" placeholder="Ej: Venta de software">
+                    </div>
+                    <div class="form-group">
+                        <label for="monto-opp">Monto Estimado (CLP)</label>
+                        <input type="number" id="monto-opp" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="fecha-opp">Fecha Cierre Estimada</label>
+                        <input type="date" id="fecha-opp">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="crearOportunidad()">✓ Crear Oportunidad</button>
+                <div id="msg-opp"></div>
+            </div>
+
+            <h2 style="margin-bottom: 20px;">Oportunidades Abiertas</h2>
+            <div class="table-container" id="tabla-oportunidades"></div>
+        </div>
+
+        <div class="tab-content" id="tab-tareas">
+            <h2 style="margin-bottom: 20px;">Tareas Pendientes</h2>
+            <div class="table-container" id="tabla-tareas"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('fecha-opp').valueAsDate = new Date();
+            cargarDashboard();
+            cargarContactos();
+            cargarOportunidades();
+            cargarTareas();
+        });
+
+        function cambiarTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function formatearCLP(valor) {
+            return new Intl.NumberFormat('es-CL', {
+                style: 'currency',
+                currency: 'CLP',
+                minimumFractionDigits: 0,
+            }).format(valor);
+        }
+
+        async function cargarDashboard() {
+            try {
+                const response = await fetch('/api/crm.php?accion=dashboard');
+                const resultado = await response.json();
+
+                if (resultado.success) {
+                    mostrarDashboard(resultado.data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function mostrarDashboard(datos) {
+            const html = `
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="label">Clientes Totales</div>
+                        <div class="value">${datos.clientes_totales}</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="label">Oportunidades Abiertas</div>
+                        <div class="value">${datos.oportunidades_abiertas}</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="label">Valor Esperado</div>
+                        <div class="value">${formatearCLP(datos.valor_esperado)}</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="label">Tareas Pendientes</div>
+                        <div class="value">${datos.tareas_pendientes}</div>
+                    </div>
+                </div>
+
+                <h2 style="margin-bottom: 20px; color: #333;">Próximas Oportunidades</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Contacto</th>
+                                <th class="text-right">Monto</th>
+                                <th>Etapa</th>
+                                <th>Fecha Cierre</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${datos.oportunidades.slice(0, 5).map(o => `
+                                <tr>
+                                    <td>${o.nombre}</td>
+                                    <td>${o.contacto_nombre}</td>
+                                    <td class="text-right currency">${formatearCLP(o.monto_estimado)}</td>
+                                    <td>${o.etapa}</td>
+                                    <td>${o.fecha_cierre_estimada}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2 style="margin-bottom: 20px; margin-top: 40px; color: #333;">Tareas de Hoy</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th>Contacto</th>
+                                <th>Prioridad</th>
+                                <th>Vencimiento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${datos.tareas.slice(0, 5).map(t => `
+                                <tr>
+                                    <td>${t.descripcion}</td>
+                                    <td>${t.contacto_nombre}</td>
+                                    <td><span class="badge badge-${t.prioridad}">${t.prioridad}</span></td>
+                                    <td>${t.fecha_vencimiento}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('contenido-dashboard').innerHTML = html;
+        }
+
+        async function cargarContactos() {
+            try {
+                const response = await fetch('/api/crm.php?accion=contactos&tipo=cliente');
+                const resultado = await response.json();
+
+                if (resultado.success) {
+                    const select = document.getElementById('contacto-opp');
+                    select.innerHTML = resultado.data
+                        .map(c => `<option value="${c.id}">${c.nombre} (${c.email})</option>`)
+                        .join('');
+
+                    mostrarTablaContactos(resultado.data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function mostrarTablaContactos(contactos) {
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Empresa</th>
+                            <th>Última Interacción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${contactos.map(c => `
+                            <tr>
+                                <td><strong>${c.nombre}</strong></td>
+                                <td>${c.email || '-'}</td>
+                                <td>${c.telefono || '-'}</td>
+                                <td>${c.empresa || '-'}</td>
+                                <td>${c.ultima_interaccion || 'Sin interacciones'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('tabla-contactos').innerHTML = html;
+        }
+
+        async function cargarOportunidades() {
+            try {
+                const response = await fetch('/api/crm.php?accion=oportunidades');
+                const resultado = await response.json();
+
+                if (resultado.success) {
+                    mostrarTablaOportunidades(resultado.data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function mostrarTablaOportunidades(oportunidades) {
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Contacto</th>
+                            <th class="text-right">Monto</th>
+                            <th>Probabilidad</th>
+                            <th class="text-right">Valor Esperado</th>
+                            <th>Fecha Cierre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${oportunidades.map(o => `
+                            <tr>
+                                <td>${o.nombre}</td>
+                                <td>${o.contacto_nombre}</td>
+                                <td class="text-right currency">${formatearCLP(o.monto_estimado)}</td>
+                                <td>${o.probabilidad}%</td>
+                                <td class="text-right currency">${formatearCLP(o.valor_esperado)}</td>
+                                <td>${o.fecha_cierre_estimada}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('tabla-oportunidades').innerHTML = html;
+        }
+
+        async function cargarTareas() {
+            try {
+                const response = await fetch('/api/crm.php?accion=tareas');
+                const resultado = await response.json();
+
+                if (resultado.success) {
+                    mostrarTablaTareas(resultado.data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function mostrarTablaTareas(tareas) {
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Descripción</th>
+                            <th>Contacto</th>
+                            <th>Prioridad</th>
+                            <th>Vencimiento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tareas.map(t => `
+                            <tr>
+                                <td>${t.descripcion}</td>
+                                <td>${t.contacto_nombre}</td>
+                                <td><span class="badge badge-${t.prioridad}">${t.prioridad}</span></td>
+                                <td>${t.fecha_vencimiento}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('tabla-tareas').innerHTML = html;
+        }
+
+        async function crearContacto() {
+            const nombre = document.getElementById('nombre').value;
+            const email = document.getElementById('email').value;
+            const telefono = document.getElementById('telefono').value;
+            const empresa = document.getElementById('empresa').value;
+
+            if (!nombre) {
+                mostrarError('contacto', 'El nombre es requerido');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/crm.php?accion=crear_contacto', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, email, telefono, empresa }),
+                });
+
+                const resultado = await response.json();
+                if (resultado.success) {
+                    document.getElementById('msg-contacto').innerHTML = '<div class="success-message">✓ Contacto creado</div>';
+                    document.getElementById('nombre').value = '';
+                    document.getElementById('email').value = '';
+                    document.getElementById('telefono').value = '';
+                    document.getElementById('empresa').value = '';
+                    setTimeout(() => {
+                        cargarContactos();
+                        document.getElementById('msg-contacto').innerHTML = '';
+                    }, 1500);
+                }
+            } catch (error) {
+                mostrarError('contacto', 'Error: ' + error.message);
+            }
+        }
+
+        async function crearOportunidad() {
+            const contactoId = document.getElementById('contacto-opp').value;
+            const nombre = document.getElementById('nombre-opp').value;
+            const montoEstimado = parseInt(document.getElementById('monto-opp').value) || 0;
+            const fechaCierre = document.getElementById('fecha-opp').value;
+
+            if (!contactoId || !nombre) {
+                mostrarError('opp', 'Completa todos los campos');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/crm.php?accion=crear_oportunidad', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contacto_id: contactoId,
+                        nombre,
+                        monto_estimado: montoEstimado,
+                        fecha_cierre: fechaCierre,
+                    }),
+                });
+
+                const resultado = await response.json();
+                if (resultado.success) {
+                    document.getElementById('msg-opp').innerHTML = '<div class="success-message">✓ Oportunidad creada</div>';
+                    document.getElementById('nombre-opp').value = '';
+                    document.getElementById('monto-opp').value = '';
+                    setTimeout(() => {
+                        cargarOportunidades();
+                        document.getElementById('msg-opp').innerHTML = '';
+                    }, 1500);
+                }
+            } catch (error) {
+                mostrarError('opp', 'Error: ' + error.message);
+            }
+        }
+
+        function mostrarError(seccion, msg) {
+            document.getElementById(`msg-${seccion}`).innerHTML = `<div class="error-message">❌ ${msg}</div>`;
+        }
+    </script>
+<script src="../assets/theme.js"></script>
+<button id="theme-toggle-btn" class="theme-toggle-btn" title="Cambiar tema (claro/oscuro/automático)" aria-label="Alternar tema">🌙</button>
+</body>
+</html>
