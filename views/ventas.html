@@ -381,10 +381,15 @@
                                         </a>
                                     </li>
 
-                                    <li>
-                                        <a data-local-action="js_cAVEN" tabindex="5" href="ventas-crear.html" class="ic-btn-action-nav">
-                                            <span class="glyphicon glyphicon-plus-sign"></span> Factura
+                                    <li class="ic-act-has-dropdown">
+                                        <a href="#" class="ic-btn-action-nav" id="btnNuevoDocumento">
+                                            <span class="glyphicon glyphicon-plus-sign"></span> Nuevo documento <span class="caret"></span>
                                         </a>
+                                        <ul class="ic-act-dropdown-menu">
+                                            <li><a href="ventas-boletas.html"><i class="fa fa-shopping-cart"></i> Boleta</a></li>
+                                            <li><a data-local-action="js_cAVEN" href="ventas-crear.html"><i class="fa fa-file-text-o"></i> Factura completa</a></li>
+                                            <li><a href="presupuestos.html"><i class="fa fa-calculator"></i> Presupuesto</a></li>
+                                        </ul>
                                     </li>
 
                                     <li class="ic-act-has-dropdown">
