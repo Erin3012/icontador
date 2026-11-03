@@ -26,7 +26,7 @@ try {
         exit;
     }
 
-    $empresa_id = empresa_actual();
+    $empresa_id = empresa_actual(icontador_db());
     if (!$empresa_id) {
         http_response_code(400);
         echo json_encode(['success' => false, 'error' => 'Empresa no seleccionada']);
