@@ -58,6 +58,9 @@ async function iniciarSesion(page, { rut, clave, manual = false }) {
   if (/no se puede responder/i.test(texto)) {
     throw new Error(`El SII respondió con un error temporal${codigo ? ` (código ${codigo[1]})` : ''}. Espera unos minutos y vuelve a intentarlo.`);
   }
+  if (/m[áa]ximo de sesiones/i.test(texto)) {
+    throw new Error(`El SII tiene demasiadas sesiones abiertas para esta clave${codigo ? ` (código ${codigo[1]})` : ''}. Cierra sesión en el SII desde tu navegador (Cerrar Sesión) y cierra las ventanas del agente, luego espera unos minutos.`);
+  }
 }
 
 /** Descarga el detalle del RCV de un período y libro. Devuelve la ruta del CSV guardado en `carpeta`. */
