@@ -16,3 +16,5 @@
 .rcv-table th{background:#10233f;color:#fff}.rcv-table .num{text-align:right;font-variant-numeric:tabular-nums}
 .rcv-table tfoot td{font-weight:bold;border-top:2px solid #10233f}.rcv-table tr.rcv-nc td{color:#a33a00}.rcv-empty{color:#4a5a69}
 .rcv-select{padding:7px 10px;border:1px solid #10233f;border-radius:4px;background:#fff;color:#10233f}
+.rcv-sii-form{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:8px 0}.rcv-sii-form label{font-weight:bold;color:#10233f}
+.rcv-sii-check{font-weight:normal!important}.rcv-sii-error{color:#a33a00}.rcv-sii-completada{color:#1e8449}

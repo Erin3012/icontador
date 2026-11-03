@@ -7,4 +7,6 @@ return [
     'password' => '',
     // Opcional: carpeta privada para los adjuntos de Sugerencias (por defecto data/adjuntos).
     // 'adjuntos_dir' => '/home/usuario/icontador-adjuntos',
+    // Token secreto del agente de sincronización con el SII (sii-agent/, en el PC). Genera uno largo y aleatorio.
+    // 'sii_agente_token' => 'cambia-por-un-token-largo',
 ];
