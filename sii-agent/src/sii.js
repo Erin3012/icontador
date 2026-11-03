@@ -85,4 +85,35 @@ async function consultarEmpresa({ rut, clave, headless = true }) {
   }
 }
 
-module.exports = { descargarLibro, consultarEmpresa, periodoSii, rutParaFormulario, SII };
+/**
+ * Modo exploración: inicia sesión y guarda en un JSON local lo que muestra la página después del login
+ * (enlaces, campos, texto visible). No envía nada a Cifrax. Sirve para decidir qué extraer y ajustar selectores.
+ */
+async function explorarSii({ rut, clave, carpeta, headless = true }) {
+  const { chromium } = require('playwright');
+  fs.mkdirSync(carpeta, { recursive: true });
+  const navegador = await chromium.launch({ headless });
+  try {
+    const page = await (await navegador.newContext()).newPage();
+    await iniciarSesion(page, { rut, clave });
+    await page.waitForLoadState('domcontentloaded', { timeout: SII.tiempoMs });
+    const foto = {
+      generado: new Date().toISOString(),
+      url: page.url(),
+      titulo: await page.title(),
+      enlaces: await page.$$eval('a[href]', (as) => as.slice(0, 400).map((a) => ({ texto: (a.innerText || '').trim().slice(0, 120), href: a.href }))),
+      campos: await page.$$eval('input, select, textarea, button', (els) => els.slice(0, 200).map((e) => ({
+        tag: e.tagName, id: e.id, name: e.name, type: e.type, placeholder: e.placeholder || '',
+        texto: (e.innerText || e.value || '').trim().slice(0, 80),
+      }))),
+      texto: (await page.innerText('body').catch(() => '')).slice(0, 20000),
+    };
+    const destino = path.join(carpeta, `explorar-${Date.now()}.json`);
+    fs.writeFileSync(destino, JSON.stringify(foto, null, 2), 'utf8');
+    return destino;
+  } finally {
+    await navegador.close();
+  }
+}
+
+module.exports = { descargarLibro, consultarEmpresa, explorarSii, periodoSii, rutParaFormulario, SII };

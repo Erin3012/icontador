@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { cargarEnv } = require('./env');
 const { crearServidor } = require('./api');
-const { descargarLibro, consultarEmpresa } = require('./sii');
+const { descargarLibro, consultarEmpresa, explorarSii } = require('./sii');
 const { parseRcv } = require('../../assets/rcv-import.js');
 
 /** "76.000.000-0" -> "76000000-0" (la forma en que se busca la clave). */
@@ -125,9 +125,21 @@ async function revisar({ servidor, config, descargar = descargarLibro, consultar
 
 async function main() {
   const env = { ...cargarEnv(path.resolve(__dirname, '..', '.env')), ...process.env };
+  const log = (texto) => console.log(`[${new Date().toISOString()}] ${texto}`);
+  if (process.argv.includes('--explorar')) {
+    // Modo exploración: no necesita el servidor. Usa la primera clave de SII_CLAVES, o el RUT que se pase después de --explorar.
+    const claves = leerClaves(env.SII_CLAVES);
+    const idx = process.argv.indexOf('--explorar');
+    const pedido = process.argv[idx + 1] && !process.argv[idx + 1].startsWith('--') ? normalizarRut(process.argv[idx + 1]) : '';
+    const rut = pedido || Object.keys(claves)[0];
+    if (!rut || !claves[rut]) throw new Error('Falta la clave del RUT en SII_CLAVES (sii-agent/.env).');
+    const headless = String(env.SII_HEADLESS ?? 'true').toLowerCase() !== 'false';
+    const destino = await explorarSii({ rut, clave: claves[rut], carpeta: path.resolve(__dirname, '..', env.SII_CARPETA || 'descargas'), headless });
+    log(`Exploración guardada en ${destino}. Este archivo queda solo en tu PC.`);
+    return;
+  }
   const config = configurar(env);
   const servidor = crearServidor({ url: config.url, token: config.token });
-  const log = (texto) => console.log(`[${new Date().toISOString()}] ${texto}`);
   if (process.argv.includes('--una-vez')) {
     const n = await revisar({ servidor, config, log });
     log(n ? `${n} tarea(s) revisadas.` : 'No hay tareas pendientes.');
@@ -144,7 +156,7 @@ async function main() {
   }
 }
 
-module.exports = { procesarTarea, normalizarRut, leerClaves, configurar, revisar };
+module.exports = { procesarTarea, normalizarRut, leerClaves, configurar, revisar, main };
 
 if (require.main === module) {
   main().catch((e) => {

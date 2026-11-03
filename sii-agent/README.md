@@ -59,6 +59,16 @@ La primera vez conviene ver la ventana del navegador: pon `SII_HEADLESS=false` e
 
 Cada CSV descargado se borra después de importarlo. Para conservarlos, pon `SII_CONSERVAR=true`.
 
+## Explorar la pantalla del SII después del login
+
+Para decidir qué datos extraer, el agente puede guardar lo que ve tras iniciar sesión:
+
+```powershell
+npm run explorar
+```
+
+Genera un JSON en `descargas/` con los enlaces, campos y texto visible de la página. Es información tributaria: queda solo en tu PC, no se envía a Cifrax y no se sube a git. Revísalo antes de compartirlo.
+
 ## Pruebas
 
 ```powershell
