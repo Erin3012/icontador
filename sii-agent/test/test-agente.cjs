@@ -7,7 +7,7 @@ const path = require('node:path');
 const { cargarEnv } = require('../src/env');
 const { crearServidor } = require('../src/api');
 const { procesarTarea, normalizarRut, leerClaves, configurar } = require('../src/index');
-const { periodoSii } = require('../src/sii');
+const { periodoSii, rutParaFormulario } = require('../src/sii');
 
 const raiz = path.resolve(__dirname, '..', '..');
 const muestras = path.join(raiz, 'samples');
@@ -28,6 +28,7 @@ assert.equal(normalizarRut('7.123.456-k'), '7123456-K');
 assert.equal(leerClaves('{"76.000.000-0":"abc"}')['76000000-0'], 'abc');
 assert.throws(() => leerClaves('{no json'), /JSON/);
 assert.equal(periodoSii('2026-10'), '10-2026');
+assert.equal(rutParaFormulario('76.000.000-0'), '760000000');
 
 // 3. Servidor: envía el token y decodifica errores.
 const llamadas = [];

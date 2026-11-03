@@ -9,9 +9,11 @@ const SII = {
   login: 'https://zeusr.sii.cl/AUT2000/InicioAutenticacion/IngresoRutClave.html',
   rcv: { compras: 'https://www4.sii.cl/rcvcompraInternet/', ventas: 'https://www4.sii.cl/rcvventainternet/' },
   selectores: {
-    rut: '#rutcntr',
-    clave: '#clave',
-    ingresar: '#bt_ingresar',
+    // Según la pantalla "Identificación de Contribuyentes": campo RUT con ejemplo "Ej: 123456789" (sin puntos ni guion)
+    // y campo "Ingresar Clave Tributaria". Los ids de respaldo se verifican con el primer uso real.
+    rut: '#rutcntr, input[name="rutcntr"], input[placeholder^="Ej"]',
+    clave: '#clave, input[type="password"]',
+    ingresar: '#bt_ingresar, button:has-text("INGRESAR")',
     periodo: 'select[name="periodo"]',
     descargarDetalle: 'text=Descargar Detalles',
   },
@@ -27,9 +29,14 @@ function periodoSii(periodo) {
   return `${mes}-${anio}`;
 }
 
+/** RUT como lo pide el formulario del SII: solo dígitos y dígito verificador, sin puntos ni guion. */
+function rutParaFormulario(rut) {
+  return String(rut).replace(/[^0-9kK]/g, '').toUpperCase();
+}
+
 async function iniciarSesion(page, { rut, clave }) {
   await page.goto(SII.login, { timeout: SII.tiempoMs });
-  await page.fill(SII.selectores.rut, rut);
+  await page.fill(SII.selectores.rut, rutParaFormulario(rut));
   await page.fill(SII.selectores.clave, clave);
   await page.click(SII.selectores.ingresar);
   try {
@@ -78,4 +85,4 @@ async function consultarEmpresa({ rut, clave, headless = true }) {
   }
 }
 
-module.exports = { descargarLibro, consultarEmpresa, periodoSii, SII };
+module.exports = { descargarLibro, consultarEmpresa, periodoSii, rutParaFormulario, SII };
