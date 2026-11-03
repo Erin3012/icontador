@@ -40,15 +40,23 @@ function rutParaFormulario(rut) {
   return String(rut).replace(/[^0-9kK]/g, '').toUpperCase();
 }
 
-async function iniciarSesion(page, { rut, clave }) {
+async function iniciarSesion(page, { rut, clave, manual = false }) {
   await page.goto(SII.login, { timeout: SII.tiempoMs });
   await page.fill(SII.selectores.rut, rutParaFormulario(rut));
   await page.fill(SII.selectores.clave, clave);
-  await page.click(SII.selectores.ingresar);
+  // Modo manual: el agente solo escribe las credenciales y espera a que tú presiones INGRESAR.
+  if (!manual) await page.click(SII.selectores.ingresar);
+  else console.log('Credenciales escritas. Presiona INGRESAR en la ventana del navegador (hay hasta 10 minutos).');
   try {
-    await page.waitForURL((url) => !url.toString().includes('IngresoRutClave'), { timeout: SII.tiempoMs });
+    await page.waitForURL((url) => !url.toString().includes('IngresoRutClave'), { timeout: manual ? 600000 : SII.tiempoMs });
   } catch {
     throw new Error('No se pudo iniciar sesión en el SII. Revisa la clave tributaria en sii-agent/.env.');
+  }
+  // Si el SII muestra su propio mensaje de error (no es un rechazo de clave), lo mostramos tal cual.
+  const texto = await page.innerText('body').catch(() => '');
+  const codigo = /código de este mensaje es ([\d.]+)/i.exec(texto);
+  if (/no se puede responder/i.test(texto)) {
+    throw new Error(`El SII respondió con un error temporal${codigo ? ` (código ${codigo[1]})` : ''}. Espera unos minutos y vuelve a intentarlo.`);
   }
 }
 
@@ -110,7 +118,7 @@ async function explorarSii({ rut, clave, carpeta, headless = true, esperar = fal
   const navegador = await chromium.launch({ headless });
   try {
     const page = await (await navegador.newContext()).newPage();
-    await iniciarSesion(page, { rut, clave });
+    await iniciarSesion(page, { rut, clave, manual: esperar });
     await page.waitForLoadState('domcontentloaded', { timeout: SII.tiempoMs });
     if (esperar) {
       // Modo guiado: navegas a mano en la ventana (por ejemplo, al módulo RCV) y luego Enter para guardar esa página.
