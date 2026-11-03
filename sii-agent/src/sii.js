@@ -15,6 +15,9 @@ const SII = {
     periodo: 'select[name="periodo"]',
     descargarDetalle: 'text=Descargar Detalles',
   },
+  // Datos del contribuyente (razón social, giro). Dirección y selectores sin verificar contra el SII real.
+  datosContribuyente: 'https://www4.sii.cl/getdatosinternet/',
+  selectoresEmpresa: { razon: '#razonSocial', giro: '#giro' },
   tiempoMs: 120000,
 };
 
@@ -59,4 +62,20 @@ async function descargarLibro({ rut, clave, periodo, libro, carpeta, headless = 
   }
 }
 
-module.exports = { descargarLibro, periodoSii, SII };
+/** Lee razón social y giro del contribuyente con la clave del agente. No descarga nada. */
+async function consultarEmpresa({ rut, clave, headless = true }) {
+  const { chromium } = require('playwright');
+  const navegador = await chromium.launch({ headless });
+  try {
+    const page = await (await navegador.newContext()).newPage();
+    await iniciarSesion(page, { rut, clave });
+    await page.goto(SII.datosContribuyente, { timeout: SII.tiempoMs });
+    const razon_social = (await page.locator(SII.selectoresEmpresa.razon).first().innerText({ timeout: SII.tiempoMs })).trim();
+    const giro = (await page.locator(SII.selectoresEmpresa.giro).first().innerText({ timeout: 5000 }).catch(() => '')).trim();
+    return { razon_social, giro };
+  } finally {
+    await navegador.close();
+  }
+}
+
+module.exports = { descargarLibro, consultarEmpresa, periodoSii, SII };

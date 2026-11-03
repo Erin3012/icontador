@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { cargarEnv } = require('./env');
 const { crearServidor } = require('./api');
-const { descargarLibro } = require('./sii');
+const { descargarLibro, consultarEmpresa } = require('./sii');
 const { parseRcv } = require('../../assets/rcv-import.js');
 
 /** "76.000.000-0" -> "76000000-0" (la forma en que se busca la clave). */
@@ -28,11 +28,34 @@ function leerClaves(texto) {
   return claves;
 }
 
+/** Consulta de datos para crear una empresa: usa la clave del RUT y devuelve razón social y giro. */
+async function procesarConsultaEmpresa({ servidor, tarea, claves, consultar, log = console.log }) {
+  const rut = normalizarRut(tarea.rut);
+  const clave = rut && claves[rut];
+  if (!clave) {
+    const mensaje = rut ? `Falta la clave del SII para el RUT ${rut} en sii-agent/.env (SII_CLAVES).` : 'El RUT pedido no es válido.';
+    await servidor.fallar(tarea.id, mensaje).catch(() => {});
+    return { ok: false, mensaje };
+  }
+  try {
+    const datos = await consultar({ rut, clave });
+    await servidor.resultadoEmpresa(tarea.id, datos);
+    log(`Consulta ${tarea.id}: datos de ${rut} enviados.`);
+    return { ok: true, datos };
+  } catch (e) {
+    const mensaje = `No se pudieron traer los datos del SII: ${e.message}`;
+    log(`Consulta ${tarea.id}: ${mensaje}`);
+    await servidor.fallar(tarea.id, mensaje).catch(() => {});
+    return { ok: false, mensaje };
+  }
+}
+
 /**
  * Ejecuta una tarea: descarga el libro, lo valida con el mismo lector del navegador (assets/rcv-import.js)
  * y lo envía a Cifrax. Los fallos locales se informan a la tarea; los que rechaza el servidor ya quedan registrados allí.
  */
-async function procesarTarea({ servidor, tarea, claves, descargar, carpeta, conservar, log = console.log }) {
+async function procesarTarea({ servidor, tarea, claves, descargar, consultar = consultarEmpresa, carpeta, conservar, log = console.log }) {
+  if (tarea.tipo === 'datos_empresa') return procesarConsultaEmpresa({ servidor, tarea, claves, consultar, log });
   const rut = normalizarRut(tarea.rut);
   if (!rut) return servidor.fallar(tarea.id, 'La empresa no tiene RUT en Cifrax.');
   const clave = claves[rut];
@@ -88,12 +111,13 @@ function configurar(env) {
 }
 
 /** Una vuelta: reclama las tareas pendientes y las procesa una por una. */
-async function revisar({ servidor, config, descargar = descargarLibro, log }) {
+async function revisar({ servidor, config, descargar = descargarLibro, consultar = consultarEmpresa, log }) {
   const tareas = await servidor.pendientes();
   for (const tarea of tareas) {
     await procesarTarea({
       servidor, tarea, claves: config.claves, carpeta: config.carpeta, conservar: config.conservar, log,
       descargar: (opciones) => descargar({ ...opciones, headless: config.headless }),
+      consultar: (opciones) => consultar({ ...opciones, headless: config.headless }),
     });
   }
   return tareas.length;

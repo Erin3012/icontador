@@ -18,8 +18,9 @@ function sii_schema(PDO $db): void {
         return;
     }
     $db->exec("CREATE TABLE IF NOT EXISTS sii_tareas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, empresa_id INTEGER NOT NULL DEFAULT 0, periodo TEXT NOT NULL, libro TEXT NOT NULL,
-        estado TEXT NOT NULL DEFAULT 'pendiente', mensaje TEXT NOT NULL DEFAULT '', creado_por INTEGER NOT NULL DEFAULT 0,
+        id INTEGER PRIMARY KEY AUTOINCREMENT, empresa_id INTEGER NOT NULL DEFAULT 0, tipo TEXT NOT NULL DEFAULT 'rcv',
+        periodo TEXT NOT NULL DEFAULT '', libro TEXT NOT NULL DEFAULT '', rut TEXT NOT NULL DEFAULT '', estado TEXT NOT NULL DEFAULT 'pendiente',
+        mensaje TEXT NOT NULL DEFAULT '', resultado_json TEXT NULL, creado_por INTEGER NOT NULL DEFAULT 0,
         creado_en TEXT NOT NULL DEFAULT '', actualizado_en TEXT NOT NULL DEFAULT '', reclamado_en TEXT NULL)");
     $db->exec('CREATE INDEX IF NOT EXISTS idx_sii_empresa_estado ON sii_tareas (empresa_id, estado)');
 }
@@ -38,7 +39,7 @@ function sii_rut_empresa(PDO $db, int $empresa): string {
 }
 
 function sii_tarea(PDO $db, int $id): ?array {
-    $st = $db->prepare('SELECT id, empresa_id, periodo, libro, estado, mensaje, creado_en, actualizado_en FROM sii_tareas WHERE id = ?');
+    $st = $db->prepare('SELECT id, empresa_id, tipo, rut, periodo, libro, estado, mensaje, creado_en, actualizado_en FROM sii_tareas WHERE id = ?');
     $st->execute([$id]);
     return $st->fetch() ?: null;
 }
@@ -72,7 +73,7 @@ function sii_crear(PDO $db, int $empresa, int $usuario, $periodo, $libros): arra
 
 /** Tareas recientes de una empresa, para mostrar su estado en la pantalla RCV. */
 function sii_listar(PDO $db, int $empresa): array {
-    $st = $db->prepare('SELECT id, empresa_id, periodo, libro, estado, mensaje, creado_en, actualizado_en FROM sii_tareas WHERE empresa_id = ? ORDER BY id DESC LIMIT 30');
+    $st = $db->prepare("SELECT id, empresa_id, periodo, libro, estado, mensaje, creado_en, actualizado_en FROM sii_tareas WHERE empresa_id = ? AND tipo = 'rcv' ORDER BY id DESC LIMIT 30");
     $st->execute([$empresa]);
     return $st->fetchAll();
 }
@@ -91,9 +92,10 @@ function sii_reclamar(PDO $db, int $maximo = 3): array {
         $tarea = sii_tarea($db, (int) $id);
         $reclamadas[] = [
             'id' => (int) $tarea['id'],
+            'tipo' => $tarea['tipo'],
             'periodo' => $tarea['periodo'],
             'libro' => $tarea['libro'],
-            'rut' => sii_rut_empresa($db, (int) $tarea['empresa_id']),
+            'rut' => $tarea['tipo'] === 'datos_empresa' ? $tarea['rut'] : sii_rut_empresa($db, (int) $tarea['empresa_id']),
         ];
     }
     return $reclamadas;
@@ -107,7 +109,7 @@ function sii_actualizar_estado(PDO $db, int $id, string $estado, string $mensaje
 /** Guarda el libro que descargó el agente. El período, el libro y la empresa salen de la tarea, no del archivo. */
 function sii_importar(PDO $db, int $id, array $datos): int {
     $tarea = sii_tarea($db, $id);
-    if (!$tarea || $tarea['estado'] !== 'en_proceso') throw new SiiError('La tarea no está en proceso.');
+    if (!$tarea || $tarea['estado'] !== 'en_proceso' || $tarea['tipo'] !== 'rcv') throw new SiiError('La tarea no está en proceso.');
     try {
         if (($datos['period'] ?? null) !== $tarea['periodo']) {
             throw new SiiError('El archivo es del período ' . ($datos['period'] ?? 'desconocido') . ' y la tarea pide ' . $tarea['periodo'] . '.');
@@ -157,4 +159,45 @@ function sii_autorizar_agente(): void {
     $recibido = $_SERVER['HTTP_X_AGENTE_TOKEN'] ?? '';
     if ($recibido === '' && preg_match('/^Bearer\s+(.+)$/i', $_SERVER['HTTP_AUTHORIZATION'] ?? '', $m)) $recibido = $m[1];
     if (!sii_token_valido((string) $recibido)) auth_json(401, ['error' => 'Token del agente inválido.']);
+}
+
+/* ---------- Datos de una empresa nueva, traídos del SII con la clave que tiene el agente ---------- */
+
+/** Pide al agente los datos (razón social y giro) del contribuyente con ese RUT. Sin empresa todavía. */
+function sii_crear_consulta_empresa(PDO $db, int $usuario, $rut): array {
+    $limpio = rut_limpio($rut);
+    if (strlen($limpio) < 2) throw new SiiError('Ingresa el RUT de la empresa para traer sus datos.');
+    $rut = mb_substr(trim((string) $rut), 0, 12);
+    $st = $db->prepare("SELECT id FROM sii_tareas WHERE tipo = 'datos_empresa' AND creado_por = ? AND rut = ? AND estado IN ('pendiente', 'en_proceso')");
+    $st->execute([$usuario, $rut]);
+    if ($id = $st->fetchColumn()) return ['id' => (int) $id];
+    $ahora = sii_ahora();
+    $db->prepare("INSERT INTO sii_tareas (empresa_id, tipo, periodo, libro, rut, estado, mensaje, creado_por, creado_en, actualizado_en) VALUES (0, 'datos_empresa', '', '', ?, 'pendiente', '', ?, ?, ?)")
+        ->execute([$rut, $usuario, $ahora, $ahora]);
+    return ['id' => (int) $db->lastInsertId()];
+}
+
+/** Estado de una consulta de datos. Solo la ve quien la pidió. */
+function sii_consulta_empresa(PDO $db, int $id, int $usuario): ?array {
+    $st = $db->prepare("SELECT id, estado, mensaje, resultado_json FROM sii_tareas WHERE id = ? AND tipo = 'datos_empresa' AND creado_por = ?");
+    $st->execute([$id, $usuario]);
+    $fila = $st->fetch();
+    if (!$fila) return null;
+    return ['id' => (int) $fila['id'], 'estado' => $fila['estado'], 'mensaje' => $fila['mensaje'],
+        'datos' => $fila['estado'] === 'completada' ? (json_decode((string) $fila['resultado_json'], true) ?: null) : null];
+}
+
+/** El agente devuelve razón social y giro del contribuyente. */
+function sii_resultado_empresa(PDO $db, int $id, array $datos): array {
+    $tarea = sii_tarea($db, $id);
+    if (!$tarea || $tarea['estado'] !== 'en_proceso' || $tarea['tipo'] !== 'datos_empresa') throw new SiiError('La consulta no está en proceso.');
+    $razon = trim((string) ($datos['razon_social'] ?? ''));
+    if ($razon === '') {
+        sii_actualizar_estado($db, $id, 'error', 'El SII no devolvió la razón social.');
+        throw new SiiError('El SII no devolvió la razón social.');
+    }
+    $resultado = ['razon_social' => mb_substr($razon, 0, 191), 'giro' => mb_substr(trim((string) ($datos['giro'] ?? '')), 0, 120)];
+    $db->prepare("UPDATE sii_tareas SET estado = 'completada', mensaje = ?, resultado_json = ?, actualizado_en = ? WHERE id = ?")
+        ->execute(['Datos traídos del SII.', json_encode($resultado, JSON_UNESCAPED_UNICODE), sii_ahora(), $id]);
+    return $resultado;
 }

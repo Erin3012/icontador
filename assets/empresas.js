@@ -37,7 +37,7 @@ function iniciar(){
    <h3>Crear empresa</h3>
    <div class="empresas-campos">
     <label>Razón social *<input name="razon_social" class="form-control input-minimalist" required maxlength="191"></label>
-    <label>RUT<input name="rut" class="form-control input-minimalist" maxlength="12" placeholder="76.123.456-7"></label>
+    <label>RUT<span class="empresas-rut"><input name="rut" class="form-control input-minimalist" maxlength="12" placeholder="76.123.456-7"><button type="button" class="btn-minimalist empresas-traer-sii">Traer datos del SII</button></span></label>
     <label>Giro<input name="giro" class="form-control input-minimalist" maxlength="120"></label>
     <label>Régimen tributario<select name="regimen" class="form-control input-minimalist"><option value="">Seleccione</option><option>Pro Pyme General (14 D N°3)</option><option>Pro Pyme Transparente (14 D N°8)</option><option>Régimen General (14 A)</option><option>Renta presunta</option><option>Sin fines de lucro</option></select></label>
     <label>Teléfono<input name="telefono" class="form-control input-minimalist" maxlength="30"></label>
@@ -115,6 +115,32 @@ function iniciar(){
  document.addEventListener('click',e=>{const a=e.target.closest('a.ic-btn-action-nav');if(!a||!/Crear Empresa/.test(a.textContent))return;
   e.preventDefault();e.stopPropagation();crear.hidden=false;crear.razon_social.focus();},true);
  $('.empresas-cancelar',panel).addEventListener('click',()=>{crear.reset();crear.hidden=true;});
+ // "Traer datos del SII": el agente del PC consulta razón social y giro con la clave de su .env; aquí no se escribe la clave.
+ const SII_API='../api/sii.php';
+ const esperar=ms=>new Promise(r=>setTimeout(r,ms));
+ async function traerDatosSii(){
+  const boton=$('.empresas-traer-sii',panel);const rut=crear.rut.value.trim();
+  if(!rut){aviso('Escribe el RUT para traer los datos del SII.');crear.rut.focus();return;}
+  boton.disabled=true;boton.textContent='Consultando el SII…';
+  try{
+   const pedido=await fetch(SII_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo:'datos_empresa',rut})});
+   const inicio=await pedido.json().catch(()=>({}));if(!pedido.ok)throw new Error(inicio.error||'No se pudo pedir la consulta.');
+   for(let i=0;i<60;i++){
+    await esperar(3000);
+    const res=await fetch(SII_API+'?tarea='+inicio.id);const t=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(t.error||'No se pudo leer la consulta.');
+    if(t.estado==='completada'){
+     if(t.datos?.razon_social&&!crear.razon_social.value.trim())crear.razon_social.value=t.datos.razon_social;
+     if(t.datos?.giro&&!crear.giro.value.trim())crear.giro.value=t.datos.giro;
+     aviso('Datos traídos del SII. Revísalos antes de crear la empresa.');return;
+    }
+    if(t.estado==='error')throw new Error(t.mensaje||'El SII no devolvió los datos.');
+   }
+   throw new Error('El agente no respondió a tiempo. Revisa que esté corriendo en tu PC.');
+  }catch(err){aviso(err.message);}
+  finally{boton.disabled=false;boton.textContent='Traer datos del SII';}
+ }
+ $('.empresas-traer-sii',panel).addEventListener('click',traerDatosSii);
  crear.addEventListener('submit',async e=>{e.preventDefault();const b=crear.querySelector('[type=submit]');b.disabled=true;
   const datos=Object.fromEntries(new FormData(crear));datos.plan_ejemplo=crear.plan_ejemplo.checked;
   try{const r=await api('',{method:'POST',body:JSON.stringify(datos)});crear.reset();crear.hidden=true;

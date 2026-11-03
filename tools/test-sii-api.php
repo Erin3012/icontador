@@ -94,4 +94,23 @@ putenv('ICONTADOR_SII_TOKEN=secreto-de-prueba');
 check(sii_token_valido('secreto-de-prueba') && !sii_token_valido('otro') && !sii_token_valido(''), 'token válido solo si coincide');
 putenv('ICONTADOR_SII_TOKEN');
 
+// 10. Consulta de datos de empresa (sin empresa todavía): la pide un usuario, la reclama el agente y devuelve razón social y giro.
+try { sii_crear_consulta_empresa($db, 5, 'x'); check(false, 'RUT inválido'); } catch (SiiError) {}
+$consulta = sii_crear_consulta_empresa($db, 5, '55.555.555-5');
+check(sii_crear_consulta_empresa($db, 5, '55.555.555-5')['id'] === $consulta['id'], 'no duplica la consulta en cola');
+$reclamo = array_values(array_filter(sii_reclamar($db), fn($t) => $t['tipo'] === 'datos_empresa'));
+check(count($reclamo) === 1 && $reclamo[0]['rut'] === '55.555.555-5' && (int) $reclamo[0]['id'] === $consulta['id'], 'agente reclama la consulta con el RUT');
+check(sii_consulta_empresa($db, $consulta['id'], 5)['estado'] === 'en_proceso', 'quien la pidió ve el estado');
+check(sii_consulta_empresa($db, $consulta['id'], 6) === null, 'otro usuario no ve la consulta');
+try { sii_resultado_empresa($db, $consulta['id'], ['giro' => 'Venta']); check(false, 'debe exigir razón social'); } catch (SiiError) {}
+check(sii_consulta_empresa($db, $consulta['id'], 5)['estado'] === 'error', 'sin razón social la consulta queda en error');
+$otra = sii_crear_consulta_empresa($db, 5, '55.555.555-5');
+sii_reclamar($db);
+$datos = sii_resultado_empresa($db, $otra['id'], ['razon_social' => '  EMPRESA NUEVA SPA ', 'giro' => 'Venta de software']);
+check($datos['razon_social'] === 'EMPRESA NUEVA SPA' && $datos['giro'] === 'Venta de software', 'devuelve razón social y giro limpios');
+$visible = sii_consulta_empresa($db, $otra['id'], 5);
+check($visible['estado'] === 'completada' && $visible['datos']['giro'] === 'Venta de software', 'la consulta completada entrega los datos');
+try { sii_importar($db, $otra['id'], ['kind' => 'compras', 'period' => '2026-10', 'docs' => []]); check(false, 'una consulta no se importa como RCV'); } catch (SiiError) {}
+check(!in_array($otra['id'], array_column(sii_listar($db, $empresa), 'id')), 'la lista de RCV no muestra consultas');
+
 echo "SII: crear, reclamar, importar, fallar, reclamo vencido y token verificados\n";

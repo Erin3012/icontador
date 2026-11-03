@@ -3,6 +3,7 @@
 //   GET  api/sii-agente.php?accion=pendientes                -> reclama hasta 3 tareas (RUT, período, libro)
 //   POST api/sii-agente.php?accion=importar  {tarea_id, kind, period, fileName, rutEmpresa, docs}
 //   POST api/sii-agente.php?accion=error     {tarea_id, mensaje}
+//   POST api/sii-agente.php?accion=resultado_empresa  {tarea_id, razon_social, giro}  (consulta de datos de empresa)
 declare(strict_types=1);
 require __DIR__ . '/db.php';
 require __DIR__ . '/lib/sii.php';
@@ -26,6 +27,11 @@ try {
     $accion = (string) ($_GET['accion'] ?? '');
     if ($metodo === 'GET' && $accion === 'pendientes') {
         responder(200, ['tareas' => sii_reclamar($db)]);
+    }
+    if ($metodo === 'POST' && $accion === 'resultado_empresa') {
+        $datos = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($datos) || !is_int($datos['tarea_id'] ?? null)) responder(400, ['error' => 'Falta tarea_id.']);
+        responder(200, ['empresa' => sii_resultado_empresa($db, $datos['tarea_id'], $datos)]);
     }
     if ($metodo === 'POST' && in_array($accion, ['importar', 'error'], true)) {
         $datos = json_decode(file_get_contents('php://input'), true);

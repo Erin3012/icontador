@@ -27,6 +27,7 @@ function crearServidor({ url, token, fetchImpl = globalThis.fetch }) {
     pendientes: async () => (await pedir('GET', 'pendientes')).tareas,
     importar: (tareaId, datos) => pedir('POST', 'importar', { tarea_id: tareaId, ...datos }),
     fallar: (tareaId, mensaje) => pedir('POST', 'error', { tarea_id: tareaId, mensaje: String(mensaje).slice(0, 500) }),
+    resultadoEmpresa: (tareaId, datos) => pedir('POST', 'resultado_empresa', { tarea_id: tareaId, ...datos }),
   };
 }
 

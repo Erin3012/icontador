@@ -100,6 +100,20 @@ const servidor = crearServidor({ url: 'https://qlc.cl/', token: 'tok', fetchImpl
     descargar: async () => { throw new Error('No se pudo iniciar sesión en el SII.'); } });
   assert.match(enviados[enviados.length - 1].mensaje, /No se pudo descargar el RCV del SII: No se pudo iniciar sesión/);
 
+  // 11. Consulta de datos de empresa: devuelve razón social y giro con la clave del RUT.
+  const resultados = [];
+  const servidorDatos = { ...servidorOk, resultadoEmpresa: async (id, datos) => { resultados.push({ id, datos }); return { empresa: datos }; } };
+  const consultaFalsa = async ({ rut, clave }) => { assert.equal(clave, 'clave'); return { razon_social: 'EMPRESA NUEVA', giro: 'Venta' }; };
+  await procesarTarea({ servidor: servidorDatos, tarea: { id: 9, tipo: 'datos_empresa', rut: '76.000.000-0' }, claves, carpeta, log: () => {}, consultar: consultaFalsa });
+  assert.deepEqual(resultados[0], { id: 9, datos: { razon_social: 'EMPRESA NUEVA', giro: 'Venta' } });
+  enviados.length = 0;
+  await procesarTarea({ servidor: servidorDatos, tarea: { id: 10, tipo: 'datos_empresa', rut: '99.999.999-9' }, claves, carpeta, log: () => {}, consultar: consultaFalsa });
+  assert.match(enviados[0].mensaje, /Falta la clave del SII para el RUT 99999999-9/);
+  enviados.length = 0;
+  await procesarTarea({ servidor: servidorOk, tarea: { id: 11, tipo: 'datos_empresa', rut: '76000000-0' }, claves, carpeta, log: () => {},
+    consultar: async () => { throw new Error('No se pudo iniciar sesión en el SII.'); } });
+  assert.match(enviados[0].mensaje, /No se pudieron traer los datos del SII: No se pudo iniciar sesión/);
+
   // 10. Configuración: faltan datos obligatorios.
   assert.throws(() => configurar({}), /SII_URL_SERVIDOR/);
   const cfg = configurar({ SII_URL_SERVIDOR: 'https://qlc.cl', SII_TOKEN_AGENTE: 't', SII_HEADLESS: 'false', SII_INTERVALO_SEG: '5' });
