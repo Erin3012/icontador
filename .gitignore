@@ -2,3 +2,5 @@ node_modules/
 *.log
 data/
 api/config.php
+sii-agent/.env
+sii-agent/descargas/
