@@ -7,14 +7,20 @@ const path = require('node:path');
 
 const SII = {
   login: 'https://zeusr.sii.cl/AUT2000/InicioAutenticacion/IngresoRutClave.html',
-  rcv: { compras: 'https://www4.sii.cl/rcvcompraInternet/', ventas: 'https://www4.sii.cl/rcvventainternet/' },
+  // Consulta del Registro de Compra y Venta (página verificada en la exploración): pestañas COMPRA y VENTA.
+  rcv: 'https://www4.sii.cl/consdcvinternetui/#/index',
+  rcvPestana: { compras: 'COMPRA', ventas: 'VENTA' },
   selectores: {
     // Según la pantalla "Identificación de Contribuyentes": campo RUT con ejemplo "Ej: 123456789" (sin puntos ni guion)
     // y campo "Ingresar Clave Tributaria". Los ids de respaldo se verifican con el primer uso real.
     rut: '#rutcntr, input[name="rutcntr"], input[placeholder^="Ej"]',
     clave: '#clave, input[type="password"]',
     ingresar: '#bt_ingresar, button:has-text("INGRESAR")',
-    periodo: 'select[name="periodo"]',
+    empresaRcv: 'select[name="rut"]',
+    mesRcv: '#periodoMes',
+    anioRcv: 'select:has(option:text-is("2026"))',
+    consultarRcv: 'button:has-text("Consultar")',
+    // El botón de descarga aparece después de consultar; aún no verificado en pantalla.
     descargarDetalle: 'text=Descargar Detalles',
   },
   // Datos del contribuyente (razón social, giro). Dirección y selectores sin verificar contra el SII real.
@@ -55,10 +61,19 @@ async function descargarLibro({ rut, clave, periodo, libro, carpeta, headless = 
     const contexto = await navegador.newContext({ acceptDownloads: true });
     const page = await contexto.newPage();
     await iniciarSesion(page, { rut, clave });
-    await page.goto(SII.rcv[libro], { timeout: SII.tiempoMs });
-    await page.selectOption(SII.selectores.periodo, periodoSii(periodo));
+    await page.goto(SII.rcv, { timeout: SII.tiempoMs });
+    await page.getByText(SII.rcvPestana[libro], { exact: true }).first().click();
+    const [anio, mes] = String(periodo).split('-');
+    const empresa = `${String(rut).replace(/[^0-9kK]/g, '').slice(0, -1)}-${String(rut).slice(-1).toUpperCase()}`;
+    await page.locator(SII.selectores.empresaRcv).first().selectOption({ label: empresa });
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    await page.locator(SII.selectores.mesRcv).selectOption({ label: meses[Number(mes) - 1] });
+    await page.locator(SII.selectores.anioRcv).first().selectOption({ label: anio });
+    await page.click(SII.selectores.consultarRcv);
     const [descarga] = await Promise.all([
-      page.waitForEvent('download', { timeout: SII.tiempoMs }),
+      page.waitForEvent('download', { timeout: SII.tiempoMs }).catch(() => {
+        throw new Error('El SII no ofreció la descarga del detalle después de consultar. Revisa la pantalla y la sección Descargas Diferidas.');
+      }),
       page.click(SII.selectores.descargarDetalle),
     ]);
     const destino = path.join(carpeta, `RCV_${libro.toUpperCase()}_${rut}_${periodo.replace('-', '')}_${Date.now()}.csv`);
