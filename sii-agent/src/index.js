@@ -138,6 +138,23 @@ async function main() {
     log(`Exploración guardada en ${destino}. Este archivo queda solo en tu PC.`);
     return;
   }
+  if (process.argv.includes('--descargar')) {
+    // Prueba de descarga sin Cifrax: node src/index.js --descargar AAAA-MM compras|ventas [RUT]
+    const idx = process.argv.indexOf('--descargar');
+    const [periodo, libro, pedidoRut] = process.argv.slice(idx + 1);
+    if (!/^20\d{2}-(0[1-9]|1[0-2])$/.test(periodo || '') || !['compras', 'ventas'].includes(libro)) {
+      throw new Error('Uso: npm run descargar -- AAAA-MM compras|ventas [RUT]');
+    }
+    const claves = leerClaves(env.SII_CLAVES);
+    const rut = pedidoRut ? normalizarRut(pedidoRut) : Object.keys(claves)[0];
+    if (!rut || !claves[rut]) throw new Error('Falta la clave del RUT en SII_CLAVES (sii-agent/.env).');
+    const headless = String(env.SII_HEADLESS ?? 'true').toLowerCase() !== 'false';
+    const carpeta = path.resolve(__dirname, '..', env.SII_CARPETA || 'descargas');
+    const archivo = await descargarLibro({ rut, clave: claves[rut], periodo, libro, carpeta, headless });
+    const parsed = parseRcv(fs.readFileSync(archivo, 'utf8'), path.basename(archivo));
+    log(`Descarga OK: ${parsed.docs.length} documentos de ${parsed.kind} (${parsed.period}). Archivo: ${archivo}`);
+    return;
+  }
   const config = configurar(env);
   const servidor = crearServidor({ url: config.url, token: config.token });
   if (process.argv.includes('--una-vez')) {
