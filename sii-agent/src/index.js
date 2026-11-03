@@ -134,7 +134,7 @@ async function main() {
     const rut = pedido || Object.keys(claves)[0];
     if (!rut || !claves[rut]) throw new Error('Falta la clave del RUT en SII_CLAVES (sii-agent/.env).');
     const headless = String(env.SII_HEADLESS ?? 'true').toLowerCase() !== 'false';
-    const destino = await explorarSii({ rut, clave: claves[rut], carpeta: path.resolve(__dirname, '..', env.SII_CARPETA || 'descargas'), headless });
+    const destino = await explorarSii({ rut, clave: claves[rut], carpeta: path.resolve(__dirname, '..', env.SII_CARPETA || 'descargas'), headless, esperar: process.argv.includes('--esperar') });
     log(`Exploración guardada en ${destino}. Este archivo queda solo en tu PC.`);
     return;
   }

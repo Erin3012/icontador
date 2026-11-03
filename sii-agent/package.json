@@ -8,6 +8,7 @@
     "start": "node src/index.js",
     "una-vez": "node src/index.js --una-vez",
     "explorar": "node src/index.js --explorar",
+    "explorar:guiado": "node src/index.js --explorar --esperar",
     "test": "node test/test-agente.cjs"
   },
   "engines": {

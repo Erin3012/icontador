@@ -89,7 +89,7 @@ async function consultarEmpresa({ rut, clave, headless = true }) {
  * Modo exploración: inicia sesión y guarda en un JSON local lo que muestra la página después del login
  * (enlaces, campos, texto visible). No envía nada a Cifrax. Sirve para decidir qué extraer y ajustar selectores.
  */
-async function explorarSii({ rut, clave, carpeta, headless = true }) {
+async function explorarSii({ rut, clave, carpeta, headless = true, esperar = false }) {
   const { chromium } = require('playwright');
   fs.mkdirSync(carpeta, { recursive: true });
   const navegador = await chromium.launch({ headless });
@@ -97,6 +97,13 @@ async function explorarSii({ rut, clave, carpeta, headless = true }) {
     const page = await (await navegador.newContext()).newPage();
     await iniciarSesion(page, { rut, clave });
     await page.waitForLoadState('domcontentloaded', { timeout: SII.tiempoMs });
+    if (esperar) {
+      // Modo guiado: navegas a mano en la ventana (por ejemplo, al módulo RCV) y luego Enter para guardar esa página.
+      const readline = require('node:readline');
+      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      await new Promise((resolve) => rl.question('Navega a la pantalla que quieras guardar y pulsa Enter aquí... ', () => { rl.close(); resolve(); }));
+      await page.waitForLoadState('domcontentloaded', { timeout: SII.tiempoMs }).catch(() => {});
+    }
     const foto = {
       generado: new Date().toISOString(),
       url: page.url(),
