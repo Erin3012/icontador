@@ -113,4 +113,27 @@ check($visible['estado'] === 'completada' && $visible['datos']['giro'] === 'Vent
 try { sii_importar($db, $otra['id'], ['kind' => 'compras', 'period' => '2026-10', 'docs' => []]); check(false, 'una consulta no se importa como RCV'); } catch (SiiError) {}
 check(!in_array($otra['id'], array_column(sii_listar($db, $empresa), 'id')), 'la lista de RCV no muestra consultas');
 
+// 8. Clave tributaria cifrada por empresa: no queda en claro, se entrega solo al reclamar, y un error no borra la anterior.
+$llave = base64_encode(random_bytes(32));
+putenv("ICONTADOR_SII_CLAVE_CIFRADO=$llave");
+$secreta = 'Clave-Prueba-123';
+sii_clave_guardar($db, $empresa, $secreta);
+check(sii_clave_guardada($db, $empresa), 'guarda la clave de la empresa');
+$sobre = (string) $db->query('SELECT clave_cifrada FROM sii_claves WHERE empresa_id = ' . $empresa)->fetchColumn();
+check(strpos($sobre, $secreta) === false && strpos((string) base64_decode($sobre), $secreta) === false, 'la clave no queda en claro en la base');
+check(sii_clave_descifrar($db, $empresa) === $secreta, 'descifra la misma clave');
+try { sii_clave_guardar($db, $empresa, str_repeat('x', 300)); check(false, 'rechaza una clave demasiado larga'); } catch (SiiError) {}
+check(sii_clave_descifrar($db, $empresa) === $secreta, 'una clave rechazada no borra la anterior');
+putenv('ICONTADOR_SII_CLAVE_CIFRADO=');
+try { sii_clave_guardar($db, $empresa, 'otra'); check(false, 'sin llave no debe guardar'); } catch (SiiError) {}
+check(sii_clave_guardada($db, $empresa), 'sin llave no se borra la clave guardada');
+putenv("ICONTADOR_SII_CLAVE_CIFRADO=$llave");
+sii_clave_guardar($db, $empresa, '');
+check(!sii_clave_guardada($db, $empresa), 'una clave vacía borra la guardada');
+sii_clave_guardar($db, $empresa, $secreta);
+sii_crear($db, $empresa, 1, '2026-09', ['ventas']);
+$reclamadas = sii_reclamar($db, 50);
+$propia = array_values(array_filter($reclamadas, fn($t) => $t['periodo'] === '2026-09' && $t['libro'] === 'ventas'));
+check(count($propia) === 1 && $propia[0]['clave'] === $secreta, 'el agente recibe la clave de la empresa al reclamar');
+
 echo "SII: crear, reclamar, importar, fallar, reclamo vencido y token verificados\n";

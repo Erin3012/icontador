@@ -2,7 +2,7 @@
 
 Cifrax corre en un hosting compartido (cPanel, PHP y MySQL) donde no se puede instalar Playwright. Por eso el navegador corre en **tu PC**: este agente consulta Cifrax, inicia sesión en el SII con tu clave tributaria, descarga el Registro de Compras y Ventas (RCV) del período pedido y lo envía de vuelta a Cifrax, que lo guarda igual que una importación manual.
 
-- La **clave tributaria queda solo en `sii-agent/.env` de tu PC**. Nunca se envía al servidor.
+- La **clave tributaria se guarda cifrada en el servidor**, por empresa. Se escribe en RCV, en *Clave tributaria del SII*. El servidor la entrega al agente solo al reclamar una tarea de esa empresa, y el agente no la escribe en disco ni en el registro.
 - El agente solo ve las tareas de las empresas a las que tienes acceso en Cifrax (el servidor filtra por empresa y rol).
 - Hoy sincroniza **RCV de compras y ventas**. Honorarios queda para después.
 
@@ -31,7 +31,7 @@ Luego edita `.env`:
 
 - `SII_URL_SERVIDOR`: la dirección de Cifrax, por ejemplo `https://qlc.cl`.
 - `SII_TOKEN_AGENTE`: el mismo valor que `sii_agente_token` en `api/config.php` del servidor.
-- `SII_CLAVES`: un JSON con la clave tributaria de cada empresa, por RUT con guion y sin puntos. Por ejemplo `'{"76000000-0":"mi-clave"}'`.
+- `SII_CLAVES` (opcional): clave por RUT para casos sin clave guardada en Cifrax, como la consulta de datos de una empresa nueva. Si la empresa tiene clave guardada, esta no se usa.
 
 Para crear el token en el servidor, usa un valor largo y aleatorio, por ejemplo con `php -r "echo bin2hex(random_bytes(24));"`, y ponlo en `api/config.php`:
 

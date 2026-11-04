@@ -58,8 +58,8 @@ async function procesarTarea({ servidor, tarea, claves, descargar, consultar = c
   if (tarea.tipo === 'datos_empresa') return procesarConsultaEmpresa({ servidor, tarea, claves, consultar, log });
   const rut = normalizarRut(tarea.rut);
   if (!rut) return servidor.fallar(tarea.id, 'La empresa no tiene RUT en Cifrax.');
-  const clave = claves[rut];
-  if (!clave) return servidor.fallar(tarea.id, `Falta la clave del SII para el RUT ${rut} en sii-agent/.env (SII_CLAVES).`);
+  const clave = tarea.clave || claves[rut];
+  if (!clave) return servidor.fallar(tarea.id, `Falta la clave del SII para el RUT ${rut}. Guárdala en Cifrax, en RCV, con Sincronizar SII.`);
 
   let archivo = null;
   try {

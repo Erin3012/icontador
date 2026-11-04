@@ -1,6 +1,7 @@
 <?php
 // Sincronización del RCV con el SII: la web encola tareas y muestra su estado. El agente del PC las ejecuta (api/sii-agente.php).
-//   GET  api/sii.php                 -> tareas de RCV recientes de la empresa elegida
+//   GET  api/sii.php                 -> tareas de RCV recientes de la empresa elegida y si hay clave guardada
+//   POST api/sii.php  {tipo:"clave", clave} -> guarda (cifrada) la clave tributaria de la empresa; vacía la borra
 //   POST api/sii.php  {periodo, libros:["compras","ventas"]}  -> encola la descarga del RCV
 //   POST api/sii.php  {tipo:"datos_empresa", rut}             -> pide razón social y giro del RUT (no requiere empresa)
 //   GET  api/sii.php?tarea=ID        -> estado y datos de esa consulta (solo quien la pidió)
@@ -36,11 +37,15 @@ try {
     }
     $empresa = empresa_actual($db);
     if ($metodo === 'GET') {
-        responder(200, ['tareas' => sii_listar($db, $empresa)]);
+        responder(200, ['tareas' => sii_listar($db, $empresa), 'clave_guardada' => sii_clave_guardada($db, $empresa)]);
     }
     if ($metodo === 'POST') {
         if (stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== 0) responder(415, ['error' => 'Se espera JSON.']);
         if (!is_array($entrada)) responder(400, ['error' => 'JSON inválido.']);
+        if (($entrada['tipo'] ?? '') === 'clave') {
+            sii_clave_guardar($db, $empresa, (string) ($entrada['clave'] ?? ''));
+            responder(200, ['clave_guardada' => sii_clave_guardada($db, $empresa)]);
+        }
         responder(200, sii_crear($db, $empresa, (int) $usuario['id'], $entrada['periodo'] ?? null, $entrada['libros'] ?? null));
     }
     header('Allow: GET, POST');
