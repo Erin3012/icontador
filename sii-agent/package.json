@@ -10,7 +10,7 @@
     "explorar": "node src/index.js --explorar",
     "explorar:guiado": "node src/index.js --explorar --esperar",
     "descargar": "node src/index.js --descargar",
-    "test": "node test/test-agente.cjs && node test/test-paquete.cjs"
+    "test": "node test/test-agente.cjs && node test/test-paquete.cjs && node test/test-emparejamiento.cjs"
   },
   "engines": {
     "node": ">=18"

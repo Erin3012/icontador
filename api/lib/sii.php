@@ -27,6 +27,12 @@ function sii_schema(PDO $db): void {
     $db->exec('CREATE INDEX IF NOT EXISTS idx_sii_empresa_estado ON sii_tareas (empresa_id, estado)');
     $db->exec("CREATE TABLE IF NOT EXISTS sii_claves (
         empresa_id INTEGER PRIMARY KEY, clave_cifrada TEXT NOT NULL, actualizado_en TEXT NOT NULL DEFAULT '')");
+    $db->exec("CREATE TABLE IF NOT EXISTS sii_agentes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, usuario_id INTEGER NOT NULL, nombre TEXT NOT NULL DEFAULT '',
+        token_hash TEXT NOT NULL, creado_en TEXT NOT NULL DEFAULT '', ultimo_uso TEXT NULL, revocado_en TEXT NULL)");
+    $db->exec("CREATE TABLE IF NOT EXISTS sii_codigos_emparejamiento (
+        codigo_hash TEXT PRIMARY KEY, usuario_id INTEGER NOT NULL, creado_en TEXT NOT NULL DEFAULT '',
+        expira_en TEXT NOT NULL DEFAULT '', usado_en TEXT NULL)");
 }
 
 function sii_ahora(): string {
@@ -216,12 +222,84 @@ function sii_clave_descifrar(PDO $db, int $empresa): ?string {
     return $clave;
 }
 
-/** Primera línea de api/sii-agente.php: el agente no usa sesión, sí el token secreto. */
-function sii_autorizar_agente(): void {
-    if (sii_token_configurado() === '') auth_json(503, ['error' => 'La sincronización con el SII no está configurada en el servidor (falta sii_agente_token).']);
-    $recibido = $_SERVER['HTTP_X_AGENTE_TOKEN'] ?? '';
+/** Acepta el token compartido de api/config.php (instalaciones anteriores) o el token propio de un agente emparejado. */
+function sii_autorizar_agente(PDO $db): void {
+    $recibido = (string) ($_SERVER['HTTP_X_AGENTE_TOKEN'] ?? '');
     if ($recibido === '' && preg_match('/^Bearer\s+(.+)$/i', $_SERVER['HTTP_AUTHORIZATION'] ?? '', $m)) $recibido = $m[1];
-    if (!sii_token_valido((string) $recibido)) auth_json(401, ['error' => 'Token del agente inválido.']);
+    if ($recibido !== '' && (sii_token_valido($recibido) || sii_agente_por_token($db, $recibido))) return;
+    if (sii_token_configurado() === '' && sii_agentes_activos($db) === 0) {
+        auth_json(503, ['error' => 'La sincronización con el SII no está configurada en el servidor (falta emparejar un agente).']);
+    }
+    auth_json(401, ['error' => 'Token del agente inválido.']);
+}
+
+/* ---------- Emparejamiento de agentes: código de un solo uso -> token propio por PC ---------- */
+
+const SII_CODIGO_MINUTOS = 10;
+// Sin 0, O, 1 ni I para que se pueda dictar o copiar sin confusiones.
+const SII_CODIGO_ALFABETO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+function sii_codigo_normalizar(string $codigo): string {
+    return strtoupper((string) preg_replace('/[^A-Za-z0-9]/', '', $codigo));
+}
+
+/** Genera un código para que el usuario lo escriba en el instalador del PC. Solo se guarda su hash. */
+function sii_codigo_crear(PDO $db, int $usuario): array {
+    $codigo = '';
+    for ($i = 0; $i < 10; $i++) $codigo .= SII_CODIGO_ALFABETO[random_int(0, strlen(SII_CODIGO_ALFABETO) - 1)];
+    $expira = date('Y-m-d H:i:s', time() + SII_CODIGO_MINUTOS * 60);
+    // Solo un código vigente por usuario: los anteriores sin usar quedan invalidados.
+    $db->prepare('DELETE FROM sii_codigos_emparejamiento WHERE usuario_id = ? AND usado_en IS NULL')->execute([$usuario]);
+    $db->prepare('INSERT INTO sii_codigos_emparejamiento (codigo_hash, usuario_id, creado_en, expira_en) VALUES (?, ?, ?, ?)')
+        ->execute([hash('sha256', $codigo), $usuario, sii_ahora(), $expira]);
+    return ['codigo' => substr($codigo, 0, 5) . '-' . substr($codigo, 5), 'expira_en' => $expira];
+}
+
+/** Canjea un código por un token propio del agente. El código queda usado y no se puede volver a canjear. */
+function sii_codigo_canjear(PDO $db, string $codigo, string $nombre): string {
+    $normal = sii_codigo_normalizar($codigo);
+    if (strlen($normal) !== 10) throw new SiiError('Código inválido o vencido.');
+    $hash = hash('sha256', $normal);
+    $st = $db->prepare('SELECT usuario_id, expira_en FROM sii_codigos_emparejamiento WHERE codigo_hash = ? AND usado_en IS NULL');
+    $st->execute([$hash]);
+    $fila = $st->fetch();
+    if (!$fila || (string) $fila['expira_en'] < sii_ahora()) throw new SiiError('Código inválido o vencido.');
+    // Se marca usado solo si nadie lo canjeó antes (dos canjes a la vez no pasan los dos).
+    $marcar = $db->prepare('UPDATE sii_codigos_emparejamiento SET usado_en = ? WHERE codigo_hash = ? AND usado_en IS NULL');
+    $marcar->execute([sii_ahora(), $hash]);
+    if ($marcar->rowCount() !== 1) throw new SiiError('Código inválido o vencido.');
+    $token = bin2hex(random_bytes(24));
+    $db->prepare('INSERT INTO sii_agentes (usuario_id, nombre, token_hash, creado_en) VALUES (?, ?, ?, ?)')
+        ->execute([(int) $fila['usuario_id'], mb_substr(trim($nombre), 0, 80), hash('sha256', $token), sii_ahora()]);
+    return $token;
+}
+
+/** Si el token pertenece a un agente activo, anota su último uso y devuelve true. */
+function sii_agente_por_token(PDO $db, string $token): bool {
+    $st = $db->prepare('SELECT id FROM sii_agentes WHERE token_hash = ? AND revocado_en IS NULL');
+    $st->execute([hash('sha256', $token)]);
+    $id = $st->fetchColumn();
+    if ($id === false) return false;
+    $db->prepare('UPDATE sii_agentes SET ultimo_uso = ? WHERE id = ?')->execute([sii_ahora(), (int) $id]);
+    return true;
+}
+
+function sii_agentes_activos(PDO $db): int {
+    return (int) $db->query('SELECT COUNT(*) FROM sii_agentes WHERE revocado_en IS NULL')->fetchColumn();
+}
+
+/** Agentes emparejados por un usuario (sin el token: nunca se guarda en claro). */
+function sii_agentes_listar(PDO $db, int $usuario): array {
+    $st = $db->prepare('SELECT id, nombre, creado_en, ultimo_uso, revocado_en FROM sii_agentes WHERE usuario_id = ? ORDER BY id DESC LIMIT 20');
+    $st->execute([$usuario]);
+    return $st->fetchAll();
+}
+
+/** Revoca un agente de ese usuario. Los demás PCs siguen funcionando. */
+function sii_agente_revocar(PDO $db, int $usuario, int $id): void {
+    $st = $db->prepare('UPDATE sii_agentes SET revocado_en = ? WHERE id = ? AND usuario_id = ? AND revocado_en IS NULL');
+    $st->execute([sii_ahora(), $id, $usuario]);
+    if ($st->rowCount() !== 1) throw new SiiError('Agente no encontrado o ya revocado.');
 }
 
 /* ---------- Datos de una empresa nueva, traídos del SII con la clave que tiene el agente ---------- */

@@ -30,7 +30,8 @@ copy .env.example .env
 Luego edita `.env`:
 
 - `SII_URL_SERVIDOR`: la dirección de Cifrax, por ejemplo `https://qlc.cl`.
-- `SII_TOKEN_AGENTE`: el mismo valor que `sii_agente_token` en `api/config.php` del servidor.
+- `SII_CODIGO_EMPAREJAMIENTO`: el código de un solo uso que generas en Cifrax (RCV, *Vincular este PC*). Al primer arranque el agente lo canjea por su token propio, lo guarda en `SII_TOKEN_AGENTE` y borra el código. Vence en 10 minutos.
+- `SII_TOKEN_AGENTE`: lo llena el emparejamiento. Si lo configuras a mano, usa el mismo valor que `sii_agente_token` en `api/config.php` del servidor.
 - `SII_CLAVES` (opcional): clave por RUT para casos sin clave guardada en Cifrax, como la consulta de datos de una empresa nueva. Si la empresa tiene clave guardada, esta no se usa.
 
 Para crear el token en el servidor, usa un valor largo y aleatorio, por ejemplo con `php -r "echo bin2hex(random_bytes(24));"`, y ponlo en `api/config.php`:
