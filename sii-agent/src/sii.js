@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const SII = {
-  login: 'https://zeusr.sii.cl/AUT2000/InicioAutenticacion/IngresoRutClave.html',
+  login: 'https://zeusr.sii.cl//AUT2000/InicioAutenticacion/IngresoRutClave.html?https://misiir.sii.cl/cgi_misii/siihome.cgi',
   // Consulta del Registro de Compra y Venta (página verificada en la exploración): pestañas COMPRA y VENTA.
   rcv: 'https://www4.sii.cl/consdcvinternetui/#/index',
   rcvPestana: { compras: 'COMPRA', ventas: 'VENTA' },
