@@ -176,16 +176,30 @@
   const list=document.getElementById('rcv-sii-tareas');if(!list)return;
   list.replaceChildren(...(sii.tareas.length?sii.tareas.slice(0,8).map(t=>el('li',{class:'rcv-sii-'+t.estado},(t.libro==='compras'?'Compras':'Ventas')+' · '+formatPeriod(t.periodo)+' · '+ESTADO_SII[t.estado]+(t.mensaje?' · '+t.mensaje:''))):[el('li',null,'Sin sincronizaciones todavía.')]));
  }
+ function setClaveEstado(guardada){const m=document.getElementById('rcv-clave-estado');if(m)m.textContent=guardada?'Hay una clave guardada para esta empresa. Por seguridad no se muestra.':'No hay clave guardada para esta empresa.';}
  async function refreshSii(){
   clearTimeout(sii.timer);
   const anteriores=new Map(sii.tareas.map(t=>[t.id,t.estado]));
-  sii.tareas=(await siiRequest('GET')).tareas;
+  const datos=await siiRequest('GET');
+  sii.tareas=datos.tareas;
+  setClaveEstado(datos.clave_guardada);
   renderSii();
   // Una tarea que pasó a completada trae sus libros: se abre ese período.
   const nuevas=sii.tareas.filter(t=>t.estado==='completada'&&anteriores.has(t.id)&&anteriores.get(t.id)!=='completada');
   if(nuevas.length){try{await refreshPeriods();await openPeriod(nuevas[0].periodo);}catch(e){setMsg(e.message);}}
   // Mientras haya tareas en cola, vuelve a mirar cada 20 segundos.
   if(sii.tareas.some(t=>t.estado==='pendiente'||t.estado==='en_proceso'))sii.timer=setTimeout(()=>refreshSii().catch(e=>setSiiMsg(e.message)),20000);
+ }
+ async function guardarClave(e){
+  e.preventDefault();
+  const input=document.getElementById('rcv-clave');
+  const clave=input.value;
+  try{
+    const r=await siiRequest('POST',{tipo:'clave',clave});
+    input.value='';
+    setClaveEstado(r.clave_guardada);
+    setSiiMsg(clave.trim()?'Clave guardada cifrada en el servidor.':'Clave borrada.');
+  }catch(err){setSiiMsg(err.message);}
  }
  async function sincronizar(e){
   e.preventDefault();
@@ -207,7 +221,12 @@
   const check=(valor,texto)=>el('label',{class:'rcv-sii-check'},el('input',{type:'checkbox',name:'libro',value:valor,checked:''}),' '+texto);
   return el('div',{class:'rcv-import rcv-sii',id:'rcv-sii',hidden:''},
    el('h3',null,'Sincronizar con el SII'),
-   el('p',null,'Pide la descarga del RCV a tu agente en el PC (carpeta sii-agent/). El agente inicia sesión en el SII con la clave que tiene en su archivo .env y guarda el libro en esta empresa.'),
+   el('p',null,'Pide la descarga del RCV a tu agente en el PC (carpeta sii-agent/). El agente inicia sesión en el SII con la clave guardada para esta empresa y guarda el libro aquí.'),
+   el('form',{id:'rcv-clave-form',class:'rcv-sii-form'},
+    el('label',null,'Clave tributaria del SII ',el('input',{type:'password',id:'rcv-clave',autocomplete:'new-password',class:'rcv-select'})),
+    el('button',{type:'submit',class:'rcv-btn'},'Guardar clave'),
+    el('button',{type:'button',id:'rcv-clave-borrar',class:'rcv-btn'},'Borrar')),
+   el('p',{id:'rcv-clave-estado',class:'rcv-note'}),
    el('form',{id:'rcv-sii-form',class:'rcv-sii-form'},
     el('label',null,'Período ',el('input',{type:'month',id:'rcv-sii-periodo',class:'rcv-select',value:mes})),
     check('compras','Compras'),check('ventas','Ventas'),
@@ -230,6 +249,8 @@
   host.prepend(panel);
   const sync=buildSii();host.prepend(sync);
   document.getElementById('rcv-sii-form').addEventListener('submit',sincronizar);
+  document.getElementById('rcv-clave-form').addEventListener('submit',guardarClave);
+  document.getElementById('rcv-clave-borrar').addEventListener('click',()=>{document.getElementById('rcv-clave').value='';guardarClave({preventDefault(){}});});
   input.addEventListener('change',()=>{load([...input.files]);input.value='';});
   periods.addEventListener('change',()=>{openPeriod(periods.value).catch(e=>setMsg(e.message));});
   clear.addEventListener('click',e=>{e.stopPropagation();clearAll();});

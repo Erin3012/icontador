@@ -1,13 +1,15 @@
 <?php
 declare(strict_types=1);
 /* Sincronización del RCV con el SII a través del agente local (sii-agent/, Playwright en el PC del usuario).
-   Este servidor no guarda la clave tributaria: solo encola tareas (empresa, período, libro), entrega las
-   pendientes al agente con un token secreto y recibe el RCV ya leído para guardarlo con rcv_guardar(). */
+   La clave tributaria se guarda cifrada (AES-256-GCM) con una llave que vive en api/config.php, fuera del código.
+   El servidor encola tareas (empresa, período, libro), entrega las pendientes al agente con un token secreto,
+   junto con la clave de esa empresa, y recibe el RCV ya leído para guardarlo con rcv_guardar(). */
 require_once __DIR__ . '/rcv.php';
 
 const SII_LIBROS_SYNC = ['compras', 'ventas'];
 const SII_RECLAMO_MINUTOS = 20; // si el agente no devuelve una tarea en este tiempo, vuelve a quedar pendiente.
 const SII_MAX_MENSAJE = 500;
+const SII_CLAVE_MAX = 200;
 
 final class SiiError extends RuntimeException {}
 
@@ -23,6 +25,8 @@ function sii_schema(PDO $db): void {
         mensaje TEXT NOT NULL DEFAULT '', resultado_json TEXT NULL, creado_por INTEGER NOT NULL DEFAULT 0,
         creado_en TEXT NOT NULL DEFAULT '', actualizado_en TEXT NOT NULL DEFAULT '', reclamado_en TEXT NULL)");
     $db->exec('CREATE INDEX IF NOT EXISTS idx_sii_empresa_estado ON sii_tareas (empresa_id, estado)');
+    $db->exec("CREATE TABLE IF NOT EXISTS sii_claves (
+        empresa_id INTEGER PRIMARY KEY, clave_cifrada TEXT NOT NULL, actualizado_en TEXT NOT NULL DEFAULT '')");
 }
 
 function sii_ahora(): string {
@@ -96,6 +100,8 @@ function sii_reclamar(PDO $db, int $maximo = 3): array {
             'periodo' => $tarea['periodo'],
             'libro' => $tarea['libro'],
             'rut' => $tarea['tipo'] === 'datos_empresa' ? $tarea['rut'] : sii_rut_empresa($db, (int) $tarea['empresa_id']),
+            // La clave viaja solo al agente, con el token; las consultas de empresa nueva siguen usando el .env del PC.
+            'clave' => $tarea['tipo'] === 'rcv' ? sii_clave_descifrar($db, (int) $tarea['empresa_id']) : null,
         ];
     }
     return $reclamadas;
@@ -151,6 +157,63 @@ function sii_token_configurado(): string {
 function sii_token_valido(string $recibido): bool {
     $esperado = sii_token_configurado();
     return $esperado !== '' && $recibido !== '' && hash_equals($esperado, $recibido);
+}
+
+/* ---------- Clave tributaria guardada cifrada por empresa ---------- */
+
+/** Llave AES-256 (32 bytes, en base64) desde ICONTADOR_SII_CLAVE_CIFRADO o sii_clave_cifrado de api/config.php. */
+function sii_clave_cifrado_key(): string {
+    $env = getenv('ICONTADOR_SII_CLAVE_CIFRADO');
+    $valor = is_string($env) ? $env : '';
+    if ($valor === '') {
+        $config = is_file(dirname(__DIR__) . '/config.php') ? require dirname(__DIR__) . '/config.php' : [];
+        $valor = is_array($config) ? (string) ($config['sii_clave_cifrado'] ?? '') : '';
+    }
+    $llave = $valor === '' ? false : base64_decode($valor, true);
+    if ($llave === false || strlen($llave) !== 32) {
+        throw new SiiError('El servidor no tiene configurada la llave para guardar la clave del SII (sii_clave_cifrado: 32 bytes en base64).');
+    }
+    return $llave;
+}
+
+function sii_clave_guardada(PDO $db, int $empresa): bool {
+    $st = $db->prepare('SELECT 1 FROM sii_claves WHERE empresa_id = ?');
+    $st->execute([$empresa]);
+    return (bool) $st->fetchColumn();
+}
+
+/** Guarda la clave cifrada de la empresa. Una clave vacía borra la guardada. Nunca devuelve la clave. */
+function sii_clave_guardar(PDO $db, int $empresa, string $clave): void {
+    if ($empresa <= 0) throw new SiiError('Elija una empresa para guardar su clave del SII.');
+    $clave = trim($clave);
+    if (strlen($clave) > SII_CLAVE_MAX) throw new SiiError('La clave tributaria es demasiado larga.');
+    $sobre = null;
+    if ($clave !== '') {
+        $llave = sii_clave_cifrado_key(); // antes de borrar: si falta la llave, no se pierde la clave anterior
+        $iv = random_bytes(12);
+        $tag = '';
+        $cifrado = openssl_encrypt($clave, 'aes-256-gcm', $llave, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
+        if ($cifrado === false) throw new SiiError('No se pudo cifrar la clave tributaria.');
+        $sobre = base64_encode($iv . $tag . $cifrado);
+    }
+    $db->prepare('DELETE FROM sii_claves WHERE empresa_id = ?')->execute([$empresa]);
+    if ($sobre !== null) {
+        $db->prepare('INSERT INTO sii_claves (empresa_id, clave_cifrada, actualizado_en) VALUES (?, ?, ?)')
+            ->execute([$empresa, $sobre, sii_ahora()]);
+    }
+}
+
+/** Clave tributaria de la empresa en claro (solo para entregarla al agente). Null si no hay ninguna. */
+function sii_clave_descifrar(PDO $db, int $empresa): ?string {
+    $st = $db->prepare('SELECT clave_cifrada FROM sii_claves WHERE empresa_id = ?');
+    $st->execute([$empresa]);
+    $sobre = $st->fetchColumn();
+    if (!is_string($sobre) || $sobre === '') return null;
+    $bin = base64_decode($sobre, true);
+    if ($bin === false || strlen($bin) < 29) throw new SiiError('La clave guardada está dañada. Vuelva a guardarla.');
+    $clave = openssl_decrypt(substr($bin, 28), 'aes-256-gcm', sii_clave_cifrado_key(), OPENSSL_RAW_DATA, substr($bin, 0, 12), substr($bin, 12, 16));
+    if ($clave === false) throw new SiiError('No se pudo descifrar la clave guardada. Revise la llave del servidor.');
+    return $clave;
 }
 
 /** Primera línea de api/sii-agente.php: el agente no usa sesión, sí el token secreto. */

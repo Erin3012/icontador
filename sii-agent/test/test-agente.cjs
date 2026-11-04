@@ -121,6 +121,18 @@ const servidor = crearServidor({ url: 'https://qlc.cl/', token: 'tok', fetchImpl
   assert.equal(cfg.headless, false);
   assert.equal(cfg.intervaloMs, 15000, 'el intervalo mínimo es 15 segundos');
 
+  // 11. La clave que llega con la tarea (guardada en Cifrax) tiene prioridad; sin ella se usa SII_CLAVES del .env.
+  const usadas = [];
+  const mensajes = [];
+  const servidorFalso = { fallar: async (id, m) => { mensajes.push(m); }, importar: async () => ({}) };
+  const descargarFalso = async ({ clave }) => { usadas.push(clave); throw new Error('corte de prueba'); };
+  const base = { servidor: servidorFalso, claves: { '76000000-0': 'del-env' }, descargar: descargarFalso, carpeta: temp, conservar: false, log: () => {} };
+  await procesarTarea({ ...base, tarea: { id: 9, tipo: 'rcv', rut: '76.000.000-0', periodo: '2026-10', libro: 'compras', clave: 'desde-servidor' } });
+  await procesarTarea({ ...base, tarea: { id: 10, tipo: 'rcv', rut: '76.000.000-0', periodo: '2026-10', libro: 'compras', clave: null } });
+  assert.deepEqual(usadas, ['desde-servidor', 'del-env']);
+  assert.match(mensajes[0], /No se pudo descargar el RCV/);
+  assert.ok(!mensajes.some((m) => m.includes('desde-servidor')), 'la clave no se envía de vuelta al servidor');
+
   fs.rmSync(temp, { recursive: true, force: true });
   console.log('Agente SII: .env, RUT, servidor, validación y errores verificados');
 })().catch((e) => {

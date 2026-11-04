@@ -93,7 +93,7 @@ async function iniciarSesion(page, { rut, clave, manual = false }) {
   if (ultimaUrl.includes('IngresoRutClave')) {
     const error = await page.locator('.error, .mensaje-error, [role="alert"]').first().innerText({ timeout: 1000 }).catch(() => '');
     trazar(`Sigue en la página de login. Mensaje visible: ${error ? error.trim().slice(0, 200) : '(ninguno)'}`);
-    throw new Error('No se pudo iniciar sesión en el SII. Revisa la clave tributaria en sii-agent/.env.');
+    throw new Error('No se pudo iniciar sesión en el SII. Revisa la clave tributaria guardada en Cifrax.');
   }
   // Si el SII muestra su propio mensaje de error (no es un rechazo de clave), lo mostramos tal cual.
   await page.waitForLoadState('domcontentloaded', { timeout: SII.tiempoMs }).catch(() => {});

@@ -16,3 +16,10 @@ CREATE TABLE IF NOT EXISTS sii_tareas (
   reclamado_en DATETIME NULL,
   KEY idx_sii_empresa_estado (empresa_id, estado)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Clave tributaria del SII por empresa, cifrada con la llave sii_clave_cifrado (api/config.php).
+CREATE TABLE IF NOT EXISTS sii_claves (
+  empresa_id INT NOT NULL PRIMARY KEY,
+  clave_cifrada TEXT NOT NULL,
+  actualizado_en DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
