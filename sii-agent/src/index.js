@@ -125,6 +125,7 @@ async function revisar({ servidor, config, descargar = descargarLibro, consultar
 
 async function main() {
   const env = { ...cargarEnv(path.resolve(__dirname, '..', '.env')), ...process.env };
+  if (env.SII_CANAL) process.env.SII_CANAL = env.SII_CANAL;
   const log = (texto) => console.log(`[${new Date().toISOString()}] ${texto}`);
   if (process.argv.includes('--explorar')) {
     // Modo exploración: no necesita el servidor. Usa la primera clave de SII_CLAVES, o el RUT que se pase después de --explorar.

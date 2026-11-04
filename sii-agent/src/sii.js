@@ -40,6 +40,12 @@ function rutParaFormulario(rut) {
   return String(rut).replace(/[^0-9kK]/g, '').toUpperCase();
 }
 
+/** Abre el navegador. Con SII_CANAL=chrome usa el Chrome instalado en el PC; si no, el Chromium de Playwright. */
+function lanzarNavegador(chromium, headless) {
+  const canal = String(process.env.SII_CANAL || '').trim();
+  return chromium.launch(canal ? { headless, channel: canal } : { headless });
+}
+
 async function iniciarSesion(page, { rut, clave, manual = false }) {
   await page.goto(SII.login, { timeout: SII.tiempoMs });
   await page.fill(SII.selectores.rut, rutParaFormulario(rut));
@@ -67,7 +73,7 @@ async function iniciarSesion(page, { rut, clave, manual = false }) {
 async function descargarLibro({ rut, clave, periodo, libro, carpeta, headless = true }) {
   const { chromium } = require('playwright');
   fs.mkdirSync(carpeta, { recursive: true });
-  const navegador = await chromium.launch({ headless });
+  const navegador = await lanzarNavegador(chromium, headless);
   try {
     const contexto = await navegador.newContext({ acceptDownloads: true });
     const page = await contexto.newPage();
@@ -98,7 +104,7 @@ async function descargarLibro({ rut, clave, periodo, libro, carpeta, headless = 
 /** Lee razón social y giro del contribuyente con la clave del agente. No descarga nada. */
 async function consultarEmpresa({ rut, clave, headless = true }) {
   const { chromium } = require('playwright');
-  const navegador = await chromium.launch({ headless });
+  const navegador = await lanzarNavegador(chromium, headless);
   try {
     const page = await (await navegador.newContext()).newPage();
     await iniciarSesion(page, { rut, clave });
@@ -118,7 +124,7 @@ async function consultarEmpresa({ rut, clave, headless = true }) {
 async function explorarSii({ rut, clave, carpeta, headless = true, esperar = false }) {
   const { chromium } = require('playwright');
   fs.mkdirSync(carpeta, { recursive: true });
-  const navegador = await chromium.launch({ headless });
+  const navegador = await lanzarNavegador(chromium, headless);
   try {
     const page = await (await navegador.newContext()).newPage();
     await iniciarSesion(page, { rut, clave, manual: esperar });
