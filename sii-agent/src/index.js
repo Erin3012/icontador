@@ -4,8 +4,9 @@
 //   node src/index.js --una-vez  -> revisa una vez y termina
 const fs = require('node:fs');
 const path = require('node:path');
-const { cargarEnv } = require('./env');
-const { crearServidor } = require('./api');
+const os = require('node:os');
+const { cargarEnv, actualizarEnv } = require('./env');
+const { crearServidor, emparejarAgente } = require('./api');
 const { descargarLibro, consultarEmpresa, explorarSii } = require('./sii');
 const { parseRcv } = require('../../assets/rcv-import.js');
 
@@ -155,6 +156,14 @@ async function main() {
     const parsed = parseRcv(fs.readFileSync(archivo, 'utf8'), path.basename(archivo));
     log(`Descarga OK: ${parsed.docs.length} documentos de ${parsed.kind} (${parsed.period}). Archivo: ${archivo}`);
     return;
+  }
+  const ruta = path.resolve(__dirname, '..', '.env');
+  if (!env.SII_TOKEN_AGENTE && env.SII_CODIGO_EMPAREJAMIENTO) {
+    // Primer arranque tras instalar: el código de un solo uso se canjea por el token propio de este PC.
+    if (!env.SII_URL_SERVIDOR) throw new Error('Falta SII_URL_SERVIDOR en sii-agent/.env.');
+    env.SII_TOKEN_AGENTE = await emparejarAgente({ url: env.SII_URL_SERVIDOR, codigo: env.SII_CODIGO_EMPAREJAMIENTO, nombre: os.hostname(), ruta, actualizarEnv });
+    delete env.SII_CODIGO_EMPAREJAMIENTO;
+    log('PC emparejado con Cifrax. El código ya no está en .env.');
   }
   const config = configurar(env);
   const servidor = crearServidor({ url: config.url, token: config.token });

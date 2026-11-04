@@ -31,4 +31,23 @@ function crearServidor({ url, token, fetchImpl = globalThis.fetch }) {
   };
 }
 
-module.exports = { crearServidor, ErrorServidor };
+/**
+ * Emparejamiento: canjea el código de un solo uso (de la web de Cifrax) por el token propio de este PC.
+ * El token se guarda en .env y el código se quita. Si el canje falla, el código queda para reintentar.
+ */
+async function emparejarAgente({ url, codigo, nombre, ruta, actualizarEnv, fetchImpl = globalThis.fetch }) {
+  const base = String(url).replace(/\/+$/, '') + '/api/sii-agente.php';
+  const res = await fetchImpl(`${base}?accion=canjear`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ codigo: String(codigo).trim(), nombre: String(nombre || '').slice(0, 80) }),
+  });
+  const datos = await res.json().catch(() => ({}));
+  if (!res.ok || typeof datos.token !== 'string' || datos.token === '') {
+    throw new ErrorServidor(datos.error || `No se pudo emparejar el PC (error ${res.status}). Genera un código nuevo en Cifrax.`, res.status);
+  }
+  actualizarEnv(ruta, { SII_TOKEN_AGENTE: datos.token, SII_CODIGO_EMPAREJAMIENTO: null });
+  return datos.token;
+}
+
+module.exports = { crearServidor, emparejarAgente, ErrorServidor };

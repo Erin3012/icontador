@@ -3,8 +3,9 @@
 El instalador deja el agente listo en el PC del usuario, sin que tenga que instalar Node ni ejecutar comandos:
 
 - **Node portable** (versión fijada en `construir-instalador.ps1`) y **Chromium de Playwright** dentro de la carpeta de instalación.
-- **Pide solo dos datos**: la dirección de Cifrax (por defecto `https://qlc.cl`) y el token del agente. Escribe `sii-agent\.env`.
+- **Pide solo dos datos**: la dirección de Cifrax (por defecto `https://qlc.cl`) y un **código de emparejamiento** de un solo uso que generas en Cifrax (RCV, *Vincular este PC*). Escribe `sii-agent\.env` con ese código.
 - **No pide ni guarda claves tributarias**: la clave del SII vive cifrada en Cifrax y el servidor la entrega al agente al reclamar cada tarea.
+- **Token propio por PC**: en el primer arranque el agente canjea el código por su token, lo guarda en `.env` y borra el código. El código vence en 10 minutos y se usa una sola vez. Si el PC se pierde, revoca ese agente en Cifrax y los demás siguen funcionando.
 - **Inicio automático**: crea la tarea "Icontador SII Agente" del Programador de tareas para el inicio de sesión del usuario, sin privilegios de administrador. Lanza `lanzador.vbs`, que corre el agente oculto y guarda su salida en `logs\agente.log`.
 - **Desinstalación**: borra la tarea del Programador de tareas. Si el agente está corriendo, ciérralo antes desde el Administrador de tareas (proceso `node.exe`).
 

@@ -26,10 +26,11 @@ assert.match(vbs, /src\\index\.js/);
 const ps1 = fs.readFileSync(path.join(instalador, 'construir-instalador.ps1'), 'utf8');
 assert.match(ps1, /Join-Path \$staging 'browsers'/);
 
-// 3. El instalador no pide ni guarda claves tributarias, solo URL y token del agente.
+// 3. El instalador no pide ni guarda claves tributarias: solo URL y código de emparejamiento.
 const iss = fs.readFileSync(path.join(instalador, 'icontador-sii.iss'), 'utf8');
 assert.match(iss, /PrivilegesRequired=lowest/);
-assert.match(iss, /SII_TOKEN_AGENTE=/);
+assert.match(iss, /SII_CODIGO_EMPAREJAMIENTO=/);
+assert.doesNotMatch(iss, /SII_TOKEN_AGENTE=/);
 assert.doesNotMatch(iss, /SII_CLAVES/);
 
 // 4. Disposición staging: staging/sii-agent/src y staging/assets. Desde src, ../../assets debe resolver.
