@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const SII = {
+  logout: 'https://zeusr.sii.cl/cgi_AUT2000/autTermino.cgi',
   login: 'https://zeusr.sii.cl//AUT2000/InicioAutenticacion/IngresoRutClave.html?https://misiir.sii.cl/cgi_misii/siihome.cgi',
   // Consulta del Registro de Compra y Venta (página verificada en la exploración): pestañas COMPRA y VENTA.
   rcv: 'https://www4.sii.cl/consdcvinternetui/#/index',
@@ -48,6 +49,16 @@ function lanzarNavegador(chromium, headless) {
 
 function trazar(mensaje) {
   console.log(`[SII ${new Date().toLocaleTimeString('es-CL')}] ${mensaje}`);
+}
+
+/** Cierra la sesión del SII al terminar, para no dejar sesiones abiertas (el SII bloquea si hay demasiadas). */
+async function cerrarSesionSii(navegador) {
+  for (const contexto of navegador.contexts()) {
+    for (const pagina of contexto.pages()) {
+      await pagina.goto(SII.logout, { timeout: 15000 }).catch(() => {});
+    }
+  }
+  trazar('Sesión del SII cerrada.');
 }
 
 async function iniciarSesion(page, { rut, clave, manual = false }) {
@@ -134,6 +145,7 @@ async function descargarLibro({ rut, clave, periodo, libro, carpeta, headless = 
     await descarga.saveAs(destino);
     return destino;
   } finally {
+    await cerrarSesionSii(navegador);
     await navegador.close();
   }
 }
@@ -150,6 +162,7 @@ async function consultarEmpresa({ rut, clave, headless = true }) {
     const giro = (await page.locator(SII.selectoresEmpresa.giro).first().innerText({ timeout: 5000 }).catch(() => '')).trim();
     return { razon_social, giro };
   } finally {
+    await cerrarSesionSii(navegador);
     await navegador.close();
   }
 }
@@ -188,6 +201,7 @@ async function explorarSii({ rut, clave, carpeta, headless = true, esperar = fal
     fs.writeFileSync(destino, JSON.stringify(foto, null, 2), 'utf8');
     return destino;
   } finally {
+    await cerrarSesionSii(navegador);
     await navegador.close();
   }
 }
