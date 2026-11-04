@@ -108,7 +108,15 @@ async function descargarLibro({ rut, clave, periodo, libro, carpeta, headless = 
     const page = await contexto.newPage();
     await iniciarSesion(page, { rut, clave });
     await page.goto(SII.rcv, { timeout: SII.tiempoMs });
-    await page.getByText(SII.rcvPestana[libro], { exact: true }).first().click();
+    // La pestaña COMPRA/VENTA a veces está oculta en el menú; si no se ve, vamos directo a su ruta de la página.
+    const pestana = page.getByText(SII.rcvPestana[libro], { exact: true }).first();
+    if (await pestana.isVisible().catch(() => false)) {
+      await pestana.click();
+    } else {
+      trazar(`Pestaña ${SII.rcvPestana[libro]} oculta; abriendo su ruta directa.`);
+      await page.goto(`${SII.rcv.split('#')[0]}#${libro === 'ventas' ? 'venta' : 'compra'}/`, { timeout: SII.tiempoMs });
+    }
+    await page.locator(SII.selectores.empresaRcv).first().waitFor({ state: 'visible', timeout: SII.tiempoMs });
     const [anio, mes] = String(periodo).split('-');
     const empresa = `${String(rut).replace(/[^0-9kK]/g, '').slice(0, -1)}-${String(rut).slice(-1).toUpperCase()}`;
     await page.locator(SII.selectores.empresaRcv).first().selectOption({ label: empresa });
