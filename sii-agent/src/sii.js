@@ -46,27 +46,56 @@ function lanzarNavegador(chromium, headless) {
   return chromium.launch(canal ? { headless, channel: canal } : { headless });
 }
 
+function trazar(mensaje) {
+  console.log(`[SII ${new Date().toLocaleTimeString('es-CL')}] ${mensaje}`);
+}
+
 async function iniciarSesion(page, { rut, clave, manual = false }) {
+  const canal = String(process.env.SII_CANAL || '').trim() || 'chromium (Playwright)';
+  const rutEnviado = rutParaFormulario(rut);
+  trazar(`Navegador: ${canal}. Página de login: ${SII.login}`);
+  trazar(`RUT enviado: ${rutEnviado.slice(0, -1).replace(/./g, '*')}${rutEnviado.slice(-1)} (${rutEnviado.length} caracteres, sin guion). Clave: ${clave.length} caracteres (no se muestra).`);
   await page.goto(SII.login, { timeout: SII.tiempoMs });
-  await page.fill(SII.selectores.rut, rutParaFormulario(rut));
+  trazar(`Login abierto. URL: ${page.url()}`);
+  await page.fill(SII.selectores.rut, rutEnviado);
   await page.fill(SII.selectores.clave, clave);
+  trazar('Campos RUT y clave completados.');
   // Modo manual: el agente solo escribe las credenciales y espera a que tú presiones INGRESAR.
-  if (!manual) await page.click(SII.selectores.ingresar);
-  else console.log('Credenciales escritas. Presiona INGRESAR en la ventana del navegador (hay hasta 10 minutos).');
-  try {
-    await page.waitForURL((url) => !url.toString().includes('IngresoRutClave'), { timeout: manual ? 600000 : SII.tiempoMs });
-  } catch {
+  if (!manual) {
+    await page.click(SII.selectores.ingresar);
+    trazar('INGRESAR presionado por el agente.');
+  } else {
+    console.log('Credenciales escritas. Presiona INGRESAR en la ventana del navegador (hay hasta 10 minutos).');
+  }
+  const inicio = Date.now();
+  let ultimaUrl = page.url();
+  const tope = manual ? 600000 : SII.tiempoMs;
+  // Revisa cada 2 segundos para mostrar los cambios de página mientras esperas.
+  while (Date.now() - inicio < tope) {
+    await page.waitForTimeout(2000);
+    if (page.url() !== ultimaUrl) {
+      ultimaUrl = page.url();
+      trazar(`Cambio de página: ${ultimaUrl}`);
+    }
+    if (!ultimaUrl.includes('IngresoRutClave')) break;
+  }
+  if (ultimaUrl.includes('IngresoRutClave')) {
+    const error = await page.locator('.error, .mensaje-error, [role="alert"]').first().innerText({ timeout: 1000 }).catch(() => '');
+    trazar(`Sigue en la página de login. Mensaje visible: ${error ? error.trim().slice(0, 200) : '(ninguno)'}`);
     throw new Error('No se pudo iniciar sesión en el SII. Revisa la clave tributaria en sii-agent/.env.');
   }
   // Si el SII muestra su propio mensaje de error (no es un rechazo de clave), lo mostramos tal cual.
+  await page.waitForLoadState('domcontentloaded', { timeout: SII.tiempoMs }).catch(() => {});
   const texto = await page.innerText('body').catch(() => '');
   const codigo = /código de este mensaje es ([\d.]+)/i.exec(texto);
+  trazar(`Página después del login: ${page.url()} | Texto (inicio): ${texto.replace(/\s+/g, ' ').trim().slice(0, 160)}`);
   if (/no se puede responder/i.test(texto)) {
     throw new Error(`El SII respondió con un error temporal${codigo ? ` (código ${codigo[1]})` : ''}. Espera unos minutos y vuelve a intentarlo.`);
   }
   if (/m[áa]ximo de sesiones/i.test(texto)) {
     throw new Error(`El SII tiene demasiadas sesiones abiertas para esta clave${codigo ? ` (código ${codigo[1]})` : ''}. Cierra sesión en el SII desde tu navegador (Cerrar Sesión) y cierra las ventanas del agente, luego espera unos minutos.`);
   }
+  trazar('Login correcto.');
 }
 
 /** Descarga el detalle del RCV de un período y libro. Devuelve la ruta del CSV guardado en `carpeta`. */
