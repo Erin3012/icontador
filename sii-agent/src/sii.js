@@ -156,7 +156,7 @@ async function explorarSii({ rut, clave, carpeta, headless = true, esperar = fal
   const navegador = await lanzarNavegador(chromium, headless);
   try {
     const page = await (await navegador.newContext()).newPage();
-    await iniciarSesion(page, { rut, clave, manual: esperar });
+    await iniciarSesion(page, { rut, clave });
     await page.waitForLoadState('domcontentloaded', { timeout: SII.tiempoMs });
     if (esperar) {
       // Modo guiado: navegas a mano en la ventana (por ejemplo, al módulo RCV) y luego Enter para guardar esa página.
