@@ -1,5 +1,7 @@
 <?php
-// Endpoints del agente local de sii-agent/ (Playwright en el PC). No usan sesión: exigen el token secreto sii_agente_token.
+// Endpoints del agente local de sii-agent/ (Playwright en el PC). No usan sesión: exigen el token del agente
+// (propio, emparejado con un código) o el sii_agente_token compartido de instalaciones anteriores.
+//   POST api/sii-agente.php?accion=canjear  {codigo, nombre}  -> sin token: devuelve el token propio del agente
 //   GET  api/sii-agente.php?accion=pendientes                -> reclama hasta 3 tareas (RUT, período, libro)
 //   POST api/sii-agente.php?accion=importar  {tarea_id, kind, period, fileName, rutEmpresa, docs}
 //   POST api/sii-agente.php?accion=error     {tarea_id, mensaje}
@@ -19,12 +21,18 @@ function responder(int $status, array $body): never {
 }
 
 try {
-    sii_autorizar_agente();
     $db = icontador_db();
     sii_schema($db);
     rcv_schema($db);
     $metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
     $accion = (string) ($_GET['accion'] ?? '');
+    if ($metodo === 'POST' && $accion === 'canjear') {
+        // Emparejamiento: el código de un solo uso es la credencial; a cambio el agente recibe su token propio.
+        $datos = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($datos) || !is_string($datos['codigo'] ?? null)) responder(400, ['error' => 'Falta el código de emparejamiento.']);
+        responder(200, ['token' => sii_codigo_canjear($db, $datos['codigo'], (string) ($datos['nombre'] ?? ''))]);
+    }
+    sii_autorizar_agente($db);
     if ($metodo === 'GET' && $accion === 'pendientes') {
         responder(200, ['tareas' => sii_reclamar($db)]);
     }

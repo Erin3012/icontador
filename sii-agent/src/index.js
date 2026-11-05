@@ -4,9 +4,10 @@
 //   node src/index.js --una-vez  -> revisa una vez y termina
 const fs = require('node:fs');
 const path = require('node:path');
-const { cargarEnv } = require('./env');
-const { crearServidor } = require('./api');
-const { descargarLibro, consultarEmpresa } = require('./sii');
+const os = require('node:os');
+const { cargarEnv, actualizarEnv } = require('./env');
+const { crearServidor, emparejarAgente } = require('./api');
+const { descargarLibro, consultarEmpresa, explorarSii } = require('./sii');
 const { parseRcv } = require('../../assets/rcv-import.js');
 
 /** "76.000.000-0" -> "76000000-0" (la forma en que se busca la clave). */
@@ -58,8 +59,8 @@ async function procesarTarea({ servidor, tarea, claves, descargar, consultar = c
   if (tarea.tipo === 'datos_empresa') return procesarConsultaEmpresa({ servidor, tarea, claves, consultar, log });
   const rut = normalizarRut(tarea.rut);
   if (!rut) return servidor.fallar(tarea.id, 'La empresa no tiene RUT en Cifrax.');
-  const clave = claves[rut];
-  if (!clave) return servidor.fallar(tarea.id, `Falta la clave del SII para el RUT ${rut} en sii-agent/.env (SII_CLAVES).`);
+  const clave = tarea.clave || claves[rut];
+  if (!clave) return servidor.fallar(tarea.id, `Falta la clave del SII para el RUT ${rut}. Guárdala en Cifrax, en RCV, con Sincronizar SII.`);
 
   let archivo = null;
   try {
@@ -125,9 +126,47 @@ async function revisar({ servidor, config, descargar = descargarLibro, consultar
 
 async function main() {
   const env = { ...cargarEnv(path.resolve(__dirname, '..', '.env')), ...process.env };
+  if (env.SII_CANAL) process.env.SII_CANAL = env.SII_CANAL;
+  const log = (texto) => console.log(`[${new Date().toISOString()}] ${texto}`);
+  if (process.argv.includes('--explorar')) {
+    // Modo exploración: no necesita el servidor. Usa la primera clave de SII_CLAVES, o el RUT que se pase después de --explorar.
+    const claves = leerClaves(env.SII_CLAVES);
+    const idx = process.argv.indexOf('--explorar');
+    const pedido = process.argv[idx + 1] && !process.argv[idx + 1].startsWith('--') ? normalizarRut(process.argv[idx + 1]) : '';
+    const rut = pedido || Object.keys(claves)[0];
+    if (!rut || !claves[rut]) throw new Error('Falta la clave del RUT en SII_CLAVES (sii-agent/.env).');
+    const headless = String(env.SII_HEADLESS ?? 'true').toLowerCase() !== 'false';
+    const destino = await explorarSii({ rut, clave: claves[rut], carpeta: path.resolve(__dirname, '..', env.SII_CARPETA || 'descargas'), headless, esperar: process.argv.includes('--esperar') });
+    log(`Exploración guardada en ${destino}. Este archivo queda solo en tu PC.`);
+    return;
+  }
+  if (process.argv.includes('--descargar')) {
+    // Prueba de descarga sin Cifrax: node src/index.js --descargar AAAA-MM compras|ventas [RUT]
+    const idx = process.argv.indexOf('--descargar');
+    const [periodo, libro, pedidoRut] = process.argv.slice(idx + 1);
+    if (!/^20\d{2}-(0[1-9]|1[0-2])$/.test(periodo || '') || !['compras', 'ventas'].includes(libro)) {
+      throw new Error('Uso: npm run descargar -- AAAA-MM compras|ventas [RUT]');
+    }
+    const claves = leerClaves(env.SII_CLAVES);
+    const rut = pedidoRut ? normalizarRut(pedidoRut) : Object.keys(claves)[0];
+    if (!rut || !claves[rut]) throw new Error('Falta la clave del RUT en SII_CLAVES (sii-agent/.env).');
+    const headless = String(env.SII_HEADLESS ?? 'true').toLowerCase() !== 'false';
+    const carpeta = path.resolve(__dirname, '..', env.SII_CARPETA || 'descargas');
+    const archivo = await descargarLibro({ rut, clave: claves[rut], periodo, libro, carpeta, headless });
+    const parsed = parseRcv(fs.readFileSync(archivo, 'utf8'), path.basename(archivo));
+    log(`Descarga OK: ${parsed.docs.length} documentos de ${parsed.kind} (${parsed.period}). Archivo: ${archivo}`);
+    return;
+  }
+  const ruta = path.resolve(__dirname, '..', '.env');
+  if (!env.SII_TOKEN_AGENTE && env.SII_CODIGO_EMPAREJAMIENTO) {
+    // Primer arranque tras instalar: el código de un solo uso se canjea por el token propio de este PC.
+    if (!env.SII_URL_SERVIDOR) throw new Error('Falta SII_URL_SERVIDOR en sii-agent/.env.');
+    env.SII_TOKEN_AGENTE = await emparejarAgente({ url: env.SII_URL_SERVIDOR, codigo: env.SII_CODIGO_EMPAREJAMIENTO, nombre: os.hostname(), ruta, actualizarEnv });
+    delete env.SII_CODIGO_EMPAREJAMIENTO;
+    log('PC emparejado con Cifrax. El código ya no está en .env.');
+  }
   const config = configurar(env);
   const servidor = crearServidor({ url: config.url, token: config.token });
-  const log = (texto) => console.log(`[${new Date().toISOString()}] ${texto}`);
   if (process.argv.includes('--una-vez')) {
     const n = await revisar({ servidor, config, log });
     log(n ? `${n} tarea(s) revisadas.` : 'No hay tareas pendientes.');
@@ -144,7 +183,7 @@ async function main() {
   }
 }
 
-module.exports = { procesarTarea, normalizarRut, leerClaves, configurar, revisar };
+module.exports = { procesarTarea, normalizarRut, leerClaves, configurar, revisar, main };
 
 if (require.main === module) {
   main().catch((e) => {

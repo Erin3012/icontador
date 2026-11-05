@@ -24,7 +24,7 @@ Sin configuración usa SQLite en `data/icontador.sqlite`. Para MySQL, copia `api
 
 ## Sincronizar el RCV con el SII (agente en tu PC)
 
-En **RCV**, el botón **Sincronizar SII** pide al agente de `sii-agent/` que descargue el Registro de Compras y Ventas del período y lo guarde en la empresa elegida. El agente corre en tu PC con Playwright, así que la clave tributaria nunca llega al servidor. Instalación, configuración y solución de problemas en [`sii-agent/README.md`](sii-agent/README.md). Pruebas del lado del servidor: `php tools/test-sii-api.php`.
+En **RCV**, el botón **Sincronizar SII** pide al agente de `sii-agent/` que descargue el Registro de Compras y Ventas del período y lo guarde en la empresa elegida. La clave tributaria se guarda cifrada en el servidor (AES-256-GCM), por empresa, con una llave en `api/config.php` (`sii_clave_cifrado`, 32 bytes en base64). El agente la recibe solo al reclamar una tarea de esa empresa y corre en tu PC con Playwright. Instalación, configuración y solución de problemas en [`sii-agent/README.md`](sii-agent/README.md). Pruebas del lado del servidor: `php tools/test-sii-api.php`.
 
 ## Boletas de honorarios
 

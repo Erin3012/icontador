@@ -18,3 +18,5 @@
 .rcv-select{padding:7px 10px;border:1px solid #10233f;border-radius:4px;background:#fff;color:#10233f}
 .rcv-sii-form{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:8px 0}.rcv-sii-form label{font-weight:bold;color:#10233f}
 .rcv-sii-check{font-weight:normal!important}.rcv-sii-error{color:#a33a00}.rcv-sii-completada{color:#1e8449}
+
+.rcv-sii-vinculo{margin:12px 0;padding:12px;border:1px solid #d9e1ec;border-radius:6px}.rcv-codigo{font-size:1.4em;font-weight:bold;letter-spacing:.08em;color:#10233f}
