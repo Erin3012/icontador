@@ -22,9 +22,9 @@ npm run start:php
 
 Sin configuración usa SQLite en `data/icontador.sqlite`. Para MySQL, copia `api/config.example.php` como `api/config.php` con tus datos de conexión (o usa las variables `ICONTADOR_DB_DSN`, `ICONTADOR_DB_USER` e `ICONTADOR_DB_PASS`); la tabla está en `api/schema/rcv.mysql.sql` y se crea sola. Con `npm start` la importación funciona igual, pero no guarda nada. Lee el formato completo del SII: además de los montos guarda el código de IVA no recuperable, el código, valor y tasa de otros impuestos, el IVA de activo fijo, el impuesto sin derecho a crédito, la fecha de recepción y la referencia de las notas de crédito, y muestra los totales por código. Rechaza los archivos `RCV_COMPRA_PENDIENTE`, `NO_INCLUIR` y `RECLAMADO` (no son parte del libro) y los de un RUT distinto al de la empresa elegida. Hay CSV ficticios en `samples/`; `npm test` y `npm run test:php` comprueban el cálculo y el guardado. Para correr las pruebas PHP contra MySQL/MariaDB (como en cPanel), define `ICONTADOR_TEST_MYSQL="host=127.0.0.1;port=3306"`, `ICONTADOR_TEST_USER` e `ICONTADOR_TEST_PASS`: cada prueba crea y borra su propia base.
 
-## Sincronizar el RCV con el SII (agente en tu PC)
+## Integración con el SII
 
-En **RCV**, el botón **Sincronizar SII** pide al agente de `sii-agent/` que descargue el Registro de Compras y Ventas del período y lo guarde en la empresa elegida. La clave tributaria se guarda cifrada en el servidor (AES-256-GCM), por empresa, con una llave en `api/config.php` (`sii_clave_cifrado`, 32 bytes en base64). El agente la recibe solo al reclamar una tarea de esa empresa y corre en tu PC con Playwright. Instalación, configuración y solución de problemas en [`sii-agent/README.md`](sii-agent/README.md). Pruebas del lado del servidor: `php tools/test-sii-api.php`.
+El titular confirmó que el SII autorizó un canal técnico. La sincronización automática y la consulta de empresa siguen deshabilitadas mientras incorporamos la especificación técnica de ese canal. El estado se documenta en [`sii-agent/README.md`](sii-agent/README.md); mientras tanto, descarga los CSV oficiales e impórtalos en **RCV**.
 
 ## Boletas de honorarios
 

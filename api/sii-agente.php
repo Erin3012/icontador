@@ -32,22 +32,22 @@ try {
         if (!is_array($datos) || !is_string($datos['codigo'] ?? null)) responder(400, ['error' => 'Falta el código de emparejamiento.']);
         responder(200, ['token' => sii_codigo_canjear($db, $datos['codigo'], (string) ($datos['nombre'] ?? ''))]);
     }
-    sii_autorizar_agente($db);
+    $usuarioAgente = sii_autorizar_agente($db);
     if ($metodo === 'GET' && $accion === 'pendientes') {
-        responder(200, ['tareas' => sii_reclamar($db)]);
+        responder(200, ['tareas' => sii_reclamar($db, 3, $usuarioAgente)]);
     }
     if ($metodo === 'POST' && $accion === 'resultado_empresa') {
         $datos = json_decode(file_get_contents('php://input'), true);
         if (!is_array($datos) || !is_int($datos['tarea_id'] ?? null)) responder(400, ['error' => 'Falta tarea_id.']);
-        responder(200, ['empresa' => sii_resultado_empresa($db, $datos['tarea_id'], $datos)]);
+        responder(200, ['empresa' => sii_resultado_empresa($db, $datos['tarea_id'], $datos, $usuarioAgente)]);
     }
     if ($metodo === 'POST' && in_array($accion, ['importar', 'error'], true)) {
         $datos = json_decode(file_get_contents('php://input'), true);
         if (!is_array($datos) || !is_int($datos['tarea_id'] ?? null)) responder(400, ['error' => 'Falta tarea_id.']);
         if ($accion === 'importar') {
-            responder(200, ['guardados' => sii_importar($db, $datos['tarea_id'], $datos)]);
+            responder(200, ['guardados' => sii_importar($db, $datos['tarea_id'], $datos, $usuarioAgente)]);
         }
-        sii_fallar($db, $datos['tarea_id'], (string) ($datos['mensaje'] ?? 'Error desconocido del agente.'));
+        sii_fallar($db, $datos['tarea_id'], (string) ($datos['mensaje'] ?? 'Error desconocido del agente.'), $usuarioAgente);
         responder(200, ['ok' => true]);
     }
     responder(404, ['error' => 'Acción no válida.']);

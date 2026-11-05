@@ -2,14 +2,11 @@
   "name": "icontador-sii-agent",
   "version": "1.0.0",
   "private": true,
-  "description": "Agente local que descarga el RCV desde el SII con Playwright y lo envía a Cifrax",
+  "description": "Agente local preparado para una futura integración autorizada con el SII",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "una-vez": "node src/index.js --una-vez",
-    "explorar": "node src/index.js --explorar",
-    "explorar:guiado": "node src/index.js --explorar --esperar",
-    "descargar": "node src/index.js --descargar",
     "test": "node test/test-agente.cjs && node test/test-paquete.cjs && node test/test-emparejamiento.cjs"
   },
   "engines": {

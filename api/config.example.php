@@ -9,7 +9,7 @@ return [
     // 'adjuntos_dir' => '/home/usuario/icontador-adjuntos',
     // Token secreto del agente de sincronización con el SII (sii-agent/, en el PC). Genera uno largo y aleatorio.
     // 'sii_agente_token' => 'cambia-por-un-token-largo',
-    // Llave para cifrar las claves tributarias del SII guardadas en la web: 32 bytes en base64.
-    // Genera una con: php -r "echo base64_encode(random_bytes(32)), PHP_EOL;"  (también sirve ICONTADOR_SII_CLAVE_CIFRADO)
-    // 'sii_clave_cifrado' => 'cambia-por-32-bytes-en-base64',
+    // Si mantienes un token compartido legado, asígnalo a un único usuario autenticado.
+    // Es preferible emparejar cada PC desde RCV, que limita las tareas al usuario dueño del agente.
+    // 'sii_agente_usuario_id' => 1,
 ];

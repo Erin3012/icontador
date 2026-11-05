@@ -7,7 +7,8 @@ const path = require('node:path');
 const os = require('node:os');
 const { cargarEnv, actualizarEnv } = require('./env');
 const { crearServidor, emparejarAgente } = require('./api');
-const { descargarLibro, consultarEmpresa, explorarSii } = require('./sii');
+const { descargarLibro, consultarEmpresa } = require('./sii');
+const { solicitarClaveSii } = require('./secret');
 const { parseRcv } = require('../../assets/rcv-import.js');
 
 /** "76.000.000-0" -> "76000000-0" (la forma en que se busca la clave). */
@@ -30,24 +31,34 @@ function leerClaves(texto) {
 }
 
 /** Consulta de datos para crear una empresa: usa la clave del RUT y devuelve razón social y giro. */
-async function procesarConsultaEmpresa({ servidor, tarea, claves, consultar, log = console.log }) {
+async function procesarConsultaEmpresa({ servidor, tarea, claves, solicitarClave = solicitarClaveSii, consultar = consultarEmpresa, log = console.log }) {
   const rut = normalizarRut(tarea.rut);
-  const clave = rut && claves[rut];
-  if (!clave) {
-    const mensaje = rut ? `Falta la clave del SII para el RUT ${rut} en sii-agent/.env (SII_CLAVES).` : 'El RUT pedido no es válido.';
+  if (!rut) {
+    const mensaje = 'El RUT pedido no es válido.';
     await servidor.fallar(tarea.id, mensaje).catch(() => {});
     return { ok: false, mensaje };
   }
+  if (consultar.canalSiiHabilitado === false) {
+    const mensaje = 'La consulta automática de empresa está deshabilitada hasta validar un canal autorizado por el SII.';
+    await servidor.fallar(tarea.id, mensaje).catch(() => {});
+    return { ok: false, mensaje };
+  }
+  let clave = '';
   try {
+    clave = claves !== undefined ? String(claves[rut] || '') : await solicitarClave(rut);
+    if (!clave) throw new Error('No se ingresó la Clave Tributaria.');
     const datos = await consultar({ rut, clave });
     await servidor.resultadoEmpresa(tarea.id, datos);
     log(`Consulta ${tarea.id}: datos de ${rut} enviados.`);
     return { ok: true, datos };
   } catch (e) {
-    const mensaje = `No se pudieron traer los datos del SII: ${e.message}`;
+    const detalle = String(e?.message || 'Error desconocido.');
+    const mensaje = `No se pudieron traer los datos del SII: ${clave ? detalle.split(clave).join('[oculta]') : detalle}`;
     log(`Consulta ${tarea.id}: ${mensaje}`);
     await servidor.fallar(tarea.id, mensaje).catch(() => {});
     return { ok: false, mensaje };
+  } finally {
+    clave = '';
   }
 }
 
@@ -55,18 +66,25 @@ async function procesarConsultaEmpresa({ servidor, tarea, claves, consultar, log
  * Ejecuta una tarea: descarga el libro, lo valida con el mismo lector del navegador (assets/rcv-import.js)
  * y lo envía a Cifrax. Los fallos locales se informan a la tarea; los que rechaza el servidor ya quedan registrados allí.
  */
-async function procesarTarea({ servidor, tarea, claves, descargar, consultar = consultarEmpresa, carpeta, conservar, log = console.log }) {
-  if (tarea.tipo === 'datos_empresa') return procesarConsultaEmpresa({ servidor, tarea, claves, consultar, log });
+async function procesarTarea({ servidor, tarea, claves, solicitarClave = solicitarClaveSii, descargar, consultar = consultarEmpresa, carpeta, conservar, log = console.log }) {
+  if (tarea.tipo === 'datos_empresa') return procesarConsultaEmpresa({ servidor, tarea, claves, solicitarClave, consultar, log });
   const rut = normalizarRut(tarea.rut);
   if (!rut) return servidor.fallar(tarea.id, 'La empresa no tiene RUT en Cifrax.');
-  const clave = tarea.clave || claves[rut];
-  if (!clave) return servidor.fallar(tarea.id, `Falta la clave del SII para el RUT ${rut}. Guárdala en Cifrax, en RCV, con Sincronizar SII.`);
+  if (descargar.canalSiiHabilitado === false) {
+    return servidor.fallar(tarea.id, 'La descarga automática del RCV está deshabilitada hasta validar un canal autorizado por el SII.');
+  }
 
   let archivo = null;
+  let clave = '';
   try {
+    clave = claves !== undefined ? String(claves[rut] || '') : await solicitarClave(rut);
+    if (!clave) throw new Error('No se ingresó la Clave Tributaria.');
     archivo = await descargar({ rut, clave, periodo: tarea.periodo, libro: tarea.libro, carpeta });
+    clave = '';
   } catch (e) {
-    const mensaje = `No se pudo descargar el RCV del SII: ${e.message}`;
+    const detalle = String(e?.message || 'Error desconocido.');
+    const mensaje = `No se pudo descargar el RCV del SII: ${clave ? detalle.split(clave).join('[oculta]') : detalle}`;
+    clave = '';
     log(`Tarea ${tarea.id}: ${mensaje}`);
     await servidor.fallar(tarea.id, mensaje).catch(() => {});
     return { ok: false, mensaje };
@@ -100,10 +118,10 @@ function configurar(env) {
   const url = env.SII_URL_SERVIDOR;
   const token = env.SII_TOKEN_AGENTE;
   if (!url || !token) throw new Error('Faltan SII_URL_SERVIDOR y SII_TOKEN_AGENTE en sii-agent/.env.');
+  if (env.SII_CLAVES) throw new Error('Elimina SII_CLAVES de sii-agent/.env; el agente ahora pide la clave en la terminal sin guardarla.');
   return {
     url,
     token,
-    claves: leerClaves(env.SII_CLAVES),
     headless: String(env.SII_HEADLESS ?? 'true').toLowerCase() !== 'false',
     intervaloMs: Math.max(15, Number(env.SII_INTERVALO_SEG || 60)) * 1000,
     carpeta: path.resolve(__dirname, '..', env.SII_CARPETA || 'descargas'),
@@ -112,13 +130,22 @@ function configurar(env) {
 }
 
 /** Una vuelta: reclama las tareas pendientes y las procesa una por una. */
-async function revisar({ servidor, config, descargar = descargarLibro, consultar = consultarEmpresa, log }) {
+async function revisar({ servidor, config, descargar = descargarLibro, consultar = consultarEmpresa, solicitarClave = solicitarClaveSii, log }) {
+  if (descargar.canalSiiHabilitado === false && consultar.canalSiiHabilitado === false) {
+    log('El agente no consulta el SII hasta configurar el canal autorizado.');
+    return 0;
+  }
   const tareas = await servidor.pendientes();
+  const conHeadless = (fn) => {
+    const envuelta = (opciones) => fn({ ...opciones, headless: config.headless });
+    if (fn.canalSiiHabilitado === false) envuelta.canalSiiHabilitado = false;
+    return envuelta;
+  };
   for (const tarea of tareas) {
     await procesarTarea({
-      servidor, tarea, claves: config.claves, carpeta: config.carpeta, conservar: config.conservar, log,
-      descargar: (opciones) => descargar({ ...opciones, headless: config.headless }),
-      consultar: (opciones) => consultar({ ...opciones, headless: config.headless }),
+      servidor, tarea, solicitarClave, carpeta: config.carpeta, conservar: config.conservar, log,
+      descargar: conHeadless(descargar),
+      consultar: conHeadless(consultar),
     });
   }
   return tareas.length;
@@ -126,44 +153,19 @@ async function revisar({ servidor, config, descargar = descargarLibro, consultar
 
 async function main() {
   const env = { ...cargarEnv(path.resolve(__dirname, '..', '.env')), ...process.env };
-  if (env.SII_CANAL) process.env.SII_CANAL = env.SII_CANAL;
   const log = (texto) => console.log(`[${new Date().toISOString()}] ${texto}`);
-  if (process.argv.includes('--explorar')) {
-    // Modo exploración: no necesita el servidor. Usa la primera clave de SII_CLAVES, o el RUT que se pase después de --explorar.
-    const claves = leerClaves(env.SII_CLAVES);
-    const idx = process.argv.indexOf('--explorar');
-    const pedido = process.argv[idx + 1] && !process.argv[idx + 1].startsWith('--') ? normalizarRut(process.argv[idx + 1]) : '';
-    const rut = pedido || Object.keys(claves)[0];
-    if (!rut || !claves[rut]) throw new Error('Falta la clave del RUT en SII_CLAVES (sii-agent/.env).');
-    const headless = String(env.SII_HEADLESS ?? 'true').toLowerCase() !== 'false';
-    const destino = await explorarSii({ rut, clave: claves[rut], carpeta: path.resolve(__dirname, '..', env.SII_CARPETA || 'descargas'), headless, esperar: process.argv.includes('--esperar') });
-    log(`Exploración guardada en ${destino}. Este archivo queda solo en tu PC.`);
-    return;
-  }
-  if (process.argv.includes('--descargar')) {
-    // Prueba de descarga sin Cifrax: node src/index.js --descargar AAAA-MM compras|ventas [RUT]
-    const idx = process.argv.indexOf('--descargar');
-    const [periodo, libro, pedidoRut] = process.argv.slice(idx + 1);
-    if (!/^20\d{2}-(0[1-9]|1[0-2])$/.test(periodo || '') || !['compras', 'ventas'].includes(libro)) {
-      throw new Error('Uso: npm run descargar -- AAAA-MM compras|ventas [RUT]');
-    }
-    const claves = leerClaves(env.SII_CLAVES);
-    const rut = pedidoRut ? normalizarRut(pedidoRut) : Object.keys(claves)[0];
-    if (!rut || !claves[rut]) throw new Error('Falta la clave del RUT en SII_CLAVES (sii-agent/.env).');
-    const headless = String(env.SII_HEADLESS ?? 'true').toLowerCase() !== 'false';
-    const carpeta = path.resolve(__dirname, '..', env.SII_CARPETA || 'descargas');
-    const archivo = await descargarLibro({ rut, clave: claves[rut], periodo, libro, carpeta, headless });
-    const parsed = parseRcv(fs.readFileSync(archivo, 'utf8'), path.basename(archivo));
-    log(`Descarga OK: ${parsed.docs.length} documentos de ${parsed.kind} (${parsed.period}). Archivo: ${archivo}`);
-    return;
-  }
   const ruta = path.resolve(__dirname, '..', '.env');
   if (!env.SII_TOKEN_AGENTE && env.SII_CODIGO_EMPAREJAMIENTO) {
-    // Primer arranque tras instalar: el código de un solo uso se canjea por el token propio de este PC.
     if (!env.SII_URL_SERVIDOR) throw new Error('Falta SII_URL_SERVIDOR en sii-agent/.env.');
-    env.SII_TOKEN_AGENTE = await emparejarAgente({ url: env.SII_URL_SERVIDOR, codigo: env.SII_CODIGO_EMPAREJAMIENTO, nombre: os.hostname(), ruta, actualizarEnv });
+    env.SII_TOKEN_AGENTE = await emparejarAgente({
+      url: env.SII_URL_SERVIDOR,
+      codigo: env.SII_CODIGO_EMPAREJAMIENTO,
+      nombre: os.hostname(),
+      ruta,
+      actualizarEnv,
+    });
     delete env.SII_CODIGO_EMPAREJAMIENTO;
-    log('PC emparejado con Cifrax. El código ya no está en .env.');
+    log('PC emparejado con Cifrax. El código de un solo uso se eliminó.');
   }
   const config = configurar(env);
   const servidor = crearServidor({ url: config.url, token: config.token });
@@ -183,7 +185,7 @@ async function main() {
   }
 }
 
-module.exports = { procesarTarea, normalizarRut, leerClaves, configurar, revisar, main };
+module.exports = { procesarTarea, normalizarRut, leerClaves, configurar, revisar };
 
 if (require.main === module) {
   main().catch((e) => {

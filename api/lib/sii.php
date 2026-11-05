@@ -49,7 +49,7 @@ function sii_rut_empresa(PDO $db, int $empresa): string {
 }
 
 function sii_tarea(PDO $db, int $id): ?array {
-    $st = $db->prepare('SELECT id, empresa_id, tipo, rut, periodo, libro, estado, mensaje, creado_en, actualizado_en FROM sii_tareas WHERE id = ?');
+    $st = $db->prepare('SELECT id, empresa_id, tipo, rut, periodo, libro, estado, mensaje, creado_por, creado_en, actualizado_en FROM sii_tareas WHERE id = ?');
     $st->execute([$id]);
     return $st->fetch() ?: null;
 }
@@ -89,11 +89,20 @@ function sii_listar(PDO $db, int $empresa): array {
 }
 
 /** Entrega hasta $maximo tareas pendientes al agente y las marca 'en_proceso'. Las que quedaron reservadas hace mucho vuelven a pendiente. */
-function sii_reclamar(PDO $db, int $maximo = 3): array {
+function sii_reclamar(PDO $db, int $maximo = 3, ?int $usuarioAgente = null): array {
     $ahora = sii_ahora();
     $limite = date('Y-m-d H:i:s', time() - SII_RECLAMO_MINUTOS * 60);
-    $db->prepare("UPDATE sii_tareas SET estado = 'pendiente', actualizado_en = ? WHERE estado = 'en_proceso' AND reclamado_en < ?")->execute([$ahora, $limite]);
-    $candidatas = $db->query("SELECT id FROM sii_tareas WHERE estado = 'pendiente' ORDER BY id")->fetchAll(PDO::FETCH_COLUMN);
+    if ($usuarioAgente !== null) {
+        $db->prepare("UPDATE sii_tareas SET estado = 'pendiente', actualizado_en = ? WHERE creado_por = ? AND estado = 'en_proceso' AND reclamado_en < ?")
+            ->execute([$ahora, $usuarioAgente, $limite]);
+        $st = $db->prepare("SELECT id FROM sii_tareas WHERE creado_por = ? AND estado = 'pendiente' ORDER BY id");
+        $st->execute([$usuarioAgente]);
+        $candidatas = $st->fetchAll(PDO::FETCH_COLUMN);
+    } else {
+        // Compatibilidad para llamadas internas antiguas. El endpoint siempre entrega el dueño del agente.
+        $db->prepare("UPDATE sii_tareas SET estado = 'pendiente', actualizado_en = ? WHERE estado = 'en_proceso' AND reclamado_en < ?")->execute([$ahora, $limite]);
+        $candidatas = $db->query("SELECT id FROM sii_tareas WHERE estado = 'pendiente' ORDER BY id")->fetchAll(PDO::FETCH_COLUMN);
+    }
     $reclamadas = [];
     foreach (array_slice($candidatas, 0, $maximo) as $id) {
         $st = $db->prepare("UPDATE sii_tareas SET estado = 'en_proceso', reclamado_en = ?, actualizado_en = ? WHERE id = ? AND estado = 'pendiente'");
@@ -106,8 +115,6 @@ function sii_reclamar(PDO $db, int $maximo = 3): array {
             'periodo' => $tarea['periodo'],
             'libro' => $tarea['libro'],
             'rut' => $tarea['tipo'] === 'datos_empresa' ? $tarea['rut'] : sii_rut_empresa($db, (int) $tarea['empresa_id']),
-            // La clave viaja solo al agente, con el token; las consultas de empresa nueva siguen usando el .env del PC.
-            'clave' => $tarea['tipo'] === 'rcv' ? sii_clave_descifrar($db, (int) $tarea['empresa_id']) : null,
         ];
     }
     return $reclamadas;
@@ -119,9 +126,10 @@ function sii_actualizar_estado(PDO $db, int $id, string $estado, string $mensaje
 }
 
 /** Guarda el libro que descargó el agente. El período, el libro y la empresa salen de la tarea, no del archivo. */
-function sii_importar(PDO $db, int $id, array $datos): int {
+function sii_importar(PDO $db, int $id, array $datos, ?int $usuarioAgente = null): int {
     $tarea = sii_tarea($db, $id);
     if (!$tarea || $tarea['estado'] !== 'en_proceso' || $tarea['tipo'] !== 'rcv') throw new SiiError('La tarea no está en proceso.');
+    if ($usuarioAgente !== null && (int) $tarea['creado_por'] !== $usuarioAgente) throw new SiiError('La tarea no pertenece a este agente.');
     try {
         if (($datos['period'] ?? null) !== $tarea['periodo']) {
             throw new SiiError('El archivo es del período ' . ($datos['period'] ?? 'desconocido') . ' y la tarea pide ' . $tarea['periodo'] . '.');
@@ -145,9 +153,10 @@ function sii_importar(PDO $db, int $id, array $datos): int {
 }
 
 /** El agente informa un fallo (clave incorrecta, SII caído, selector que cambió...). */
-function sii_fallar(PDO $db, int $id, string $mensaje): void {
+function sii_fallar(PDO $db, int $id, string $mensaje, ?int $usuarioAgente = null): void {
     $tarea = sii_tarea($db, $id);
     if (!$tarea || !in_array($tarea['estado'], ['pendiente', 'en_proceso'], true)) throw new SiiError('La tarea ya no está pendiente.');
+    if ($usuarioAgente !== null && (int) $tarea['creado_por'] !== $usuarioAgente) throw new SiiError('La tarea no pertenece a este agente.');
     sii_actualizar_estado($db, $id, 'error', $mensaje);
 }
 
@@ -163,6 +172,15 @@ function sii_token_configurado(): string {
 function sii_token_valido(string $recibido): bool {
     $esperado = sii_token_configurado();
     return $esperado !== '' && $recibido !== '' && hash_equals($esperado, $recibido);
+}
+
+/** Dueño opcional de un token compartido legado. No se aceptan tokens compartidos sin alcance explícito. */
+function sii_token_usuario_configurado(): int {
+    $env = getenv('ICONTADOR_SII_AGENT_USER_ID');
+    if (is_string($env) && ctype_digit($env) && (int) $env > 0) return (int) $env;
+    $config = is_file(dirname(__DIR__) . '/config.php') ? require dirname(__DIR__) . '/config.php' : [];
+    $usuario = is_array($config) ? ($config['sii_agente_usuario_id'] ?? 0) : 0;
+    return filter_var($usuario, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
 }
 
 /* ---------- Clave tributaria guardada cifrada por empresa ---------- */
@@ -223,10 +241,18 @@ function sii_clave_descifrar(PDO $db, int $empresa): ?string {
 }
 
 /** Acepta el token compartido de api/config.php (instalaciones anteriores) o el token propio de un agente emparejado. */
-function sii_autorizar_agente(PDO $db): void {
+function sii_autorizar_agente(PDO $db): int {
     $recibido = (string) ($_SERVER['HTTP_X_AGENTE_TOKEN'] ?? '');
     if ($recibido === '' && preg_match('/^Bearer\s+(.+)$/i', $_SERVER['HTTP_AUTHORIZATION'] ?? '', $m)) $recibido = $m[1];
-    if ($recibido !== '' && (sii_token_valido($recibido) || sii_agente_por_token($db, $recibido))) return;
+    if ($recibido !== '') {
+        $usuario = sii_agente_por_token($db, $recibido);
+        if ($usuario !== null) return $usuario;
+        if (sii_token_valido($recibido)) {
+            $usuario = sii_token_usuario_configurado();
+            if ($usuario > 0) return $usuario;
+            auth_json(403, ['error' => 'El token compartido no tiene un usuario asignado. Empareje este PC desde Cifrax.']);
+        }
+    }
     if (sii_token_configurado() === '' && sii_agentes_activos($db) === 0) {
         auth_json(503, ['error' => 'La sincronización con el SII no está configurada en el servidor (falta emparejar un agente).']);
     }
@@ -275,13 +301,13 @@ function sii_codigo_canjear(PDO $db, string $codigo, string $nombre): string {
 }
 
 /** Si el token pertenece a un agente activo, anota su último uso y devuelve true. */
-function sii_agente_por_token(PDO $db, string $token): bool {
-    $st = $db->prepare('SELECT id FROM sii_agentes WHERE token_hash = ? AND revocado_en IS NULL');
+function sii_agente_por_token(PDO $db, string $token): ?int {
+    $st = $db->prepare('SELECT id, usuario_id FROM sii_agentes WHERE token_hash = ? AND revocado_en IS NULL');
     $st->execute([hash('sha256', $token)]);
-    $id = $st->fetchColumn();
-    if ($id === false) return false;
-    $db->prepare('UPDATE sii_agentes SET ultimo_uso = ? WHERE id = ?')->execute([sii_ahora(), (int) $id]);
-    return true;
+    $agente = $st->fetch();
+    if (!$agente) return null;
+    $db->prepare('UPDATE sii_agentes SET ultimo_uso = ? WHERE id = ?')->execute([sii_ahora(), (int) $agente['id']]);
+    return (int) $agente['usuario_id'];
 }
 
 function sii_agentes_activos(PDO $db): int {
@@ -329,9 +355,10 @@ function sii_consulta_empresa(PDO $db, int $id, int $usuario): ?array {
 }
 
 /** El agente devuelve razón social y giro del contribuyente. */
-function sii_resultado_empresa(PDO $db, int $id, array $datos): array {
+function sii_resultado_empresa(PDO $db, int $id, array $datos, ?int $usuarioAgente = null): array {
     $tarea = sii_tarea($db, $id);
     if (!$tarea || $tarea['estado'] !== 'en_proceso' || $tarea['tipo'] !== 'datos_empresa') throw new SiiError('La consulta no está en proceso.');
+    if ($usuarioAgente !== null && (int) $tarea['creado_por'] !== $usuarioAgente) throw new SiiError('La consulta no pertenece a este agente.');
     $razon = trim((string) ($datos['razon_social'] ?? ''));
     if ($razon === '') {
         sii_actualizar_estado($db, $id, 'error', 'El SII no devolvió la razón social.');

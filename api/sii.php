@@ -51,14 +51,13 @@ try {
     }
     $empresa = empresa_actual($db);
     if ($metodo === 'GET') {
-        responder(200, ['tareas' => sii_listar($db, $empresa), 'clave_guardada' => sii_clave_guardada($db, $empresa)]);
+        responder(200, ['tareas' => sii_listar($db, $empresa)]);
     }
     if ($metodo === 'POST') {
         if (stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== 0) responder(415, ['error' => 'Se espera JSON.']);
         if (!is_array($entrada)) responder(400, ['error' => 'JSON inválido.']);
         if (($entrada['tipo'] ?? '') === 'clave') {
-            sii_clave_guardar($db, $empresa, (string) ($entrada['clave'] ?? ''));
-            responder(200, ['clave_guardada' => sii_clave_guardada($db, $empresa)]);
+            responder(410, ['error' => 'El proyecto no almacena Claves Tributarias. Usa solo el mecanismo indicado por el canal autorizado del SII.']);
         }
         responder(200, sii_crear($db, $empresa, (int) $usuario['id'], $entrada['periodo'] ?? null, $entrada['libros'] ?? null));
     }

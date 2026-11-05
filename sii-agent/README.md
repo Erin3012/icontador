@@ -1,22 +1,19 @@
-# Agente SII: sincronización del RCV desde tu PC
+# Prototipo de integración SII (deshabilitado)
 
-Cifrax corre en un hosting compartido (cPanel, PHP y MySQL) donde no se puede instalar Playwright. Por eso el navegador corre en **tu PC**: este agente consulta Cifrax, inicia sesión en el SII con tu clave tributaria, descarga el Registro de Compras y Ventas (RCV) del período pedido y lo envía de vuelta a Cifrax, que lo guarda igual que una importación manual.
+El usuario confirmó el 5 de noviembre de 2026 que el SII autorizó un canal técnico. Aún falta incorporar al proyecto la especificación del canal y adaptar el agente. Por eso la automatización sigue deshabilitada y la importación manual de CSV oficiales continúa disponible en RCV.
 
-- La **clave tributaria se guarda cifrada en el servidor**, por empresa. Se escribe en RCV, en *Clave tributaria del SII*. El servidor la entrega al agente solo al reclamar una tarea de esa empresa, y el agente no la escribe en disco ni en el registro.
-- El agente solo ve las tareas de las empresas a las que tienes acceso en Cifrax (el servidor filtra por empresa y rol).
-- Hoy sincroniza **RCV de compras y ventas**. Honorarios queda para después.
+- Cuando se implemente el canal, la autenticación seguirá su especificación. El agente actual no solicita ni guarda credenciales del SII.
+- El adaptador de autenticación dependerá de la especificación recibida; no se debe asumir que el canal usa Clave Tributaria.
+- Las rutas automáticas no se ejecutan mientras `src/sii.js` mantiene el canal deshabilitado.
 
-## Cómo funciona
+El agente no consulta la cola mientras el adaptador está deshabilitado. Para importar RCV, descarga los archivos desde la pantalla oficial del SII y cárgalos en la vista RCV.
 
-1. En Cifrax, en **RCV**, eliges un período, marcas Compras, Ventas o ambos y pulsas **Sincronizar SII**. Eso crea una tarea pendiente.
-2. El agente, que corre en tu PC, revisa las tareas cada minuto (configurable) y reclama las pendientes.
-3. Abre Chromium, entra al SII, descarga el detalle del libro, valida que sea el período y el libro pedidos y lo envía a Cifrax.
-4. Cifrax guarda los documentos y la tarea pasa a **completada**. Si algo falla (clave incorrecta, el SII no responde, un archivo de otro RUT), la tarea queda en **error** con el motivo.
+La inspección visual del portal y de la pantalla de acceso, realizada con un perfil de navegador temporal, está documentada en [`INSPECCION-SII.md`](./INSPECCION-SII.md). Se puede repetir con `node .\tools\inspect-sii-ui.cjs`; no inicia sesión ni descarga información tributaria.
 
 ## Requisitos
 
 - Node.js 18 o superior.
-- El token del agente configurado en el servidor (ver abajo).
+- Un agente emparejado a la cuenta de usuario correspondiente. La integración no se activa hasta configurar el canal autorizado.
 
 ## Instalación (una vez)
 
@@ -30,62 +27,29 @@ copy .env.example .env
 Luego edita `.env`:
 
 - `SII_URL_SERVIDOR`: la dirección de Cifrax, por ejemplo `https://qlc.cl`.
-- `SII_CODIGO_EMPAREJAMIENTO`: el código de un solo uso que generas en Cifrax (RCV, *Vincular este PC*). Al primer arranque el agente lo canjea por su token propio, lo guarda en `SII_TOKEN_AGENTE` y borra el código. Vence en 10 minutos.
-- `SII_TOKEN_AGENTE`: lo llena el emparejamiento. Si lo configuras a mano, usa el mismo valor que `sii_agente_token` en `api/config.php` del servidor.
-- `SII_CLAVES` (opcional): clave por RUT para casos sin clave guardada en Cifrax, como la consulta de datos de una empresa nueva. Si la empresa tiene clave guardada, esta no se usa.
+- `SII_CODIGO_EMPAREJAMIENTO`: código temporal generado por Cifrax. El agente lo canjea por un token exclusivo de este PC y elimina el código del `.env`.
+- `SII_TOKEN_AGENTE`: token exclusivo que el agente guarda al emparejarse.
 
-Para crear el token en el servidor, usa un valor largo y aleatorio, por ejemplo con `php -r "echo bin2hex(random_bytes(24));"`, y ponlo en `api/config.php`:
+No copies la Clave Tributaria a `.env` ni a argumentos. El adaptador aún no solicita credenciales porque no sabemos qué autenticación requiere el canal autorizado.
 
-```php
-'sii_agente_token' => 'el-token-generado',
-```
+## Preparación futura
 
-(También sirve la variable de entorno `ICONTADOR_SII_TOKEN`.)
-
-## Uso
-
-Para dejarlo corriendo mientras trabajas:
+No ejecutes el agente todavía. Cuando se habilite un canal autorizado, se podrá iniciar con:
 
 ```powershell
 npm start
 ```
 
-Para probar una sola vez, por ejemplo después de pedir una sincronización:
+## Estado de la integración
 
-```powershell
-npm run una-vez
-```
+La consulta pública de situación tributaria de terceros permite consultar razón social y giro con el RUT, sin iniciar sesión; el SII la documenta como consulta abierta. En cambio, el Web Service que entrega identificación y actividades económicas está descrito para un convenio institucional: requiere perfil asignado e IP autorizada por el SII. No es una API general para conectar cualquier hosting.
 
-La primera vez conviene ver la ventana del navegador: pon `SII_HEADLESS=false` en `.env`. Si el SII pide un CAPTCHA o un paso extra, resuélvelo en esa ventana.
+`src/sii.js` bloquea las consultas automáticas y no automatiza la interfaz del SII. El canal fue autorizado según lo informado por el titular; para implementarlo falta su documentación técnica y validar que cada respuesta corresponda al RUT y período solicitados. La consulta pública de terceros y la descarga manual de CSV se mantienen como alternativas oficiales.
 
-Cada CSV descargado se borra después de importarlo. Para conservarlos, pon `SII_CONSERVAR=true`.
-
-## Explorar la pantalla del SII después del login
-
-Para decidir qué datos extraer, el agente puede guardar lo que ve tras iniciar sesión:
-
-```powershell
-npm run explorar
-```
-
-Genera un JSON en `descargas/` con los enlaces, campos y texto visible de la página. Es información tributaria: queda solo en tu PC, no se envía a Cifrax y no se sube a git. Revísalo antes de compartirlo.
-
-## Pruebas
-
-```powershell
-npm test
-```
-
-Las pruebas no abren el navegador ni llaman al SII: verifican la lectura del `.env`, la validación de RUT y período, y el envío al servidor con datos de prueba.
-
-En el servidor, `php tools/test-sii-api.php` prueba la cola de tareas, el reclamo del agente y la importación.
-
-## Qué revisar al primer uso
-
-Las direcciones del SII, los nombres de los campos de inicio de sesión y el selector de período están agrupados en `src/sii.js`, en el objeto `SII`. No se pudieron verificar contra el sitio real al escribir el agente (no hay acceso al SII desde el entorno de desarrollo), y **el SII cambia sus pantallas**: si una tarea falla con "No se pudo iniciar sesión" o "No se pudo descargar el RCV", abre `src/sii.js` con `SII_HEADLESS=false` y ajusta el selector que no encuentra.
+Fuentes oficiales: [consulta de terceros](https://www.sii.cl/como_se_hace_para/situacion_trib_terceros.html), [SII: servicios y consultas disponibles](https://www.sii.cl/ccp/consultas_sit_trib.html), [Resolución SII 129/2019, convenio SENCE y perfiles/IP autorizadas](https://www.sii.cl/normativa_legislacion/resoluciones/2019/reso129.pdf).
 
 ## Seguridad
 
-- `.env` y `descargas/` están en `.gitignore`: no se suben a git.
-- El token del agente da acceso a las tareas de sincronización y a la importación del RCV. Si se filtra, cambia `sii_agente_token` en el servidor y en `.env`.
+- `.env` y `descargas/` están en `.gitignore`: no se suben a git. `.env` contiene la URL, el token propio del agente y, durante el emparejamiento, un código temporal; nunca la Clave Tributaria.
+- El token de cada agente solo debe acceder a tareas creadas por el usuario al que fue emparejado. Si se filtra, revoca ese PC desde Cifrax.
 - Los endpoints del agente están en `api/sii-agente.php`; no usan sesión y exigen el token. El resto de la API exige sesión.
