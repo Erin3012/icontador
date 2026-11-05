@@ -24,7 +24,7 @@ Sin configuración usa SQLite en `data/icontador.sqlite`. Para MySQL, copia `api
 
 ## Integración con el SII
 
-El titular confirmó que el SII autorizó un canal técnico. La sincronización automática y la consulta de empresa siguen deshabilitadas mientras incorporamos la especificación técnica de ese canal. El estado se documenta en [`sii-agent/README.md`](sii-agent/README.md); mientras tanto, descarga los CSV oficiales e impórtalos en **RCV**.
+El agente local usa Playwright para iniciar sesión en el SII y descargar compras o ventas del período solicitado desde **RCV**. Empareja el PC desde la pantalla RCV de qlc.cl y mantén `npm start` abierto en una terminal interactiva: la Clave Tributaria se solicita oculta al procesar cada tarea y no se guarda en el servidor ni en archivos. Consulta la instalación y el flujo en [`sii-agent/README.md`](sii-agent/README.md). La consulta automática de datos de empresa permanece deshabilitada.
 
 ## Boletas de honorarios
 

@@ -39,7 +39,7 @@ El script usa una instancia de Chrome con contexto temporal y solo resume elemen
 
 ## Límites y siguiente paso
 
-Esta inspección documenta la navegación pública, no el canal técnico autorizado. El titular informó el 5 de noviembre de 2026 que recibió autorización del SII; falta incorporar al repositorio la especificación técnica y el alcance para adaptar y habilitar la integración. Hasta entonces, el agente mantiene bloqueadas las consultas automáticas y se usa la exportación oficial/manual del RCV.
+Esta inspección se realizó sin iniciar sesión y documenta solo la navegación pública. La descarga Playwright del RCV se implementa en `src/sii.js` según la autorización que informó el titular. La consulta automática de datos de empresa continúa bloqueada; para RCV se valida cada archivo por empresa, libro y período antes de importarlo. La importación manual también sigue disponible.
 
 - [Términos de uso del sitio web SII](https://www.sii.cl/sobre_el_sii/terminos_sitio_web.html)
 - [Registro de Compras y Ventas: página de servicios online](https://www.sii.cl/servicios_online/1039-3256.html)

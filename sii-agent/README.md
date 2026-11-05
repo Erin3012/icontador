@@ -1,55 +1,55 @@
-# Prototipo de integración SII (deshabilitado)
+# Agente SII para RCV (Playwright)
 
-El usuario confirmó el 5 de noviembre de 2026 que el SII autorizó un canal técnico. Aún falta incorporar al proyecto la especificación del canal y adaptar el agente. Por eso la automatización sigue deshabilitada y la importación manual de CSV oficiales continúa disponible en RCV.
-
-- Cuando se implemente el canal, la autenticación seguirá su especificación. El agente actual no solicita ni guarda credenciales del SII.
-- El adaptador de autenticación dependerá de la especificación recibida; no se debe asumir que el canal usa Clave Tributaria.
-- Las rutas automáticas no se ejecutan mientras `src/sii.js` mantiene el canal deshabilitado.
-
-El agente no consulta la cola mientras el adaptador está deshabilitado. Para importar RCV, descarga los archivos desde la pantalla oficial del SII y cárgalos en la vista RCV.
-
-La inspección visual del portal y de la pantalla de acceso, realizada con un perfil de navegador temporal, está documentada en [`INSPECCION-SII.md`](./INSPECCION-SII.md). Se puede repetir con `node .\tools\inspect-sii-ui.cjs`; no inicia sesión ni descarga información tributaria.
+El agente corre en tu PC, recibe solicitudes desde la pantalla RCV de qlc.cl, inicia sesión en el SII con Playwright, descarga el detalle de compras o ventas y lo devuelve a la empresa y período seleccionados.
 
 ## Requisitos
 
 - Node.js 18 o superior.
-- Un agente emparejado a la cuenta de usuario correspondiente. La integración no se activa hasta configurar el canal autorizado.
+- Una terminal interactiva de Windows abierta mientras el agente está en uso.
+- El PC emparejado con el mismo usuario de qlc.cl que crea la solicitud.
 
-## Instalación (una vez)
+## Preparación
+
+Desde PowerShell, en la carpeta del proyecto:
 
 ```powershell
-cd icontador\sii-agent
+cd C:\Users\local1\Documents\ChatGPT\icontador\sii-agent
 npm install
 npx playwright install chromium
-copy .env.example .env
+Copy-Item .env.example .env
 ```
 
-Luego edita `.env`:
+En qlc.cl abre **RCV → Vincular este PC → Generar código**. Copia el código temporal a `.env` en `SII_CODIGO_EMPAREJAMIENTO`. El agente lo canjea al iniciar, lo elimina del archivo y guarda el token propio de este PC. El código vence en 10 minutos.
 
-- `SII_URL_SERVIDOR`: la dirección de Cifrax, por ejemplo `https://qlc.cl`.
-- `SII_CODIGO_EMPAREJAMIENTO`: código temporal generado por Cifrax. El agente lo canjea por un token exclusivo de este PC y elimina el código del `.env`.
-- `SII_TOKEN_AGENTE`: token exclusivo que el agente guarda al emparejarse.
+No guardes la Clave Tributaria en `.env`, archivos ni argumentos.
 
-No copies la Clave Tributaria a `.env` ni a argumentos. El adaptador aún no solicita credenciales porque no sabemos qué autenticación requiere el canal autorizado.
-
-## Preparación futura
-
-No ejecutes el agente todavía. Cuando se habilite un canal autorizado, se podrá iniciar con:
+## Ejecutar
 
 ```powershell
 npm start
 ```
 
-## Estado de la integración
+Deja esa ventana de PowerShell abierta. Desde qlc.cl, en **RCV**, elige el período y los libros y pulsa **Sincronizar SII**. El agente pedirá en la terminal la Clave Tributaria de la empresa; se escribe sin mostrar caracteres y se usa solo en memoria para iniciar sesión. Si el SII presenta un paso adicional, configura `SII_HEADLESS=false` en `.env` para ver la ventana de Playwright.
 
-La consulta pública de situación tributaria de terceros permite consultar razón social y giro con el RUT, sin iniciar sesión; el SII la documenta como consulta abierta. En cambio, el Web Service que entrega identificación y actividades económicas está descrito para un convenio institucional: requiere perfil asignado e IP autorizada por el SII. No es una API general para conectar cualquier hosting.
+La sesión se cierra al terminar cada descarga. El agente valida tipo de libro, período y RUT antes de enviar los documentos a qlc.cl. Los CSV temporales se borran después de importarse, salvo que `SII_CONSERVAR=true`.
 
-`src/sii.js` bloquea las consultas automáticas y no automatiza la interfaz del SII. El canal fue autorizado según lo informado por el titular; para implementarlo falta su documentación técnica y validar que cada respuesta corresponda al RUT y período solicitados. La consulta pública de terceros y la descarga manual de CSV se mantienen como alternativas oficiales.
+## Configuración
 
-Fuentes oficiales: [consulta de terceros](https://www.sii.cl/como_se_hace_para/situacion_trib_terceros.html), [SII: servicios y consultas disponibles](https://www.sii.cl/ccp/consultas_sit_trib.html), [Resolución SII 129/2019, convenio SENCE y perfiles/IP autorizadas](https://www.sii.cl/normativa_legislacion/resoluciones/2019/reso129.pdf).
+`.env` acepta estas opciones:
 
-## Seguridad
+- `SII_URL_SERVIDOR=https://qlc.cl`
+- `SII_CODIGO_EMPAREJAMIENTO`: código temporal del primer inicio.
+- `SII_TOKEN_AGENTE`: lo escribe automáticamente el emparejamiento.
+- `SII_HEADLESS=true`: usa Playwright sin mostrar el navegador.
+- `SII_INTERVALO_SEG=60`: intervalo para revisar solicitudes nuevas.
+- `SII_CARPETA=descargas`: ubicación de archivos temporales.
+- `SII_CONSERVAR=false`: borra los CSV tras importarlos.
 
-- `.env` y `descargas/` están en `.gitignore`: no se suben a git. `.env` contiene la URL, el token propio del agente y, durante el emparejamiento, un código temporal; nunca la Clave Tributaria.
-- El token de cada agente solo debe acceder a tareas creadas por el usuario al que fue emparejado. Si se filtra, revoca ese PC desde Cifrax.
-- Los endpoints del agente están en `api/sii-agente.php`; no usan sesión y exigen el token. El resto de la API exige sesión.
+El agente requiere una terminal interactiva para pedir la clave; no uses el lanzador oculto ni el inicio automático del instalador mientras la autenticación dependa de este ingreso seguro.
+
+## Seguridad y alcance
+
+- La clave no se guarda en qlc.cl, `.env`, archivos, argumentos ni registros.
+- El token del agente solo permite reclamar tareas creadas por el usuario que emparejó el PC. Puedes revocarlo desde RCV.
+- La automatización de datos de empresa continúa deshabilitada; este agente procesa solamente compras y ventas del RCV.
+- La importación manual de CSV oficiales sigue disponible.

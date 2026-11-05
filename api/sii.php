@@ -1,7 +1,6 @@
 <?php
 // Sincronización del RCV con el SII: la web encola tareas y muestra su estado. El agente del PC las ejecuta (api/sii-agente.php).
-//   GET  api/sii.php                 -> tareas de RCV recientes de la empresa elegida y si hay clave guardada
-//   POST api/sii.php  {tipo:"clave", clave} -> guarda (cifrada) la clave tributaria de la empresa; vacía la borra
+//   GET  api/sii.php                 -> tareas de RCV recientes de la empresa elegida
 //   POST api/sii.php  {periodo, libros:["compras","ventas"]}  -> encola la descarga del RCV
 //   POST api/sii.php  {tipo:"datos_empresa", rut}             -> pide razón social y giro del RUT (no requiere empresa)
 //   GET  api/sii.php?tarea=ID        -> estado y datos de esa consulta (solo quien la pidió)

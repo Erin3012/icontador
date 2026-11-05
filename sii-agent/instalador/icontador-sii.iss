@@ -29,20 +29,11 @@ UninstallDisplayName={#AppName}
 [Languages]
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
-[Tasks]
-Name: "iniciar"; Description: "Iniciar el agente al entrar a Windows (recomendado)"; GroupDescription: "Opciones:"; Flags: checkedonce
-
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 
-[Dirs]
-Name: "{app}\logs"
-
 [Run]
-Filename: "{sys}\wscript.exe"; Parameters: """{app}\lanzador.vbs"""; Flags: runhidden nowait; Description: "Iniciar el agente ahora"; Tasks: iniciar
-
-[UninstallRun]
-Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /F /TN ""Icontador SII Agente"""; Flags: runhidden; RunOnceId: "QuitarTarea"
+Filename: "{sys}\wscript.exe"; Parameters: """{app}\lanzador.vbs"""; Flags: postinstall nowait; Description: "Iniciar el agente en una terminal"
 
 [Code]
 var
@@ -77,8 +68,7 @@ end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
 var
-  url, contenido, lanzador, params: String;
-  codigo: Integer;
+  url, contenido: String;
 begin
   if CurStep = ssPostInstall then
   begin
@@ -91,12 +81,5 @@ begin
                  'SII_HEADLESS=true' + #13#10;
     SaveStringToFile(ExpandConstant('{app}\sii-agent\.env'), contenido, False);
 
-    if IsTaskSelected('iniciar') then
-    begin
-      lanzador := ExpandConstant('{app}\lanzador.vbs');
-      params := '/Create /F /TN "Icontador SII Agente" /SC ONLOGON /RL LIMITED /TR "wscript.exe \"' + lanzador + '\""';
-      if not Exec(ExpandConstant('{sys}\schtasks.exe'), params, '', SW_HIDE, ewWaitUntilTerminated, codigo) or (codigo <> 0) then
-        MsgBox('No se pudo crear la tarea de inicio automático. El agente igual se puede iniciar con lanzador.vbs.', mbInformation, MB_OK);
-    end;
   end;
 end;

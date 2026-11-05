@@ -1,9 +1,8 @@
 <?php
 declare(strict_types=1);
 /* Sincronización del RCV con el SII a través del agente local (sii-agent/, Playwright en el PC del usuario).
-   La clave tributaria se guarda cifrada (AES-256-GCM) con una llave que vive en api/config.php, fuera del código.
-   El servidor encola tareas (empresa, período, libro), entrega las pendientes al agente con un token secreto,
-   junto con la clave de esa empresa, y recibe el RCV ya leído para guardarlo con rcv_guardar(). */
+   El servidor encola tareas (empresa, período, libro), entrega al agente emparejado solo las tareas de su dueño,
+   y recibe el RCV ya leído para guardarlo con rcv_guardar(). La clave tributaria no se guarda ni se envía al servidor. */
 require_once __DIR__ . '/rcv.php';
 
 const SII_LIBROS_SYNC = ['compras', 'ventas'];

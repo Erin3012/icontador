@@ -141,18 +141,29 @@ async function revisar({ servidor, config, descargar = descargarLibro, consultar
     if (fn.canalSiiHabilitado === false) envuelta.canalSiiHabilitado = false;
     return envuelta;
   };
-  for (const tarea of tareas) {
-    await procesarTarea({
-      servidor, tarea, solicitarClave, carpeta: config.carpeta, conservar: config.conservar, log,
-      descargar: conHeadless(descargar),
-      consultar: conHeadless(consultar),
-    });
+  const clavesDeEstaRonda = new Map();
+  const solicitarClaveUnaVez = async (rut) => {
+    const clave = normalizarRut(rut);
+    if (!clavesDeEstaRonda.has(clave)) clavesDeEstaRonda.set(clave, await solicitarClave(rut));
+    return clavesDeEstaRonda.get(clave);
+  };
+  try {
+    for (const tarea of tareas) {
+      await procesarTarea({
+        servidor, tarea, solicitarClave: solicitarClaveUnaVez, carpeta: config.carpeta, conservar: config.conservar, log,
+        descargar: conHeadless(descargar),
+        consultar: conHeadless(consultar),
+      });
+    }
+  } finally {
+    clavesDeEstaRonda.clear();
   }
   return tareas.length;
 }
 
 async function main() {
   const env = { ...cargarEnv(path.resolve(__dirname, '..', '.env')), ...process.env };
+  if (env.SII_CANAL) process.env.SII_CANAL = env.SII_CANAL;
   const log = (texto) => console.log(`[${new Date().toISOString()}] ${texto}`);
   const ruta = path.resolve(__dirname, '..', '.env');
   if (!env.SII_TOKEN_AGENTE && env.SII_CODIGO_EMPAREJAMIENTO) {
