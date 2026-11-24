@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRM - Gestión de Contactos y Ventas</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
     <style>
         * {
             margin: 0;
@@ -253,6 +252,37 @@
                 font-size: 22px;
             }
         }
+        .btn-mini {
+            border: 1px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 4px;
+            padding: 4px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+
+        .btn-mini.peligro {
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+
+        .btn-mini:disabled {
+            opacity: .6;
+            cursor: wait;
+        }
+
+        .badge-vencida {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        td select {
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -263,10 +293,11 @@
         </header>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="cambiarTab('dashboard')">📊 Dashboard</button>
-            <button class="tab-btn" onclick="cambiarTab('contactos')">👤 Contactos</button>
-            <button class="tab-btn" onclick="cambiarTab('oportunidades')">🎯 Oportunidades</button>
-            <button class="tab-btn" onclick="cambiarTab('tareas')">✓ Tareas</button>
+            <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+            <button class="tab-btn" data-tab="contactos">👤 Contactos</button>
+            <button class="tab-btn" data-tab="interacciones">💬 Interacciones</button>
+            <button class="tab-btn" data-tab="oportunidades">🎯 Oportunidades</button>
+            <button class="tab-btn" data-tab="tareas">✓ Tareas</button>
         </div>
 
         <div class="tab-content active" id="tab-dashboard">
@@ -279,27 +310,75 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="nombre">Nombre</label>
-                        <input type="text" id="nombre" placeholder="Nombre completo">
+                        <input type="text" id="nombre" maxlength="255" placeholder="Nombre completo">
+                    </div>
+                    <div class="form-group">
+                        <label for="tipo-contacto">Tipo</label>
+                        <select id="tipo-contacto">
+                            <option value="cliente">Cliente</option>
+                            <option value="prospecto">Prospecto</option>
+                            <option value="proveedor">Proveedor</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" id="email" placeholder="email@ejemplo.com">
+                        <input type="email" id="email" maxlength="255" placeholder="email@ejemplo.com">
                     </div>
                     <div class="form-group">
                         <label for="telefono">Teléfono</label>
-                        <input type="tel" id="telefono" placeholder="+56912345678">
+                        <input type="tel" id="telefono" maxlength="20" placeholder="+56912345678">
                     </div>
                     <div class="form-group">
                         <label for="empresa">Empresa</label>
-                        <input type="text" id="empresa" placeholder="Nombre empresa">
+                        <input type="text" id="empresa" maxlength="255" placeholder="Nombre empresa">
                     </div>
                 </div>
-                <button class="btn-primary" onclick="crearContacto()">✓ Crear Contacto</button>
+                <button class="btn-primary" id="btn-contacto">✓ Crear Contacto</button>
                 <div id="msg-contacto"></div>
             </div>
 
             <h2 style="margin-bottom: 20px;">Contactos Activos</h2>
             <div class="table-container" id="tabla-contactos"></div>
+        </div>
+
+        <div class="tab-content" id="tab-interacciones">
+            <div class="form-section">
+                <h2>Registrar Interacción</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="contacto-int">Contacto</label>
+                        <select id="contacto-int"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipo-int">Tipo</label>
+                        <select id="tipo-int">
+                            <option value="llamada">Llamada</option>
+                            <option value="email">Email</option>
+                            <option value="reunion">Reunión</option>
+                            <option value="mensaje">Mensaje</option>
+                            <option value="visita">Visita</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="resultado-int">Resultado</label>
+                        <input type="text" id="resultado-int" maxlength="255" placeholder="Ej.: Interesado, pide cotización">
+                    </div>
+                    <div class="form-group">
+                        <label for="duracion-int">Duración (minutos)</label>
+                        <input type="number" id="duracion-int" min="0" max="1440" step="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="descripcion-int">Descripción</label>
+                    <textarea id="descripcion-int" rows="3" maxlength="2000" placeholder="Qué se habló o se acordó"></textarea>
+                </div>
+                <button class="btn-primary" id="btn-interaccion">✓ Registrar Interacción</button>
+                <div id="msg-int"></div>
+            </div>
+
+            <h2 style="margin-bottom: 20px;">Historial del Contacto</h2>
+            <div class="table-container" id="tabla-interacciones"></div>
         </div>
 
         <div class="tab-content" id="tab-oportunidades">
@@ -312,18 +391,22 @@
                     </div>
                     <div class="form-group">
                         <label for="nombre-opp">Nombre de Oportunidad</label>
-                        <input type="text" id="nombre-opp" placeholder="Ej: Venta de software">
+                        <input type="text" id="nombre-opp" maxlength="255" placeholder="Ej: Venta de software">
                     </div>
                     <div class="form-group">
                         <label for="monto-opp">Monto Estimado (CLP)</label>
-                        <input type="number" id="monto-opp" min="0">
+                        <input type="number" id="monto-opp" min="0" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="etapa-opp">Etapa</label>
+                        <select id="etapa-opp"></select>
                     </div>
                     <div class="form-group">
                         <label for="fecha-opp">Fecha Cierre Estimada</label>
                         <input type="date" id="fecha-opp">
                     </div>
                 </div>
-                <button class="btn-primary" onclick="crearOportunidad()">✓ Crear Oportunidad</button>
+                <button class="btn-primary" id="btn-opp">✓ Crear Oportunidad</button>
                 <div id="msg-opp"></div>
             </div>
 
@@ -332,327 +415,445 @@
         </div>
 
         <div class="tab-content" id="tab-tareas">
+            <div class="form-section">
+                <h2>Crear Tarea</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="contacto-tarea">Contacto</label>
+                        <select id="contacto-tarea"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="descripcion-tarea">Descripción</label>
+                        <input type="text" id="descripcion-tarea" maxlength="1000" placeholder="Ej.: Enviar cotización">
+                    </div>
+                    <div class="form-group">
+                        <label for="fecha-tarea">Vence</label>
+                        <input type="date" id="fecha-tarea">
+                    </div>
+                    <div class="form-group">
+                        <label for="prioridad-tarea">Prioridad</label>
+                        <select id="prioridad-tarea">
+                            <option value="alta">Alta</option>
+                            <option value="media" selected>Media</option>
+                            <option value="baja">Baja</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-primary" id="btn-tarea">✓ Crear Tarea</button>
+                <div id="msg-tarea"></div>
+            </div>
+
             <h2 style="margin-bottom: 20px;">Tareas Pendientes</h2>
             <div class="table-container" id="tabla-tareas"></div>
         </div>
     </div>
 
     <script>
+        const API = '/api/crm.php';
+        const ETAPAS = { prospecto: 'Prospecto', contacto_inicial: 'Contacto inicial', propuesta: 'Propuesta', negociacion: 'Negociación', cierre: 'Cierre' };
+        const TIPOS = { cliente: 'Cliente', prospecto: 'Prospecto', proveedor: 'Proveedor' };
+        const PRIORIDADES = ['alta', 'media', 'baja'];
+        let contactos = [];
+        let tokenCsrf = null;
+
+        function esc(valor) {
+            return String(valor ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        // Fecha local AAAA-MM-DD (valueAsDate usaría UTC y de noche ya sería el día siguiente en Chile)
+        function fechaLocal(dias = 0) {
+            const d = new Date();
+            d.setDate(d.getDate() + dias);
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+
+        function formatearCLP(valor) {
+            return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(valor || 0);
+        }
+
+        function formatearFecha(fecha) {
+            const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(fecha ?? ''));
+            return m ? m[3] + '-' + m[2] + '-' + m[1] : '-';
+        }
+
+        // --- Acceso a la API
+        async function leer(accion, parametros = {}) {
+            const consulta = new URLSearchParams({ accion, ...parametros });
+            const response = await fetch(API + '?' + consulta);
+            const resultado = await response.json().catch(() => ({}));
+            if (!response.ok || !resultado.success) throw new Error(resultado.error || 'Error inesperado del servidor (HTTP ' + response.status + ').');
+            return resultado;
+        }
+
+        async function escribir(accion, cuerpo) {
+            for (let intento = 0; intento < 2; intento++) {
+                if (!tokenCsrf) {
+                    const t = await fetch(API + '?csrf=1', { cache: 'no-store' });
+                    const dt = await t.json().catch(() => ({}));
+                    if (!t.ok || !dt.csrf) throw new Error(dt.error || 'No se pudo validar la sesión.');
+                    tokenCsrf = dt.csrf;
+                }
+                const response = await fetch(API + '?accion=' + accion, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': tokenCsrf },
+                    body: JSON.stringify(cuerpo),
+                });
+                const resultado = await response.json().catch(() => ({}));
+                if (response.status === 403 && intento === 0) { tokenCsrf = null; continue; }
+                if (!response.ok || !resultado.success) throw new Error(resultado.error || 'Error inesperado del servidor (HTTP ' + response.status + ').');
+                return resultado;
+            }
+        }
+
+        function mensaje(id, texto, ok) {
+            document.getElementById(id).innerHTML = '<div class="' + (ok ? 'success-message' : 'error-message') + '">' + (ok ? '✓ ' : '❌ ') + esc(texto) + '</div>';
+        }
+
+        // Ejecuta una operación de escritura con el botón bloqueado y muestra el resultado
+        async function operar(botonId, msgId, tarea) {
+            const boton = document.getElementById(botonId);
+            boton.disabled = true;
+            try {
+                await tarea();
+            } catch (error) {
+                mensaje(msgId, error.message, false);
+            } finally {
+                boton.disabled = false;
+            }
+        }
+
+        // Acciones por fila (completar, ganada, perdida, cambio de etapa): una sola petición a la vez por elemento, para que un doble clic
+        // no envíe dos veces la operación (la segunda respondería "ya no está pendiente" aunque la primera haya funcionado).
+        const enCurso = new Set();
+        async function conBloqueo(clave, elemento, tarea) {
+            if (enCurso.has(clave)) return;
+            enCurso.add(clave);
+            elemento.disabled = true;
+            try {
+                await tarea();
+            } finally {
+                enCurso.delete(clave);
+                elemento.disabled = false;
+            }
+        }
+
+        // --- Pestañas
+        function cambiarTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
+            document.getElementById('tab-' + tab).classList.add('active');
+            ['msg-contacto', 'msg-int', 'msg-opp', 'msg-tarea'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+            if (tab === 'dashboard') cargarDashboard();
+        }
+
+        // --- Dashboard
+        async function cargarDashboard() {
+            try {
+                mostrarDashboard((await leer('dashboard')).data);
+            } catch (error) {
+                document.getElementById('contenido-dashboard').innerHTML = '<div class="error-message">❌ ' + esc(error.message) + '</div>';
+            }
+        }
+
+        function filaOportunidad(o) {
+            return '<tr><td>' + esc(o.nombre) + '</td><td>' + esc(o.contacto_nombre) + '</td><td class="text-right currency">' + formatearCLP(o.monto_estimado)
+                + '</td><td>' + esc(ETAPAS[o.etapa] || o.etapa) + '</td><td>' + formatearFecha(o.fecha_cierre_estimada) + '</td></tr>';
+        }
+
+        function insigniaPrioridad(t) {
+            const prioridad = PRIORIDADES.includes(t.prioridad) ? t.prioridad : 'media';
+            return '<span class="badge badge-' + prioridad + '">' + esc(prioridad) + '</span>' + (t.vencida ? ' <span class="badge badge-vencida">vencida</span>' : '');
+        }
+
+        function mostrarDashboard(datos) {
+            const proximas = datos.oportunidades.slice(0, 5);
+            const tareas = datos.tareas.slice(0, 5);
+            document.getElementById('contenido-dashboard').innerHTML = `
+                <div class="kpi-grid">
+                    <div class="kpi-card"><div class="label">Clientes Totales</div><div class="value">${Number(datos.clientes_totales)}</div></div>
+                    <div class="kpi-card"><div class="label">Oportunidades Abiertas</div><div class="value">${Number(datos.oportunidades_abiertas)}</div></div>
+                    <div class="kpi-card"><div class="label">Valor Esperado</div><div class="value">${formatearCLP(datos.valor_esperado)}</div></div>
+                    <div class="kpi-card"><div class="label">Tareas Pendientes</div><div class="value">${Number(datos.tareas_pendientes)}</div></div>
+                    <div class="kpi-card"><div class="label">Tareas Vencidas</div><div class="value">${Number(datos.tareas_vencidas)}</div></div>
+                    <div class="kpi-card"><div class="label">Interacciones Hoy</div><div class="value">${Number(datos.interacciones_hoy)}</div></div>
+                </div>
+
+                <h2 style="margin-bottom: 20px; color: #333;">Próximas Oportunidades</h2>
+                <div class="table-container"><table>
+                    <thead><tr><th>Nombre</th><th>Contacto</th><th class="text-right">Monto</th><th>Etapa</th><th>Fecha Cierre</th></tr></thead>
+                    <tbody>${proximas.length ? proximas.map(filaOportunidad).join('') : '<tr><td colspan="5">Sin oportunidades abiertas</td></tr>'}</tbody>
+                </table></div>
+
+                <h2 style="margin-bottom: 20px; margin-top: 40px; color: #333;">Próximas Tareas</h2>
+                <div class="table-container"><table>
+                    <thead><tr><th>Descripción</th><th>Contacto</th><th>Prioridad</th><th>Vencimiento</th></tr></thead>
+                    <tbody>${tareas.length ? tareas.map(t => '<tr><td>' + esc(t.descripcion) + '</td><td>' + esc(t.contacto_nombre) + '</td><td>' + insigniaPrioridad(t) + '</td><td>' + formatearFecha(t.fecha_vencimiento) + '</td></tr>').join('') : '<tr><td colspan="4">Sin tareas pendientes</td></tr>'}</tbody>
+                </table></div>
+            `;
+        }
+
+        // --- Contactos
+        async function cargarContactos() {
+            try {
+                contactos = (await leer('contactos')).data;
+            } catch (error) {
+                document.getElementById('tabla-contactos').innerHTML = '<div class="error-message">❌ ' + esc(error.message) + '</div>';
+                return;
+            }
+            const opciones = contactos.length
+                ? contactos.map(c => '<option value="' + Number(c.id) + '">' + esc(c.nombre) + (c.email ? ' (' + esc(c.email) + ')' : '') + '</option>').join('')
+                : '<option value="">Primero crea un contacto</option>';
+            ['contacto-int', 'contacto-opp', 'contacto-tarea'].forEach(id => {
+                const select = document.getElementById(id);
+                const anterior = select.value;
+                select.innerHTML = opciones;
+                if (anterior && contactos.some(c => String(c.id) === anterior)) select.value = anterior;
+            });
+            mostrarTablaContactos();
+            cargarHistorial();
+        }
+
+        function mostrarTablaContactos() {
+            document.getElementById('tabla-contactos').innerHTML = contactos.length ? `
+                <table>
+                    <thead><tr><th>Nombre</th><th>Tipo</th><th>Email</th><th>Teléfono</th><th>Empresa</th><th>Última Interacción</th><th></th></tr></thead>
+                    <tbody>${contactos.map(c => `
+                        <tr>
+                            <td><strong>${esc(c.nombre)}</strong></td>
+                            <td>${esc(TIPOS[c.tipo] || c.tipo)}</td>
+                            <td>${esc(c.email || '-')}</td>
+                            <td>${esc(c.telefono || '-')}</td>
+                            <td>${esc(c.empresa || '-')}</td>
+                            <td>${c.ultima_interaccion ? formatearFecha(c.ultima_interaccion) : 'Sin interacciones'}</td>
+                            <td><button type="button" class="btn-mini" data-accion="interactuar" data-id="${Number(c.id)}">Registrar interacción</button></td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>` : '<div class="table-container"><p style="padding:16px">Aún no hay contactos.</p></div>';
+        }
+
+        function crearContacto() {
+            operar('btn-contacto', 'msg-contacto', async () => {
+                const nombre = document.getElementById('nombre').value.trim();
+                if (!nombre) return mensaje('msg-contacto', 'El nombre es requerido', false);
+                await escribir('crear_contacto', {
+                    nombre,
+                    tipo: document.getElementById('tipo-contacto').value,
+                    email: document.getElementById('email').value.trim(),
+                    telefono: document.getElementById('telefono').value.trim(),
+                    empresa: document.getElementById('empresa').value.trim(),
+                });
+                ['nombre', 'email', 'telefono', 'empresa'].forEach(id => { document.getElementById(id).value = ''; });
+                mensaje('msg-contacto', 'Contacto creado', true);
+                await cargarContactos();
+                cargarDashboard();
+            });
+        }
+
+        // --- Interacciones
+        async function cargarHistorial() {
+            const contenedor = document.getElementById('tabla-interacciones');
+            const id = document.getElementById('contacto-int').value;
+            if (!id) { contenedor.innerHTML = '<p style="padding:16px">Elige un contacto para ver su historial.</p>'; return; }
+            try {
+                const interacciones = (await leer('interacciones', { contacto_id: id })).data;
+                // Si mientras llegaba la respuesta se eligió otro contacto, esta respuesta ya no corresponde.
+                if (document.getElementById('contacto-int').value !== id) return;
+                contenedor.innerHTML = interacciones.length ? `
+                    <table>
+                        <thead><tr><th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Resultado</th><th class="text-right">Minutos</th></tr></thead>
+                        <tbody>${interacciones.map(i => `
+                            <tr>
+                                <td>${formatearFecha(i.fecha_interaccion)}</td>
+                                <td>${esc(i.tipo_interaccion)}</td>
+                                <td>${esc(i.descripcion)}</td>
+                                <td>${esc(i.resultado || '-')}</td>
+                                <td class="text-right">${i.duracion_minutos ?? '-'}</td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>` : '<p style="padding:16px">Este contacto aún no tiene interacciones.</p>';
+            } catch (error) {
+                if (document.getElementById('contacto-int').value !== id) return;
+                contenedor.innerHTML = '<div class="error-message">❌ ' + esc(error.message) + '</div>';
+            }
+        }
+
+        function registrarInteraccion() {
+            operar('btn-interaccion', 'msg-int', async () => {
+                const contacto = document.getElementById('contacto-int').value;
+                const descripcion = document.getElementById('descripcion-int').value.trim();
+                const duracion = document.getElementById('duracion-int').value.trim();
+                if (!contacto) return mensaje('msg-int', 'Elige un contacto', false);
+                if (!descripcion) return mensaje('msg-int', 'La descripción es obligatoria', false);
+                if (duracion && !/^\d+$/.test(duracion)) return mensaje('msg-int', 'La duración debe ser un número entero de minutos', false);
+                await escribir('registrar_interaccion', {
+                    contacto_id: Number(contacto),
+                    tipo: document.getElementById('tipo-int').value,
+                    descripcion,
+                    resultado: document.getElementById('resultado-int').value.trim(),
+                    duracion: duracion ? Number(duracion) : null,
+                });
+                ['descripcion-int', 'resultado-int', 'duracion-int'].forEach(id => { document.getElementById(id).value = ''; });
+                mensaje('msg-int', 'Interacción registrada', true);
+                await cargarContactos();
+            });
+        }
+
+        // --- Oportunidades
+        async function cargarOportunidades() {
+            const contenedor = document.getElementById('tabla-oportunidades');
+            try {
+                const resultado = await leer('oportunidades');
+                const etapas = Object.keys(ETAPAS);
+                contenedor.innerHTML = resultado.data.length ? `
+                    <table>
+                        <thead><tr><th>Nombre</th><th>Contacto</th><th class="text-right">Monto</th><th>Etapa</th><th>Probabilidad</th><th class="text-right">Valor Esperado</th><th>Fecha Cierre</th><th></th></tr></thead>
+                        <tbody>${resultado.data.map(o => `
+                            <tr>
+                                <td>${esc(o.nombre)}</td>
+                                <td>${esc(o.contacto_nombre)}</td>
+                                <td class="text-right currency">${formatearCLP(o.monto_estimado)}</td>
+                                <td><select data-accion="etapa" data-id="${Number(o.id)}">${etapas.map(e => '<option value="' + e + '"' + (e === o.etapa ? ' selected' : '') + '>' + esc(ETAPAS[e]) + '</option>').join('')}</select></td>
+                                <td>${Number(o.probabilidad)}%</td>
+                                <td class="text-right currency">${formatearCLP(o.valor_esperado)}</td>
+                                <td>${formatearFecha(o.fecha_cierre_estimada)}</td>
+                                <td>
+                                    <button type="button" class="btn-mini" data-accion="ganada" data-id="${Number(o.id)}">Ganada</button>
+                                    <button type="button" class="btn-mini peligro" data-accion="perdida" data-id="${Number(o.id)}">Perdida</button>
+                                </td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>` : '<p style="padding:16px">No hay oportunidades abiertas.</p>';
+            } catch (error) {
+                contenedor.innerHTML = '<div class="error-message">❌ ' + esc(error.message) + '</div>';
+            }
+        }
+
+        function crearOportunidad() {
+            operar('btn-opp', 'msg-opp', async () => {
+                const contacto = document.getElementById('contacto-opp').value;
+                const nombre = document.getElementById('nombre-opp').value.trim();
+                const monto = document.getElementById('monto-opp').value.trim() || '0';
+                const fecha = document.getElementById('fecha-opp').value;
+                if (!contacto || !nombre) return mensaje('msg-opp', 'Elige un contacto y escribe el nombre de la oportunidad', false);
+                if (!/^\d+$/.test(monto)) return mensaje('msg-opp', 'El monto debe ser un número entero (sin decimales ni separadores)', false);
+                if (!fecha) return mensaje('msg-opp', 'Indica la fecha de cierre estimada', false);
+                await escribir('crear_oportunidad', {
+                    contacto_id: Number(contacto), nombre, monto_estimado: Number(monto), fecha_cierre: fecha, etapa: document.getElementById('etapa-opp').value,
+                });
+                document.getElementById('nombre-opp').value = '';
+                document.getElementById('monto-opp').value = '';
+                mensaje('msg-opp', 'Oportunidad creada', true);
+                await cargarOportunidades();
+                cargarDashboard();
+            });
+        }
+
+        async function actuarOportunidad(accion, id, etapa) {
+            try {
+                if (accion === 'etapa') {
+                    await escribir('cambiar_etapa', { oportunidad_id: id, etapa });
+                } else {
+                    const motivo = prompt(accion === 'ganada' ? 'Motivo del cierre (opcional):' : '¿Por qué se perdió? (opcional)');
+                    if (motivo === null) return;
+                    await escribir('cerrar_oportunidad', { oportunidad_id: id, resultado: accion, motivo });
+                }
+                mensaje('msg-opp', accion === 'etapa' ? 'Etapa actualizada' : 'Oportunidad cerrada como ' + accion, true);
+            } catch (error) {
+                mensaje('msg-opp', error.message, false);
+            }
+            await cargarOportunidades();
+            cargarDashboard();
+        }
+
+        // --- Tareas
+        async function cargarTareas() {
+            const contenedor = document.getElementById('tabla-tareas');
+            try {
+                const tareas = (await leer('tareas')).data;
+                contenedor.innerHTML = tareas.length ? `
+                    <table>
+                        <thead><tr><th>Descripción</th><th>Contacto</th><th>Prioridad</th><th>Vencimiento</th><th></th></tr></thead>
+                        <tbody>${tareas.map(t => `
+                            <tr>
+                                <td>${esc(t.descripcion)}</td>
+                                <td>${esc(t.contacto_nombre)}</td>
+                                <td>${insigniaPrioridad(t)}</td>
+                                <td>${formatearFecha(t.fecha_vencimiento)}</td>
+                                <td><button type="button" class="btn-mini" data-accion="completar" data-id="${Number(t.id)}">Completar</button></td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>` : '<p style="padding:16px">No hay tareas pendientes.</p>';
+            } catch (error) {
+                contenedor.innerHTML = '<div class="error-message">❌ ' + esc(error.message) + '</div>';
+            }
+        }
+
+        function crearTarea() {
+            operar('btn-tarea', 'msg-tarea', async () => {
+                const contacto = document.getElementById('contacto-tarea').value;
+                const descripcion = document.getElementById('descripcion-tarea').value.trim();
+                const fecha = document.getElementById('fecha-tarea').value;
+                if (!contacto || !descripcion) return mensaje('msg-tarea', 'Elige un contacto y escribe la descripción', false);
+                if (!fecha) return mensaje('msg-tarea', 'Indica la fecha de vencimiento', false);
+                await escribir('crear_tarea', {
+                    contacto_id: Number(contacto), descripcion, fecha_vencimiento: fecha, prioridad: document.getElementById('prioridad-tarea').value,
+                });
+                document.getElementById('descripcion-tarea').value = '';
+                mensaje('msg-tarea', 'Tarea creada', true);
+                await cargarTareas();
+                cargarDashboard();
+            });
+        }
+
+        async function completarTarea(id) {
+            try {
+                await escribir('completar_tarea', { tarea_id: id });
+                mensaje('msg-tarea', 'Tarea completada', true);
+            } catch (error) {
+                mensaje('msg-tarea', error.message, false);
+            }
+            await cargarTareas();
+            cargarDashboard();
+        }
+
+        // --- Inicio y eventos
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('fecha-opp').valueAsDate = new Date();
+            document.getElementById('fecha-opp').value = fechaLocal(30);
+            document.getElementById('fecha-tarea').value = fechaLocal(1);
+            document.getElementById('etapa-opp').innerHTML = Object.entries(ETAPAS).map(([valor, texto]) => '<option value="' + valor + '">' + esc(texto) + '</option>').join('');
+
+            document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('.tab-btn'); if (b) cambiarTab(b.dataset.tab); });
+            document.getElementById('btn-contacto').addEventListener('click', crearContacto);
+            document.getElementById('btn-interaccion').addEventListener('click', registrarInteraccion);
+            document.getElementById('btn-opp').addEventListener('click', crearOportunidad);
+            document.getElementById('btn-tarea').addEventListener('click', crearTarea);
+            document.getElementById('contacto-int').addEventListener('change', cargarHistorial);
+
+            document.getElementById('tabla-contactos').addEventListener('click', e => {
+                const b = e.target.closest('button[data-accion="interactuar"]');
+                if (!b) return;
+                document.getElementById('contacto-int').value = b.dataset.id;
+                cambiarTab('interacciones');
+                cargarHistorial();
+            });
+            document.getElementById('tabla-oportunidades').addEventListener('click', e => {
+                const b = e.target.closest('button[data-accion]');
+                if (b) conBloqueo('opp-' + b.dataset.id, b, () => actuarOportunidad(b.dataset.accion, Number(b.dataset.id)));
+            });
+            document.getElementById('tabla-oportunidades').addEventListener('change', e => {
+                const s = e.target.closest('select[data-accion="etapa"]');
+                if (s) conBloqueo('opp-' + s.dataset.id, s, () => actuarOportunidad('etapa', Number(s.dataset.id), s.value));
+            });
+            document.getElementById('tabla-tareas').addEventListener('click', e => {
+                const b = e.target.closest('button[data-accion="completar"]');
+                if (b) conBloqueo('tarea-' + b.dataset.id, b, () => completarTarea(Number(b.dataset.id)));
+            });
+
             cargarDashboard();
             cargarContactos();
             cargarOportunidades();
             cargarTareas();
         });
-
-        function cambiarTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${tab}`).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        function formatearCLP(valor) {
-            return new Intl.NumberFormat('es-CL', {
-                style: 'currency',
-                currency: 'CLP',
-                minimumFractionDigits: 0,
-            }).format(valor);
-        }
-
-        async function cargarDashboard() {
-            try {
-                const response = await fetch('/api/crm.php?accion=dashboard');
-                const resultado = await response.json();
-
-                if (resultado.success) {
-                    mostrarDashboard(resultado.data);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        function mostrarDashboard(datos) {
-            const html = `
-                <div class="kpi-grid">
-                    <div class="kpi-card">
-                        <div class="label">Clientes Totales</div>
-                        <div class="value">${datos.clientes_totales}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="label">Oportunidades Abiertas</div>
-                        <div class="value">${datos.oportunidades_abiertas}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="label">Valor Esperado</div>
-                        <div class="value">${formatearCLP(datos.valor_esperado)}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="label">Tareas Pendientes</div>
-                        <div class="value">${datos.tareas_pendientes}</div>
-                    </div>
-                </div>
-
-                <h2 style="margin-bottom: 20px; color: #333;">Próximas Oportunidades</h2>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Contacto</th>
-                                <th class="text-right">Monto</th>
-                                <th>Etapa</th>
-                                <th>Fecha Cierre</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${datos.oportunidades.slice(0, 5).map(o => `
-                                <tr>
-                                    <td>${o.nombre}</td>
-                                    <td>${o.contacto_nombre}</td>
-                                    <td class="text-right currency">${formatearCLP(o.monto_estimado)}</td>
-                                    <td>${o.etapa}</td>
-                                    <td>${o.fecha_cierre_estimada}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-
-                <h2 style="margin-bottom: 20px; margin-top: 40px; color: #333;">Tareas de Hoy</h2>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Descripción</th>
-                                <th>Contacto</th>
-                                <th>Prioridad</th>
-                                <th>Vencimiento</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${datos.tareas.slice(0, 5).map(t => `
-                                <tr>
-                                    <td>${t.descripcion}</td>
-                                    <td>${t.contacto_nombre}</td>
-                                    <td><span class="badge badge-${t.prioridad}">${t.prioridad}</span></td>
-                                    <td>${t.fecha_vencimiento}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-
-            document.getElementById('contenido-dashboard').innerHTML = html;
-        }
-
-        async function cargarContactos() {
-            try {
-                const response = await fetch('/api/crm.php?accion=contactos&tipo=cliente');
-                const resultado = await response.json();
-
-                if (resultado.success) {
-                    const select = document.getElementById('contacto-opp');
-                    select.innerHTML = resultado.data
-                        .map(c => `<option value="${c.id}">${c.nombre} (${c.email})</option>`)
-                        .join('');
-
-                    mostrarTablaContactos(resultado.data);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        function mostrarTablaContactos(contactos) {
-            const html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Email</th>
-                            <th>Teléfono</th>
-                            <th>Empresa</th>
-                            <th>Última Interacción</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${contactos.map(c => `
-                            <tr>
-                                <td><strong>${c.nombre}</strong></td>
-                                <td>${c.email || '-'}</td>
-                                <td>${c.telefono || '-'}</td>
-                                <td>${c.empresa || '-'}</td>
-                                <td>${c.ultima_interaccion || 'Sin interacciones'}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            document.getElementById('tabla-contactos').innerHTML = html;
-        }
-
-        async function cargarOportunidades() {
-            try {
-                const response = await fetch('/api/crm.php?accion=oportunidades');
-                const resultado = await response.json();
-
-                if (resultado.success) {
-                    mostrarTablaOportunidades(resultado.data);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        function mostrarTablaOportunidades(oportunidades) {
-            const html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Contacto</th>
-                            <th class="text-right">Monto</th>
-                            <th>Probabilidad</th>
-                            <th class="text-right">Valor Esperado</th>
-                            <th>Fecha Cierre</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${oportunidades.map(o => `
-                            <tr>
-                                <td>${o.nombre}</td>
-                                <td>${o.contacto_nombre}</td>
-                                <td class="text-right currency">${formatearCLP(o.monto_estimado)}</td>
-                                <td>${o.probabilidad}%</td>
-                                <td class="text-right currency">${formatearCLP(o.valor_esperado)}</td>
-                                <td>${o.fecha_cierre_estimada}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            document.getElementById('tabla-oportunidades').innerHTML = html;
-        }
-
-        async function cargarTareas() {
-            try {
-                const response = await fetch('/api/crm.php?accion=tareas');
-                const resultado = await response.json();
-
-                if (resultado.success) {
-                    mostrarTablaTareas(resultado.data);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        function mostrarTablaTareas(tareas) {
-            const html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Descripción</th>
-                            <th>Contacto</th>
-                            <th>Prioridad</th>
-                            <th>Vencimiento</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tareas.map(t => `
-                            <tr>
-                                <td>${t.descripcion}</td>
-                                <td>${t.contacto_nombre}</td>
-                                <td><span class="badge badge-${t.prioridad}">${t.prioridad}</span></td>
-                                <td>${t.fecha_vencimiento}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            document.getElementById('tabla-tareas').innerHTML = html;
-        }
-
-        async function crearContacto() {
-            const nombre = document.getElementById('nombre').value;
-            const email = document.getElementById('email').value;
-            const telefono = document.getElementById('telefono').value;
-            const empresa = document.getElementById('empresa').value;
-
-            if (!nombre) {
-                mostrarError('contacto', 'El nombre es requerido');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/crm.php?accion=crear_contacto', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre, email, telefono, empresa }),
-                });
-
-                const resultado = await response.json();
-                if (resultado.success) {
-                    document.getElementById('msg-contacto').innerHTML = '<div class="success-message">✓ Contacto creado</div>';
-                    document.getElementById('nombre').value = '';
-                    document.getElementById('email').value = '';
-                    document.getElementById('telefono').value = '';
-                    document.getElementById('empresa').value = '';
-                    setTimeout(() => {
-                        cargarContactos();
-                        document.getElementById('msg-contacto').innerHTML = '';
-                    }, 1500);
-                }
-            } catch (error) {
-                mostrarError('contacto', 'Error: ' + error.message);
-            }
-        }
-
-        async function crearOportunidad() {
-            const contactoId = document.getElementById('contacto-opp').value;
-            const nombre = document.getElementById('nombre-opp').value;
-            const montoEstimado = parseInt(document.getElementById('monto-opp').value) || 0;
-            const fechaCierre = document.getElementById('fecha-opp').value;
-
-            if (!contactoId || !nombre) {
-                mostrarError('opp', 'Completa todos los campos');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/crm.php?accion=crear_oportunidad', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contacto_id: contactoId,
-                        nombre,
-                        monto_estimado: montoEstimado,
-                        fecha_cierre: fechaCierre,
-                    }),
-                });
-
-                const resultado = await response.json();
-                if (resultado.success) {
-                    document.getElementById('msg-opp').innerHTML = '<div class="success-message">✓ Oportunidad creada</div>';
-                    document.getElementById('nombre-opp').value = '';
-                    document.getElementById('monto-opp').value = '';
-                    setTimeout(() => {
-                        cargarOportunidades();
-                        document.getElementById('msg-opp').innerHTML = '';
-                    }, 1500);
-                }
-            } catch (error) {
-                mostrarError('opp', 'Error: ' + error.message);
-            }
-        }
-
-        function mostrarError(seccion, msg) {
-            document.getElementById(`msg-${seccion}`).innerHTML = `<div class="error-message">❌ ${msg}</div>`;
-        }
     </script>
 <script src="../assets/theme.js"></script>
 <button id="theme-toggle-btn" class="theme-toggle-btn" title="Cambiar tema (claro/oscuro/automático)" aria-label="Alternar tema">🌙</button>
