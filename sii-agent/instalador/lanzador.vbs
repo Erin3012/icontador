@@ -1,4 +1,4 @@
-' Lanza el agente SII en una ventana visible, necesaria para escribir la clave sin mostrarla.
+' Lanza el agente central SII en una ventana visible para revisar su estado.
 ' Está en la carpeta de instalación, junto a node\, sii-agent\ y browsers\.
 Option Explicit
 

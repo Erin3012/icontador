@@ -400,7 +400,8 @@ function guardarVoucher(PDO $pdo, array $datos, ?int $id = null, int $empresa = 
     $v = validarVoucher($datos, $codigos);
     $periodo = substr($v['fecha'], 0, 7);
     $ahora = gmdate('Y-m-d\TH:i:s\Z');
-    $pdo->beginTransaction();
+    $propia = !$pdo->inTransaction();
+    if ($propia) $pdo->beginTransaction();
     try {
         $previo = null;
         if ($id !== null) {
@@ -431,9 +432,9 @@ function guardarVoucher(PDO $pdo, array $datos, ?int $id = null, int $empresa = 
         foreach ($v['lineas'] as $i => $l) {
             $insertar->execute([$id, $i + 1, $l['cuenta'], $l['glosa'], $l['debe'], $l['haber']]);
         }
-        $pdo->commit();
+        if ($propia) $pdo->commit();
     } catch (Throwable $e) {
-        $pdo->rollBack();
+        if ($propia && $pdo->inTransaction()) $pdo->rollBack();
         throw $e;
     }
     return obtenerVoucher($pdo, $id, $empresa);

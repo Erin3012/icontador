@@ -1,11 +1,12 @@
 <?php
-// GET  empresas.php                 empresas que puede ver el usuario: todas si es administrador, si no las asignadas
+// GET  empresas.php                 vista personal del administrador o empresas asignadas al usuario
 // GET  empresas.php?exportar=ID     descarga la empresa con todos sus datos (archivo JSON)
 // POST empresas.php {razon_social, rut, giro, regimen, telefono, email, plan_ejemplo}  crea una empresa
 // POST empresas.php {formato: "icontador-empresa", ...}  importa una empresa exportada
 declare(strict_types=1);
 require_once __DIR__ . '/lib/sesion.php';
 require __DIR__ . '/lib/empresa-paquete.php';
+require_once __DIR__ . '/lib/empresas-vista.php';
 
 // No usa ejecutar(): esta pantalla debe funcionar aunque la empresa elegida en el navegador ya no exista.
 try {
@@ -21,12 +22,16 @@ try {
                 header('Content-Disposition: attachment; filename="empresa-' . trim($nombre, '-') . '.json"');
                 responder($paquete);
             }
+            $admin = empresa_es_admin($usuario);
+            $seleccion = $admin ? empresas_vista_admin($db, (int) $usuario['id']) : null;
+            $vistaCompleta = $admin && ($_GET['vista'] ?? '') === 'todas';
+            $visibles = $admin ? ($vistaCompleta ? null : $seleccion) : empresas_de_usuario($db, (int) $usuario['id']);
             $empresas = empresas_listar($db);
-            if (!empresa_es_admin($usuario)) {
-                $asignadas = empresas_de_usuario($db, (int) $usuario['id']);
-                $empresas = array_values(array_filter($empresas, fn($e) => in_array($e['id'], $asignadas, true)));
+            if ($visibles !== null) {
+                $ids = array_fill_keys($visibles, true);
+                $empresas = array_values(array_filter($empresas, fn($e) => isset($ids[$e['id']])));
             }
-            responder(['empresas' => $empresas, 'puede_administrar' => empresa_es_admin($usuario)]);
+            responder(['empresas' => $empresas, 'puede_administrar' => $admin, 'vista_personal' => $seleccion !== null]);
         case 'POST':
             $datos = cuerpoJson();
             responder(isset($datos['formato']) ? empresa_importar($db, $datos, $usuario) : empresa_crear($db, $datos, $usuario), 201);

@@ -31,6 +31,15 @@ assert.equal(p.boletas[1].nombre,'PERSONA NÚÑEZ');assert.equal(p.boletas[1].so
 // Igual que el SII: las anuladas no suman.
 assert.deepEqual(p.totales,{boletas:2,anuladas:1,bruto:943953,retenido:143953,pagado:800000});
 assert.equal(parseInforme(informe.replace('<strong>Emisor</strong>','<strong>Receptor</strong>'),'x.xls').kind,'emitidas');
+// El informe emitido del SII separa las retenciones del emisor y del receptor.
+const emitidas=`<table><tr><td>RUT : 76000000-0<br>Informe correspondiente al mes 10 del año 2026</td></tr>
+<tr><td colspan="4">Boleta</td><td colspan="3">Emisión</td><td colspan="2">Receptor</td><td colspan="4">Honorarios</td></tr>
+<tr><td>N&deg;</td><td>Fecha Boleta</td><td>Estado</td><td>Fecha Anulaci&oacute;n</td><td>Usuario</td><td>Fecha</td><td>Soc. Prof.</td><td>Rut</td><td>Nombre o Raz&oacute;n&nbsp;Social</td><td>Brutos</td><td>Retenci&oacute;n emisor</td><td>Retenci&oacute;n receptor</td><td>L&iacute;quidos</td></tr>
+<tr><td>25</td><td>14/10/2026</td><td>VIGENTE</td><td></td><td>EMPRESA DE PRUEBA</td><td>14/10/2026</td><td>NO</td><td>11111111-1</td><td>CLIENTE UNO</td><td><div>100000</div></td><td>0</td><td>15250</td><td>84750</td></tr></table>`;
+const pe=parseInforme(emitidas,'informeMensualEMI.xls');
+assert.equal(pe.kind,'emitidas');assert.equal(pe.rutEmpresa,'76000000-0');assert.equal(pe.period,'2026-10');
+assert.deepEqual(pe.boletas[0],{numero:'25',fecha:'14/10/2026',estado:'VIGENTE',fechaAnulacion:'',rut:'11111111-1',nombre:'CLIENTE UNO',socProf:false,bruto:100000,retenido:15250,pagado:84750});
+assert.deepEqual(pe.totales,{boletas:1,anuladas:0,bruto:100000,retenido:15250,pagado:84750});
 assert.throws(()=>parseInforme('Nro;Tipo Doc\n1;33','RCV.csv'),/No se reconoce/);
 assert.throws(()=>parseInforme('<table><tr><td>Otra cosa</td></tr></table>','x.xls'),/No se reconoce/);
 console.log('Honorarios: informe mensual del SII leído (boletas, anuladas, RUT y período)');

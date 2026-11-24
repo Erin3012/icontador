@@ -32,7 +32,14 @@ function rcv_schema(PDO $db): void {
             id INTEGER PRIMARY KEY AUTOINCREMENT, empresa_id INTEGER NOT NULL DEFAULT 0, periodo TEXT NOT NULL, libro TEXT NOT NULL, archivo TEXT NOT NULL DEFAULT '',
             tipo_doc INTEGER NOT NULL, tipo_operacion TEXT NOT NULL DEFAULT '', rut TEXT NOT NULL DEFAULT '', razon_social TEXT NOT NULL DEFAULT '',
             folio TEXT NOT NULL DEFAULT '', fecha TEXT NOT NULL DEFAULT '', $montos, $textos, creado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+        $db->exec("CREATE TABLE IF NOT EXISTS rcv_resumenes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, empresa_id INTEGER NOT NULL DEFAULT 0, periodo TEXT NOT NULL, libro TEXT NOT NULL,
+            archivo TEXT NOT NULL DEFAULT '', tipo INTEGER NOT NULL, tipo_nombre TEXT NOT NULL DEFAULT '', documentos INTEGER NOT NULL DEFAULT 0,
+            exento INTEGER NOT NULL DEFAULT 0, neto INTEGER NOT NULL DEFAULT 0, iva INTEGER NOT NULL DEFAULT 0, total INTEGER NOT NULL DEFAULT 0,
+            creado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_rcv_res_empresa_periodo ON rcv_resumenes (empresa_id, periodo, libro)');
     }
+    if ($mysql) $db->exec(file_get_contents(dirname(__DIR__) . '/schema/rcv-resumenes.mysql.sql'));
     agregar_empresa_id($db, 'rcv_documentos');
     if (!$mysql) $db->exec('CREATE INDEX IF NOT EXISTS idx_rcv_empresa_periodo ON rcv_documentos (empresa_id, periodo, libro)');
     foreach (RCV_COLUMNAS_NUEVAS as $columna) {
@@ -40,6 +47,43 @@ function rcv_schema(PDO $db): void {
         $tipo = isset(RCV_TEXTOS[$columna]) ? ($mysql ? 'VARCHAR(' . RCV_TEXTOS[$columna] . ") NOT NULL DEFAULT ''" : "TEXT NOT NULL DEFAULT ''") : ($mysql ? 'BIGINT' : 'INTEGER') . ' NOT NULL DEFAULT 0';
         $db->exec("ALTER TABLE rcv_documentos ADD COLUMN $columna $tipo");
     }
+}
+
+/** Guarda un resumen agregado del RCV separado del detalle, para que nunca genere vouchers individuales. */
+function rcv_guardar_resumen(PDO $db, array $datos, int $empresa = 0): int {
+    $periodo = rcv_validar_periodo($datos['period'] ?? null);
+    if (($datos['kind'] ?? null) !== 'ventas') throw new RcvError('Los resúmenes agregados solo se admiten para el Libro de Ventas.');
+    $resumen = $datos['resumen'] ?? null;
+    if (!is_array($resumen) || !array_is_list($resumen) || !$resumen || count($resumen) > 100) throw new RcvError('Falta el resumen mensual de ventas.');
+    empresa_validar_rut($db, $empresa, $datos['rutEmpresa'] ?? null);
+    $filas = [];
+    foreach ($resumen as $i => $r) {
+        if (!is_array($r)) throw new RcvError('Fila de resumen inválida.');
+        $tipo = filter_var($r['tipo'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $cantidad = filter_var($r['documentos'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+        if (!$tipo || $cantidad === false) throw new RcvError('Tipo o cantidad inválida en el resumen.');
+        $fila = ['tipo' => $tipo, 'tipo_nombre' => mb_substr((string)($r['tipoNombre'] ?? ''), 0, 120), 'documentos' => $cantidad];
+        foreach (['exento','neto','iva','total'] as $campo) {
+            $v = $r[$campo] ?? 0;
+            if (!is_int($v) && !(is_float($v) && floor($v) === $v)) throw new RcvError('Monto inválido en el resumen.');
+            $fila[$campo] = (int)$v;
+        }
+        $filas[] = $fila;
+    }
+    $propia = !$db->inTransaction(); if ($propia) $db->beginTransaction();
+    try {
+        $db->prepare('DELETE FROM rcv_resumenes WHERE empresa_id = ? AND periodo = ? AND libro = ?')->execute([$empresa, $periodo, 'ventas']);
+        $st = $db->prepare('INSERT INTO rcv_resumenes (empresa_id,periodo,libro,archivo,tipo,tipo_nombre,documentos,exento,neto,iva,total) VALUES (?,?,?,?,?,?,?,?,?,?,?)');
+        foreach ($filas as $f) $st->execute([$empresa,$periodo,'ventas',mb_substr((string)($datos['fileName'] ?? ''),0,255),$f['tipo'],$f['tipo_nombre'],$f['documentos'],$f['exento'],$f['neto'],$f['iva'],$f['total']]);
+        if ($propia) $db->commit();
+    } catch (Throwable $e) { if ($propia && $db->inTransaction()) $db->rollBack(); throw $e; }
+    return array_sum(array_column($filas, 'documentos'));
+}
+
+function rcv_leer_resumenes(PDO $db, string $periodo, int $empresa = 0): array {
+    $st=$db->prepare('SELECT archivo,tipo,tipo_nombre,documentos,exento,neto,iva,total FROM rcv_resumenes WHERE empresa_id=? AND periodo=? AND libro=? ORDER BY tipo');
+    $st->execute([$empresa,rcv_validar_periodo($periodo),'ventas']);
+    return array_map(fn($r)=>['kind'=>'ventas','period'=>$periodo,'fileName'=>$r['archivo'],'resumen'=>[['tipo'=>(int)$r['tipo'],'tipoNombre'=>$r['tipo_nombre'],'documentos'=>(int)$r['documentos'],'exento'=>(int)$r['exento'],'neto'=>(int)$r['neto'],'iva'=>(int)$r['iva'],'total'=>(int)$r['total']]],'docs'=>[]],$st->fetchAll());
 }
 
 function rcv_validar_periodo($periodo): string {
@@ -81,13 +125,14 @@ function rcv_guardar(PDO $db, array $datos, int $empresa = 0): int {
     }
     $columnas = array_merge(['empresa_id', 'periodo', 'libro', 'archivo'], array_values(RCV_CAMPOS));
     $insert = $db->prepare('INSERT INTO rcv_documentos (' . implode(', ', $columnas) . ') VALUES (' . implode(', ', array_fill(0, count($columnas), '?')) . ')');
-    $db->beginTransaction();
+    $propia = !$db->inTransaction();
+    if ($propia) $db->beginTransaction();
     try {
         $db->prepare('DELETE FROM rcv_documentos WHERE empresa_id = ? AND periodo = ? AND libro = ?')->execute([$empresa, $periodo, $libro]);
         foreach ($filas as $fila) $insert->execute(array_merge([$empresa, $periodo, $libro, $archivo], array_values($fila)));
-        $db->commit();
+        if ($propia) $db->commit();
     } catch (Throwable $e) {
-        $db->rollBack();
+        if ($propia && $db->inTransaction()) $db->rollBack();
         throw $e;
     }
     return count($filas);
@@ -117,13 +162,16 @@ function rcv_periodos(PDO $db, int $empresa = 0): array {
         $out[$fila['periodo']] ??= ['period' => $fila['periodo'], 'compras' => 0, 'ventas' => 0];
         $out[$fila['periodo']][$fila['libro']] = (int)$fila['documentos'];
     }
+    $st=$db->prepare('SELECT periodo,SUM(documentos) AS documentos FROM rcv_resumenes WHERE empresa_id=? AND libro=? GROUP BY periodo');$st->execute([$empresa,'ventas']);
+    foreach($st as $fila){$out[$fila['periodo']]??=['period'=>$fila['periodo'],'compras'=>0,'ventas'=>0];$out[$fila['periodo']]['ventas']+=(int)$fila['documentos'];}
+    krsort($out);
     return array_values($out);
 }
 
 function rcv_borrar(PDO $db, string $periodo, int $empresa = 0): int {
     $st = $db->prepare('DELETE FROM rcv_documentos WHERE empresa_id = ? AND periodo = ?');
     $st->execute([$empresa, rcv_validar_periodo($periodo)]);
-    return $st->rowCount();
+    $count=$st->rowCount();$sum=$db->prepare('DELETE FROM rcv_resumenes WHERE empresa_id=? AND periodo=?');$sum->execute([$empresa,rcv_validar_periodo($periodo)]);return $count+$sum->rowCount();
 }
 
 /** Fecha del documento en AAAA-MM-DD (el SII la entrega como DD/MM/AAAA). */

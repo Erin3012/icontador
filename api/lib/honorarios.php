@@ -69,13 +69,14 @@ function hon_guardar(PDO $db, array $datos, int $empresa = 0): int {
     }
     $columnas = array_merge(['empresa_id', 'periodo', 'libro', 'archivo'], array_values(HON_CAMPOS));
     $insert = $db->prepare('INSERT INTO honorarios_boletas (' . implode(', ', $columnas) . ') VALUES (' . implode(', ', array_fill(0, count($columnas), '?')) . ')');
-    $db->beginTransaction();
+    $propia = !$db->inTransaction();
+    if ($propia) $db->beginTransaction();
     try {
         $db->prepare('DELETE FROM honorarios_boletas WHERE empresa_id = ? AND periodo = ? AND libro = ?')->execute([$empresa, $periodo, $libro]);
         foreach ($filas as $fila) $insert->execute(array_merge([$empresa, $periodo, $libro, $archivo], array_values($fila)));
-        $db->commit();
+        if ($propia) $db->commit();
     } catch (Throwable $e) {
-        $db->rollBack();
+        if ($propia && $db->inTransaction()) $db->rollBack();
         throw $e;
     }
     return count($filas);

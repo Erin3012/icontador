@@ -16,6 +16,17 @@ const instalador = path.join(agente, 'instalador');
 for (const archivo of ['construir-instalador.ps1', 'icontador-sii.iss', 'lanzador.vbs']) {
   assert.ok(fs.existsSync(path.join(instalador, archivo)), `Falta instalador/${archivo}`);
 }
+assert.ok(fs.existsSync(path.join(agente, 'src', 'credential-store.js')), 'el agente usa Windows Credential Manager');
+assert.ok(fs.existsSync(path.join(agente, 'ubuntu', 'icontador-sii.service')), 'falta la unidad systemd para Ubuntu');
+assert.ok(fs.existsSync(path.join(agente, 'ubuntu', 'instalar.sh')), 'falta el instalador para Ubuntu');
+assert.ok(fs.existsSync(path.join(agente, 'src', 'enrolar-linux.js')), 'falta el enrolamiento Linux');
+assert.ok(fs.existsSync(path.join(agente, 'test', 'test-linux-browser.cjs')), 'falta la prueba de Chromium en Linux');
+const unidadLinux = fs.readFileSync(path.join(agente, 'ubuntu', 'icontador-sii.service'), 'utf8');
+assert.match(unidadLinux, /LoadCredentialEncrypted=icontador-sii-agent-token/);
+assert.match(unidadLinux, /User=icontador-sii/);
+assert.match(unidadLinux, /ProtectSystem=strict/);
+const instaladorLinux = fs.readFileSync(path.join(agente, 'ubuntu', 'instalar.sh'), 'utf8');
+assert.match(instaladorLinux, /playwright install-deps chromium/);
 
 // 2. El lanzador registra la salida y usa la misma carpeta de navegadores que el build.
 const vbs = fs.readFileSync(path.join(instalador, 'lanzador.vbs'), 'utf8');
@@ -26,10 +37,10 @@ assert.match(vbs, /src\\index\.js/);
 const ps1 = fs.readFileSync(path.join(instalador, 'construir-instalador.ps1'), 'utf8');
 assert.match(ps1, /Join-Path \$staging 'browsers'/);
 
-// 3. El instalador no pide ni guarda claves tributarias: solo URL y código de emparejamiento.
+// 3. El instalador no pide claves tributarias: solo URL y código de enrolamiento central.
 const iss = fs.readFileSync(path.join(instalador, 'icontador-sii.iss'), 'utf8');
 assert.match(iss, /PrivilegesRequired=lowest/);
-assert.match(iss, /SII_CODIGO_EMPAREJAMIENTO=/);
+assert.match(iss, /SII_CODIGO_SERVICIO=/);
 assert.doesNotMatch(iss, /SII_TOKEN_AGENTE=/);
 assert.doesNotMatch(iss, /SII_CLAVES/);
 
@@ -40,9 +51,7 @@ fs.mkdirSync(path.join(staging, 'sii-agent'), { recursive: true });
 fs.mkdirSync(path.join(staging, 'assets'), { recursive: true });
 fs.cpSync(path.join(agente, 'src'), path.join(staging, 'sii-agent', 'src'), { recursive: true });
 fs.copyFileSync(path.join(raiz, 'assets', 'rcv-import.js'), path.join(staging, 'assets', 'rcv-import.js'));
-// Las dependencias se enlazan desde el repo solo para esta prueba; el build real hace npm ci --omit=dev.
-fs.symlinkSync(path.join(agente, 'node_modules'), path.join(staging, 'sii-agent', 'node_modules'), 'dir');
-
+fs.copyFileSync(path.join(raiz, 'assets', 'honorarios-import.js'), path.join(staging, 'assets', 'honorarios-import.js'));
 const salida = execFileSync(process.execPath, ['-e', "require('./src/index.js'); console.log('cargado')"], {
   cwd: path.join(staging, 'sii-agent'),
   encoding: 'utf8',

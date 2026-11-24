@@ -234,11 +234,12 @@ function auth_h(?string $texto): string
     return htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
 }
 
-function auth_pagina(string $titulo, string $cuerpo, bool $ancho = false): void
+function auth_pagina(string $titulo, string $cuerpo, bool $ancho = false, ?string $script = null): void
 {
     header('Content-Type: text/html; charset=utf-8');
     header('Cache-Control: no-store');
-    header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
+    $politicaScript = $script === null ? '' : " script-src 'self';";
+    header("Content-Security-Policy: default-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none';" . $politicaScript);
     header('X-Frame-Options: DENY');
     header('X-Content-Type-Options: nosniff');
     $max = $ancho ? '980px' : '420px';
@@ -254,5 +255,6 @@ function auth_pagina(string $titulo, string $cuerpo, bool $ancho = false): void
         . 'table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:8px;border-bottom:1px solid #e3e8ef;vertical-align:middle}'
         . 'td form{display:inline}.chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;background:#e8edf3}'
         . '.pendiente{background:#fff3d4}.activo{background:#e5f5ea}.deshabilitado{background:#fde8e7}nav{margin-bottom:16px;font-size:14px}'
-        . 'small{color:#526579}</style></head><body><main><h1>' . auth_h($titulo) . '</h1>' . $cuerpo . '</main></body></html>';
+        . 'small{color:#526579}</style><link rel="stylesheet" href="/assets/cifrax-movil.css?v=20261118"></head><body class="cifrax-auth"><main><h1>' . auth_h($titulo) . '</h1>' . $cuerpo . '</main>'
+        . ($script === null ? '' : '<script src="' . auth_h($script) . '" defer></script>') . '</body></html>';
 }

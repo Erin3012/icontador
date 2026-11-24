@@ -1,757 +1,101 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <link rel="stylesheet" href="../assets/theme.css">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reportes Avanzados - Contabilidad</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
-
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        header h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-
-        header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-
-        .filters-section {
-            background: #f8f9fa;
-            padding: 25px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .filters-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .filter-group label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #333;
-            font-size: 14px;
-        }
-
-        .filter-group select,
-        .filter-group input {
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        .filter-group select:focus,
-        .filter-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background: #d0d0d0;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 4px solid #c33;
-            margin-bottom: 20px;
-        }
-
-        .kpi-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .kpi-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .kpi-card .label {
-            font-size: 12px;
-            opacity: 0.9;
-            margin-bottom: 8px;
-        }
-
-        .kpi-card .value {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .chart-container {
-            position: relative;
-            width: 100%;
-            height: 400px;
-            margin-bottom: 30px;
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            margin-bottom: 30px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-
-        thead {
-            background: #f8f9fa;
-            font-weight: 600;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 14px;
-        }
-
-        th {
-            background: #f8f9fa;
-            color: #333;
-        }
-
-        tbody tr:hover {
-            background: #f8f9fa;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .currency {
-            font-family: 'Courier New', monospace;
-        }
-
-        .positive {
-            color: #28a745;
-            font-weight: 600;
-        }
-
-        .negative {
-            color: #dc3545;
-            font-weight: 600;
-        }
-
-        @media (max-width: 768px) {
-            .filters-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .kpi-cards {
-                grid-template-columns: 1fr;
-            }
-
-            .chart-container {
-                height: 300px;
-            }
-
-            header h1 {
-                font-size: 22px;
-            }
-
-            .filters-section {
-                padding: 15px;
-            }
-
-            .content {
-                padding: 15px;
-            }
-        }
-    </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+    <title>Reportes contables · Cifrax</title>
+    <link rel="icon" href="../assets/cifrax-favicon.png">
+    <link rel="stylesheet" href="../assets/libro-cifrax.css">
+    <link rel="stylesheet" href="../assets/contabilidad.css">
+    <link rel="stylesheet" href="../assets/reportes-cifrax.css?v=editar-asiento-20261118">
+    <script defer src="../assets/empresa-local.js?v=vista-admin-20261117"></script>
+    <script defer src="../assets/contabilidad.js?v=editar-asiento-20261118"></script>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>📊 Reportes Avanzados</h1>
-            <p>Genera reportes contables detallados con filtros y análisis</p>
-        </header>
-
-        <div class="filters-section">
-            <div class="filters-grid">
-                <div class="filter-group">
-                    <label for="tipoReporte">Tipo de Reporte</label>
-                    <select id="tipoReporte">
-                        <option value="diario">Libro Diario</option>
-                        <option value="mayor">Libro Mayor</option>
-                        <option value="balance">Balance General</option>
-                        <option value="resultado">Estado de Resultado</option>
-                        <option value="flujo">Flujo de Caja</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label for="desde">Desde</label>
-                    <input type="date" id="desde">
-                </div>
-
-                <div class="filter-group">
-                    <label for="hasta">Hasta</label>
-                    <input type="date" id="hasta">
-                </div>
-
-                <div class="filter-group">
-                    <label for="registro">Registro Contable</label>
-                    <select id="registro">
-                        <option value="Ambos">Ambos</option>
-                        <option value="Tributario">Tributario</option>
-                        <option value="IFRS">IFRS</option>
-                    </select>
-                </div>
+<body class="reportes-cifrax">
+    <header class="re-barra">
+        <a href="inicio-cuenta.html" class="re-marca"><img src="../assets/cifrax-logo-blanco.png" alt="Cifrax, inicio"></a>
+        <nav aria-label="Navegación de la empresa">
+            <a href="empresas.html">Empresas</a>
+            <a href="panel.html">Volver al panel</a>
+        </nav>
+    </header>
+    <main id="re-area" class="re-area">
+        <div class="re-cabecera">
+            <div>
+                <h1>Reportes contables</h1>
+                <p id="re-contexto" aria-live="polite">Cargando empresa…</p>
             </div>
-
-            <div class="button-group">
-                <button class="btn-primary" onclick="generarReporte()">🔄 Generar Reporte</button>
-                <button class="btn-secondary" onclick="descargarExcel()">📥 Descargar Excel</button>
+            <div class="re-cambio">
+                <label for="re-empresa">Empresa</label>
+                <select id="re-empresa" disabled><option value="">Selecciona una empresa</option></select>
             </div>
         </div>
-
-        <div class="content">
-            <div id="mensaje"></div>
-            <div id="contenido"></div>
+        <div class="re-escritorio">
+            <details class="re-catalogo" id="re-catalogo" open>
+                <summary>Catálogo de reportes</summary>
+                <nav aria-label="Catálogo de reportes">
+                    <h2>Libros y estados</h2>
+                    <ul>
+                        <li><a data-libro="balance" href="reportes.html?libro=balance">Balance General</a></li>
+                        <li><a data-libro="diario" href="reportes.html?libro=diario">Libro Diario</a></li>
+                        <li><a data-libro="mayor" href="reportes.html?libro=mayor">Libro Mayor</a></li>
+                        <li><a data-libro="compras" href="reportes.html?libro=compras">Libro de Compras</a></li>
+                        <li><a data-libro="ventas" href="reportes.html?libro=ventas">Libro de Ventas</a></li>
+                        <li><a data-libro="honorarios" href="reportes.html?libro=honorarios">Libro de Honorarios</a></li>
+                        <li><a data-libro="inventario" href="reportes.html?libro=inventario">Libro de Inventario y Balance</a></li>
+                        <li><a data-libro="resultado" href="reportes.html?libro=resultado">Estado de Resultado</a></li>
+                    </ul>
+                    <h2>Más reportes</h2>
+                    <ul>
+                        <li><a href="reportes-libro-remuneraciones.html">Libro de Remuneraciones</a></li>
+                        <li><a href="reportes-iva.html">IVA</a></li>
+                        <li><a href="reportes-voucher.html">Comprobantes</a></li>
+                        <li><a href="reportes-caja-pyme.html">Caja Pyme</a></li>
+                        <li><a href="reportes-configuracion.html">Configuración de reportes</a></li>
+                    </ul>
+                </nav>
+            </details>
+            <section class="re-trabajo" aria-labelledby="re-titulo">
+                <header class="re-titulo">
+                    <h2 id="re-titulo">Balance General</h2>
+                    <p id="re-descripcion">Revisa las ocho columnas del balance y el resultado del período.</p>
+                </header>
+                <form id="re-filtros">
+                    <fieldset>
+                        <legend>Período y filtros</legend>
+                        <div class="re-campos">
+                            <label>Desde<input type="date" name="desde" required></label>
+                            <label>Hasta<input type="date" name="hasta" required></label>
+                            <label id="re-registro">Registro contable
+                                <select name="registro">
+                                    <option>Tributario</option>
+                                    <option>IFRS</option>
+                                    <option value="Ambos">Ambos</option>
+                                </select>
+                            </label>
+                            <label id="re-cuenta" hidden>Cuenta<select name="cuenta"><option value="">Todas</option></select></label>
+                            <label id="re-documento" hidden>Tipo de documento<select name="tipo"><option value="">Todos</option></select></label>
+                        </div>
+                    </fieldset>
+                    <details class="re-pdf">
+                        <summary>Opciones de firma para el PDF</summary>
+                        <div class="re-campos">
+                            <label>Firmar como <select id="firComo"></select></label>
+                            <label>Alinear firma <select id="UbicaFirma"></select></label>
+                        </div>
+                    </details>
+                    <div class="re-acciones">
+                        <button type="submit" class="re-primario" disabled>Ver reporte</button>
+                        <button type="button" data-exportar="pdf" disabled>PDF</button>
+                        <button type="button" data-exportar="excel" disabled>Excel</button>
+                        <button type="button" data-exportar="csv" disabled>CSV</button>
+                    </div>
+                </form>
+                <p id="re-estado" class="re-estado" role="status"></p>
+                <div id="re-resultado" class="re-resultado"></div>
+            </section>
         </div>
-    </div>
-
-    <script>
-        // Inicializar fechas
-        function inicializarFechas() {
-            const hoy = new Date();
-            const hace1Anio = new Date(hoy.getFullYear() - 1, hoy.getMonth(), hoy.getDate());
-            
-            document.getElementById('desde').valueAsDate = hace1Anio;
-            document.getElementById('hasta').valueAsDate = hoy;
-        }
-
-        // Formatear moneda CLP
-        function formatearCLP(valor) {
-            return new Intl.NumberFormat('es-CL', {
-                style: 'currency',
-                currency: 'CLP',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-            }).format(valor);
-        }
-
-        // Formatear fecha
-        function formatearFecha(fecha) {
-            return new Date(fecha).toLocaleDateString('es-CL');
-        }
-
-        // Generar reporte
-        async function generarReporte() {
-            const tipo = document.getElementById('tipoReporte').value;
-            const desde = document.getElementById('desde').value;
-            const hasta = document.getElementById('hasta').value;
-            const registro = document.getElementById('registro').value;
-
-            mostrarCargando();
-
-            try {
-                const response = await fetch(
-                    `/api/reportes.php?tipo=${tipo}&desde=${desde}&hasta=${hasta}&registro=${registro}`
-                );
-                const resultado = await response.json();
-
-                if (resultado.success) {
-                    mostrarReporte(resultado.data, tipo);
-                } else {
-                    mostrarError(resultado.error);
-                }
-            } catch (error) {
-                mostrarError('Error al generar reporte: ' + error.message);
-            }
-        }
-
-        // Mostrar reporte según tipo
-        function mostrarReporte(datos, tipo) {
-            const contenido = document.getElementById('contenido');
-            contenido.innerHTML = '';
-
-            switch (tipo) {
-                case 'diario':
-                    mostrarDiario(datos, contenido);
-                    break;
-                case 'mayor':
-                    mostrarMayor(datos, contenido);
-                    break;
-                case 'balance':
-                    mostrarBalance(datos, contenido);
-                    break;
-                case 'resultado':
-                    mostrarResultado(datos, contenido);
-                    break;
-                case 'flujo':
-                    mostrarFlujo(datos, contenido);
-                    break;
-            }
-        }
-
-        // Libro Diario
-        function mostrarDiario(datos, contenido) {
-            const html = `
-                <h2>Libro Diario</h2>
-                <p style="color: #666; margin-bottom: 20px;">Período: ${datos.periodo}</p>
-
-                <div class="kpi-cards">
-                    <div class="kpi-card">
-                        <div class="label">Total Debe</div>
-                        <div class="value">${formatearCLP(datos.totales.debe)}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="label">Total Haber</div>
-                        <div class="value">${formatearCLP(datos.totales.haber)}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="label">Cantidad de Vouchers</div>
-                        <div class="value">${datos.totales.cantidad}</div>
-                    </div>
-                </div>
-
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Número</th>
-                                <th>Tipo</th>
-                                <th>Descripción</th>
-                                <th class="text-right">Debe</th>
-                                <th class="text-right">Haber</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${datos.vouchers.map(v => `
-                                <tr>
-                                    <td>${formatearFecha(v.fecha)}</td>
-                                    <td>${v.numero}</td>
-                                    <td>${v.tipo}</td>
-                                    <td>${v.descripcion}</td>
-                                    <td class="text-right currency">${formatearCLP(v.total_debe)}</td>
-                                    <td class="text-right currency">${formatearCLP(v.total_haber)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                        <tfoot>
-                            <tr style="background: #f8f9fa; font-weight: bold;">
-                                <td colspan="4">TOTALES</td>
-                                <td class="text-right currency">${formatearCLP(datos.totales.debe)}</td>
-                                <td class="text-right currency">${formatearCLP(datos.totales.haber)}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            `;
-            contenido.innerHTML = html;
-        }
-
-        // Libro Mayor
-        function mostrarMayor(datos, contenido) {
-            const html = `
-                <h2>Libro Mayor</h2>
-                <p style="color: #666; margin-bottom: 20px;">Período: ${datos.periodo}</p>
-
-                <div class="kpi-cards">
-                    <div class="kpi-card">
-                        <div class="label">Total Debe</div>
-                        <div class="value">${formatearCLP(datos.totales.debe)}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="label">Total Haber</div>
-                        <div class="value">${formatearCLP(datos.totales.haber)}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="label">Cantidad de Cuentas</div>
-                        <div class="value">${datos.totales.cantidad_cuentas}</div>
-                    </div>
-                </div>
-
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Código</th>
-                                <th>Nombre de la Cuenta</th>
-                                <th class="text-right">Debe</th>
-                                <th class="text-right">Haber</th>
-                                <th class="text-right">Saldo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${datos.cuentas.map(c => {
-                                const saldo = c.debe_total - c.haber_total;
-                                return `
-                                    <tr>
-                                        <td><strong>${c.codigo}</strong></td>
-                                        <td>${c.nombre}</td>
-                                        <td class="text-right currency">${formatearCLP(c.debe_total)}</td>
-                                        <td class="text-right currency">${formatearCLP(c.haber_total)}</td>
-                                        <td class="text-right currency ${saldo >= 0 ? 'positive' : 'negative'}">${formatearCLP(saldo)}</td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                        <tfoot>
-                            <tr style="background: #f8f9fa; font-weight: bold;">
-                                <td colspan="2">TOTALES</td>
-                                <td class="text-right currency">${formatearCLP(datos.totales.debe)}</td>
-                                <td class="text-right currency">${formatearCLP(datos.totales.haber)}</td>
-                                <td class="text-right currency">${formatearCLP(datos.totales.debe - datos.totales.haber)}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            `;
-            contenido.innerHTML = html;
-        }
-
-        // Balance General
-        function mostrarBalance(datos, contenido) {
-            const html = `
-                <h2>Balance General</h2>
-                <p style="color: #666; margin-bottom: 20px;">Período: ${datos.periodo}</p>
-
-                ${Object.keys(datos.balance).map(clase => `
-                    <div style="margin-bottom: 30px;">
-                        <h3 style="color: #667eea; margin-bottom: 15px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
-                            ${clase}
-                        </h3>
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Código</th>
-                                        <th>Cuenta</th>
-                                        <th class="text-right">Debe</th>
-                                        <th class="text-right">Haber</th>
-                                        <th class="text-right">Saldo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${datos.balance[clase].map(c => {
-                                        const saldo = c.debe - c.haber;
-                                        return `
-                                            <tr>
-                                                <td>${c.codigo}</td>
-                                                <td>${c.nombre}</td>
-                                                <td class="text-right currency">${formatearCLP(c.debe)}</td>
-                                                <td class="text-right currency">${formatearCLP(c.haber)}</td>
-                                                <td class="text-right currency ${saldo >= 0 ? 'positive' : 'negative'}">${formatearCLP(saldo)}</td>
-                                            </tr>
-                                        `;
-                                    }).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                `).join('')}
-            `;
-            contenido.innerHTML = html;
-        }
-
-        // Estado de Resultado
-        function mostrarResultado(datos, contenido) {
-            const html = `
-                <h2>Estado de Resultado</h2>
-                <p style="color: #666; margin-bottom: 20px;">Período: ${datos.periodo}</p>
-
-                <div class="kpi-cards">
-                    <div class="kpi-card">
-                        <div class="label">Ingresos</div>
-                        <div class="value positive">${formatearCLP(datos.totales.ingresos)}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="label">Gastos</div>
-                        <div class="value negative">${formatearCLP(datos.totales.gastos)}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="label">Resultado Neto</div>
-                        <div class="value ${datos.totales.resultado >= 0 ? 'positive' : 'negative'}">
-                            ${formatearCLP(datos.totales.resultado)}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Código</th>
-                                <th>Concepto</th>
-                                <th class="text-right">Ingresos</th>
-                                <th class="text-right">Gastos</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${datos.items.map(i => `
-                                <tr>
-                                    <td>${i.codigo}</td>
-                                    <td>${i.nombre}</td>
-                                    <td class="text-right currency">${formatearCLP(i.ingresos)}</td>
-                                    <td class="text-right currency">${formatearCLP(i.gastos)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                        <tfoot>
-                            <tr style="background: #f8f9fa; font-weight: bold;">
-                                <td colspan="2">TOTALES</td>
-                                <td class="text-right currency">${formatearCLP(datos.totales.ingresos)}</td>
-                                <td class="text-right currency">${formatearCLP(datos.totales.gastos)}</td>
-                            </tr>
-                            <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: bold;">
-                                <td colspan="2">RESULTADO NETO</td>
-                                <td colspan="2" class="text-right currency">${formatearCLP(datos.totales.resultado)}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            `;
-            contenido.innerHTML = html;
-        }
-
-        // Flujo de Caja
-        function mostrarFlujo(datos, contenido) {
-            const html = `
-                <h2>Flujo de Caja</h2>
-                <p style="color: #666; margin-bottom: 20px;">Período: ${datos.periodo}</p>
-
-                <div class="kpi-cards">
-                    <div class="kpi-card">
-                        <div class="label">Ingresos Totales</div>
-                        <div class="value positive">${formatearCLP(datos.totales.ingresos)}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="label">Egresos Totales</div>
-                        <div class="value negative">${formatearCLP(datos.totales.egresos)}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="label">Flujo Neto</div>
-                        <div class="value ${datos.totales.neto >= 0 ? 'positive' : 'negative'}">
-                            ${formatearCLP(datos.totales.neto)}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <canvas id="chartFlujo"></canvas>
-                </div>
-
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Mes</th>
-                                <th class="text-right">Ingresos</th>
-                                <th class="text-right">Egresos</th>
-                                <th class="text-right">Neto</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${datos.flujos.map(f => {
-                                const neto = f.ingresos - f.egresos;
-                                return `
-                                    <tr>
-                                        <td>${f.mes}</td>
-                                        <td class="text-right currency positive">${formatearCLP(f.ingresos)}</td>
-                                        <td class="text-right currency negative">${formatearCLP(f.egresos)}</td>
-                                        <td class="text-right currency ${neto >= 0 ? 'positive' : 'negative'}">${formatearCLP(neto)}</td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                        <tfoot>
-                            <tr style="background: #f8f9fa; font-weight: bold;">
-                                <td>TOTAL</td>
-                                <td class="text-right currency positive">${formatearCLP(datos.totales.ingresos)}</td>
-                                <td class="text-right currency negative">${formatearCLP(datos.totales.egresos)}</td>
-                                <td class="text-right currency ${datos.totales.neto >= 0 ? 'positive' : 'negative'}">
-                                    ${formatearCLP(datos.totales.neto)}
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            `;
-            contenido.innerHTML = html;
-
-            setTimeout(() => {
-                const ctx = document.getElementById('chartFlujo');
-                if (ctx) {
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: datos.flujos.map(f => f.mes),
-                            datasets: [
-                                {
-                                    label: 'Ingresos',
-                                    data: datos.flujos.map(f => f.ingresos),
-                                    backgroundColor: '#28a745',
-                                },
-                                {
-                                    label: 'Egresos',
-                                    data: datos.flujos.map(f => f.egresos),
-                                    backgroundColor: '#dc3545',
-                                },
-                            ],
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'top',
-                                },
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                },
-                            },
-                        },
-                    });
-                }
-            }, 100);
-        }
-
-        // Mostrar estado
-        function mostrarCargando() {
-            document.getElementById('contenido').innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Generando reporte...</p>
-                </div>
-            `;
-        }
-
-        function mostrarError(mensaje) {
-            document.getElementById('contenido').innerHTML = `
-                <div class="error-message">
-                    ❌ ${mensaje}
-                </div>
-            `;
-        }
-
-        // Descargar Excel (placeholder)
-        function descargarExcel() {
-            alert('Funcionalidad de descarga Excel disponible próximamente.');
-        }
-
-        // Inicializar
-        document.addEventListener('DOMContentLoaded', inicializarFechas);
-    </script>
-<script src="../assets/theme.js"></script>
-<button id="theme-toggle-btn" class="theme-toggle-btn" title="Cambiar tema (claro/oscuro/automático)" aria-label="Alternar tema">🌙</button>
+    </main>
 </body>
 </html>

@@ -1,8 +1,8 @@
 ; Instalador del agente SII de Icontador para Windows (Inno Setup 6).
 ; Lo compila construir-instalador.ps1 a partir de una carpeta "staging" que ya trae Node portable,
 ; el agente, assets\rcv-import.js y el Chromium de Playwright.
-; No pide ni guarda claves tributarias. Pide un código de emparejamiento de un solo uso: el agente lo
-; canjea por su token propio al primer arranque y lo borra de .env.
+; El administrador da un código de enrolamiento de un solo uso para el agente central. El token técnico
+; se guarda en Windows Credential Manager. Las Claves Tributarias se administran cifradas por empresa en qlc.cl.
 
 #define AppName "Icontador Agente SII"
 #define AppVersion "1.0.0"
@@ -42,11 +42,11 @@ var
 procedure InitializeWizard;
 begin
   PaginaConexion := CreateInputQueryPage(wpSelectDir,
-    'Conexión con Cifrax',
-    'Indica la dirección de Cifrax y el código de emparejamiento.',
-    'Genera el código en Cifrax, en RCV, con Vincular este PC. La clave tributaria no se pide aquí.');
+    'Agente central de qlc.cl',
+    'Indica la dirección de qlc.cl y el código de enrolamiento del servicio.',
+    'Un administrador genera el código en qlc.cl, en RCV → Estado del agente central. Las Claves Tributarias se administran en RCV.');
   PaginaConexion.Add('Dirección de Cifrax (por ejemplo https://qlc.cl):', False);
-  PaginaConexion.Add('Código de emparejamiento (vence en 10 minutos):', False);
+  PaginaConexion.Add('Código de servicio (vence en 10 minutos):', False);
   PaginaConexion.Values[0] := 'https://qlc.cl';
 end;
 
@@ -60,7 +60,7 @@ begin
     url := LowerCase(Trim(PaginaConexion.Values[0]));
     if (Pos('https://', url) <> 1) or (Length(Trim(PaginaConexion.Values[1])) < 8) then
     begin
-      MsgBox('Revisa la dirección de Cifrax (debe empezar con https://) y el código de emparejamiento.', mbError, MB_OK);
+      MsgBox('Revisa la dirección de qlc.cl (debe empezar con https://) y el código de servicio.', mbError, MB_OK);
       Result := False;
     end;
   end;
@@ -77,7 +77,7 @@ begin
       Delete(url, Length(url), 1);
 
     contenido := 'SII_URL_SERVIDOR=' + url + #13#10 +
-                 'SII_CODIGO_EMPAREJAMIENTO=' + Trim(PaginaConexion.Values[1]) + #13#10 +
+                 'SII_CODIGO_SERVICIO=' + Trim(PaginaConexion.Values[1]) + #13#10 +
                  'SII_HEADLESS=true' + #13#10;
     SaveStringToFile(ExpandConstant('{app}\sii-agent\.env'), contenido, False);
 

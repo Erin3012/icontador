@@ -1,43 +1,22 @@
-# Instalador del agente SII (Windows)
+# Instalador del agente SII central (Windows)
 
-El instalador deja el agente listo en el PC del usuario, sin que tenga que instalar Node ni ejecutar comandos:
+El instalador prepara el único PC que ejecutará Playwright para atender solicitudes de RCV de qlc.cl:
 
-- **Node portable** (versión fijada en `construir-instalador.ps1`) y **Chromium de Playwright** dentro de la carpeta de instalación.
-- **Pide solo dos datos**: la dirección de Cifrax (por defecto `https://qlc.cl`) y un **código de emparejamiento** de un solo uso que generas en Cifrax (RCV, *Vincular este PC*). Escribe `sii-agent\.env` con ese código.
-- **No pide ni guarda claves tributarias**: la clave del SII vive cifrada en Cifrax y el servidor la entrega al agente al reclamar cada tarea.
-- **Token propio por PC**: en el primer arranque el agente canjea el código por su token, lo guarda en `.env` y borra el código. El código vence en 10 minutos y se usa una sola vez. Si el PC se pierde, revoca ese agente en Cifrax y los demás siguen funcionando.
-- **Terminal visible**: abre el agente en una ventana para que puedas escribir la Clave Tributaria sin mostrarla. No configura inicio automático ni deja el agente oculto.
-- **Desinstalación**: cierra antes la ventana del agente.
+- Incluye Node portable, Chromium y el código del agente.
+- Pide la URL de qlc.cl y un código de servicio temporal que genera un administrador en **RCV → Estado del agente central**.
+- En el primer arranque, el agente canjea el código, lo elimina de `.env` y guarda el token en Windows Credential Manager.
+- Las claves tributarias se guardan cifradas por empresa en qlc.cl y se entregan al agente central solo al procesar una tarea.
+- El lanzador abre una ventana visible. Deja el agente ejecutándose para que el servicio aparezca conectado y procese la cola.
 
-## Cómo se construye
+Si el agente se revoca, el administrador genera un código nuevo. Agrégalo como `SII_CODIGO_SERVICIO` en el `.env` local y reinicia el agente; el token del Credential Manager se reemplaza al canjear el código.
 
-En un PC con Windows, con Inno Setup 6 instalado:
+## Construcción
+
+En Windows con Inno Setup 6 instalado:
 
 ```powershell
 cd sii-agent\instalador
 powershell -ExecutionPolicy Bypass -File .\construir-instalador.ps1
 ```
 
-Queda `sii-agent\build\salida\IcontadorSII-Agente-1.0.0.exe`. La carpeta `build\` no se sube a git.
-
-El script arma `build\staging\` con esta disposición, que es la que espera `src/index.js` (`../../assets/rcv-import.js`):
-
-```
-staging\
-  node\            Node portable
-  sii-agent\       src\, package.json, dependencias de producción
-  assets\          rcv-import.js
-  browsers\        Chromium de Playwright
-  lanzador.vbs
-```
-
-## Qué revisar al primer uso
-
-- Ejecuta el instalador en un PC de prueba y confirma que `logs\agente.log` muestra "Agente SII activo".
-- Si el SII pide CAPTCHA o un paso extra, cambia `SII_HEADLESS=false` en `sii-agent\.env` para ver la ventana.
-- Actualizaciones: por ahora se hacen volviendo a instalar la versión nueva sobre la anterior. Si el instalador se corre de nuevo, pide URL y token otra vez.
-
-## Pendiente
-
-- No se pudo compilar ni probar en Windows desde el entorno de desarrollo (Linux). Hay que correr `construir-instalador.ps1` y probar el instalador en Windows antes de usarlo con clientes.
-- Bandeja del sistema y actualizaciones automáticas no están incluidas (quedaron fuera de la opción elegida).
+El resultado queda en `sii-agent\build\salida`. La carpeta `build\` no se sube a Git. Antes de distribuirlo, prueba instalación, enrolamiento, reconexión tras revocar y eliminación del token desde Windows Credential Manager si desinstalas el agente.

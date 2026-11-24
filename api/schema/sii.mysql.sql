@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS sii_tareas (
   empresa_id INT NOT NULL DEFAULT 0,
   tipo VARCHAR(16) NOT NULL DEFAULT 'rcv',
   periodo CHAR(7) NOT NULL DEFAULT '',
-  libro VARCHAR(7) NOT NULL DEFAULT '',
+  libro VARCHAR(12) NOT NULL DEFAULT '',
   rut VARCHAR(12) NOT NULL DEFAULT '',
   estado VARCHAR(12) NOT NULL DEFAULT 'pendiente',
   mensaje VARCHAR(500) NOT NULL DEFAULT '',
@@ -17,7 +17,26 @@ CREATE TABLE IF NOT EXISTS sii_tareas (
   KEY idx_sii_empresa_estado (empresa_id, estado)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Clave tributaria del SII por empresa, cifrada con la llave sii_clave_cifrado (api/config.php).
+-- Progreso operativo seguro por tarea; solo códigos de etapa y cantidades, sin secretos ni contenido del SII.
+CREATE TABLE IF NOT EXISTS sii_eventos (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  tarea_id INT UNSIGNED NOT NULL,
+  etapa VARCHAR(32) NOT NULL,
+  detalle VARCHAR(32) NOT NULL DEFAULT '',
+  creado_en DATETIME NOT NULL,
+  KEY idx_sii_eventos_tarea (tarea_id, id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Captura temporal para depuración: solo tarea solicitante, JPEG de viewport y expiración en 48 h.
+CREATE TABLE IF NOT EXISTS sii_capturas (
+  tarea_id INT UNSIGNED NOT NULL PRIMARY KEY,
+  imagen MEDIUMBLOB NOT NULL,
+  creado_en DATETIME NOT NULL,
+  expira_en DATETIME NOT NULL,
+  KEY idx_sii_capturas_expira (expira_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Clave tributaria del SII por empresa, cifrada con la llave privada de configuración fuera de DOCUMENT_ROOT.
 CREATE TABLE IF NOT EXISTS sii_claves (
   empresa_id INT NOT NULL PRIMARY KEY,
   clave_cifrada TEXT NOT NULL,
@@ -43,4 +62,12 @@ CREATE TABLE IF NOT EXISTS sii_codigos_emparejamiento (
   creado_en DATETIME NOT NULL,
   expira_en DATETIME NOT NULL,
   usado_en DATETIME NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Clave recibida para una consulta puntual de datos de contribuyente; se borra al resolver o expirar.
+CREATE TABLE IF NOT EXISTS sii_claves_temporales (
+  tarea_id INT UNSIGNED NOT NULL PRIMARY KEY,
+  clave_cifrada TEXT NOT NULL,
+  expira_en DATETIME NOT NULL,
+  KEY idx_sii_claves_temporales_expira (expira_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

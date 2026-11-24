@@ -32,13 +32,14 @@ try {
         responder(200, rcv_libro($db, (string)$_GET['libro'], $fecha('desde'), $fecha('hasta'), $tipo, $empresa));
     }
     if ($metodo === 'GET') {
-        responder(200, $periodo === null ? ['periodos' => rcv_periodos($db, $empresa)] : ['periodo' => $periodo, 'libros' => rcv_leer($db, $periodo, $empresa)]);
+        responder(200, $periodo === null ? ['periodos' => rcv_periodos($db, $empresa)] : ['periodo' => $periodo, 'libros' => rcv_leer($db, $periodo, $empresa), 'resumenes' => rcv_leer_resumenes($db, $periodo, $empresa)]);
     }
     if ($metodo === 'POST') {
         if (stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== 0) responder(415, ['error' => 'Se espera JSON.']);
         $datos = json_decode(file_get_contents('php://input'), true);
         if (!is_array($datos)) responder(400, ['error' => 'JSON inválido.']);
-        responder(200, ['guardados' => rcv_guardar($db, $datos, $empresa)]);
+        $guardados = isset($datos['resumen']) ? rcv_guardar_resumen($db, $datos, $empresa) : rcv_guardar($db, $datos, $empresa);
+        responder(200, ['guardados' => $guardados]);
     }
     if ($metodo === 'DELETE') {
         responder(200, ['borrados' => rcv_borrar($db, (string)$periodo, $empresa)]);

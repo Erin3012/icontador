@@ -24,6 +24,11 @@ if (!is_file($file)) {
     return true;
 }
 // Las pantallas solo se entregan con una sesión aprobada (en Apache lo hace auth/vista.php vía .htaccess).
+if (preg_match('#^/views/[A-Za-z0-9_-]+\.html$#', $path)) {
+    $_GET['r'] = substr($path, 1);
+    require $root . '/auth/vista.php';
+    return true;
+}
 if (str_ends_with($path, '.html')) {
     require_once $root . '/api/lib/auth.php';
     auth_exigir_pagina();

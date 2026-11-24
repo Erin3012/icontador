@@ -10,19 +10,25 @@
  const norm=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
  function rows(html){return [...html.matchAll(/<tr\b[^>]*>([\s\S]*?)(?=<tr\b|<\/table>|$)/gi)].map(m=>[...m[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(c=>cellText(c[1])));}
  function amount(v){v=String(v||'').replace(/[$\s]/g,'');if(!v)return 0;v=v.replace(/\./g,'').replace(',','.');const n=Number(v);return Number.isFinite(n)?Math.round(n):0;}
- const COLUMNS={numero:['n','nro','numero'],fecha:['fecha'],estado:['estado'],fechaAnulacion:['fecha anulacion'],rut:['rut'],nombre:['nombre o razon social'],socProf:['soc prof'],bruto:['brutos','bruto'],retenido:['retenido','retencion'],pagado:['pagado','liquido']};
+ const COLUMNS={numero:['n','nro','numero'],fecha:['fecha boleta','fecha'],estado:['estado'],fechaAnulacion:['fecha anulacion'],rut:['rut'],nombre:['nombre o razon social'],socProf:['soc prof'],bruto:['brutos','bruto'],retenido:['retenido','retencion','retencion emisor','retencion receptor'],pagado:['pagado','liquido','liquidos']};
 
  function parseInforme(text,fileName){
   text=String(text).replace(/^﻿/,'');
   if(!/<table/i.test(text))throw new Error('No se reconoce el archivo como informe mensual de boletas de honorarios del SII.');
   const all=rows(text);
-  const h=all.findIndex(r=>{const n=r.map(norm);return n.includes('brutos')&&n.includes('retenido')&&n.includes('rut');});
+  const h=all.findIndex(r=>{const n=r.map(norm);return n.includes('brutos')&&n.includes('rut')&&(n.includes('retenido')||n.includes('retencion emisor')||n.includes('retencion receptor'));});
   if(h<0)throw new Error('No se reconoce el archivo como informe mensual de boletas de honorarios del SII.');
   const header=all[h].map(norm),index={};
   for(const [k,names] of Object.entries(COLUMNS))index[k]=header.findIndex(c=>names.includes(c));
   // La fila de grupos sobre los encabezados dice si las boletas son de un Emisor (recibidas) o de un Receptor (emitidas).
   const groups=(all[h-1]||[]).map(norm);
   const kind=groups.includes('receptor')?'emitidas':'recibidas';
+  // El informe emitido separa retención del emisor y del receptor; para la empresa
+  // emisora, el monto retenido por el receptor es el que reduce el líquido pagado.
+  if(kind==='emitidas'){
+   const retencionReceptor=header.findIndex(c=>c==='retencion receptor');
+   if(retencionReceptor>=0)index.retenido=retencionReceptor;
+  }
   const info=all.slice(0,h).flat().join(' ');
   const rut=(/RUT\s*:\s*([\d.]{7,10}-[\dkK])/i.exec(info)||[])[1]||'';
   const pm=/mes\s+(\d{1,2})\s+del\s+a(?:ñ|n)o\s+(20\d{2})/i.exec(info);

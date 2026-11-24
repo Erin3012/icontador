@@ -16,6 +16,9 @@ const alt=parseRcv('﻿"Nro","Tipo Doc","Tipo Compra","RUT Proveedor","Razon Soc
 assert.equal(alt.kind,'compras');assert.equal(alt.period,'2026-08');assert.equal(alt.docs[0].razon,'EMPRESA, CON COMA');assert.equal(alt.docs[0].neto,1000);
 assert.equal(buildBooks([alt]).iva.remanente,190);
 assert.throws(()=>parseRcv('a;b;c\n1;2;3','x.csv'),/No se reconoce/);
+const resumen48=parseRcv('Tipo Documento;Total Documentos;Monto Exento;Monto Neto;Monto IVA;Monto Total\nTotal mes Comprobantes Pago Electrónico(48);187;0;1369623;260227;1629850\n','RCV_RESUMEN_VENTA_10406537-6_202610.csv');
+assert.equal(resumen48.kind,'ventas');assert.equal(resumen48.period,'2026-10');assert.equal(resumen48.rutEmpresa,'10406537-6');assert.equal(resumen48.docs.length,0);assert.deepEqual(resumen48.resumen[0],{tipo:48,tipoNombre:'Total mes Comprobantes Pago Electrónico (48)',documentos:187,exento:0,neto:1369623,iva:260227,total:1629850});
+const books48=buildBooks([resumen48]);assert.equal(books48.ventas.docs.length,0);assert.equal(books48.ventas.totales.documentos,187);assert.equal(books48.ventas.totales.total,1629850);assert.equal(books48.iva.debito,260227);
 console.log('RCV: libros e IVA verificados ('+books.compras.docs.length+' compras, '+books.ventas.docs.length+' ventas, IVA a pagar '+books.iva.ivaPagar+')');
 // Formato completo del SII (2026): IVA no recuperable con código, otro impuesto con código y nota de crédito.
 const H='Nro;Tipo Doc;Tipo Compra;RUT Proveedor;Razon Social;Folio;Fecha Docto;Fecha Recepcion;Fecha Acuse;Monto Exento;Monto Neto;Monto IVA Recuperable;Monto Iva No Recuperable;Codigo IVA No Rec.;Monto Total;Monto Neto Activo Fijo;IVA Activo Fijo;IVA uso Comun;Impto. Sin Derecho a Credito;IVA No Retenido;Tabacos Puros;Tabacos Cigarrillos;Tabacos Elaborados;NCE o NDE sobre Fact. de Compra;Codigo Otro Impuesto;Valor Otro Impuesto;Tasa Otro Impuesto';

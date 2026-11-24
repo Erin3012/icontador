@@ -24,10 +24,11 @@ $expandido = Join-Path $build "node-v$NodeVersion-win-x64"
 if (-not (Test-Path $expandido)) { Expand-Archive $zip -DestinationPath $build -Force }
 Copy-Item $expandido (Join-Path $staging 'node') -Recurse
 
-# 2. Agente y el lector de RCV que comparte con el navegador (src/index.js lo importa como ../../assets/rcv-import.js).
+# 2. Agente y los lectores RCV/Honorarios que comparte con el navegador.
 Copy-Item (Join-Path $agente 'src') (Join-Path $staging 'sii-agent\src') -Recurse
 Copy-Item (Join-Path $agente 'package.json'), (Join-Path $agente 'package-lock.json'), (Join-Path $agente 'README.md') (Join-Path $staging 'sii-agent')
 Copy-Item (Join-Path $raiz 'assets\rcv-import.js') (Join-Path $staging 'assets')
+Copy-Item (Join-Path $raiz 'assets\honorarios-import.js') (Join-Path $staging 'assets')
 Copy-Item (Join-Path $instalador 'lanzador.vbs') $staging
 
 # 3. Dependencias de producción (solo playwright).

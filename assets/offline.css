@@ -1,3 +1,4 @@
+@import url("./libro-cifrax.css");
 .offline-banner{position:relative;z-index:2147483647;padding:12px 20px;background:#10233f;color:white;font:14px Arial,sans-serif;min-height:44px}.offline-banner a{color:white;text-decoration:underline}.offline-message{position:fixed;bottom:24px;left:24px;z-index:2147483647;background:#10233f;color:white;padding:16px;border-radius:8px;font:14px Arial,sans-serif}body{padding-top:0!important}.empresa-local-overlay{position:fixed;inset:0;z-index:2147483646;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(18,31,44,.72);font-family:Arial,sans-serif}.empresa-local-dialog{display:block;width:min(680px,100%);max-height:85vh;overflow:auto;padding:28px;border-radius:10px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.35);color:#263746}.empresa-local-dialog h2{margin:0 0 8px;font-size:26px}.empresa-local-dialog>p{margin:0 0 22px;color:#596b7a}.empresa-local-lista{display:grid;gap:12px}.empresa-local-opcion{display:flex;flex-direction:column;gap:7px;width:100%;padding:18px;border:2px solid #d8e0e7;border-radius:8px;background:#fff;color:#263746;text-align:left;cursor:pointer}.empresa-local-opcion:hover,.empresa-local-opcion:focus{border-color:#ec9124;outline:none;box-shadow:0 0 0 3px rgba(236,145,36,.18)}.empresa-local-opcion strong{font-size:17px}.empresa-local-opcion span{color:#607181;font-size:13px}.empresa-local-cerrar{margin-top:20px;padding:9px 18px;border:1px solid #a8b4bd;border-radius:6px;background:#f4f6f8;color:#263746;cursor:pointer}.empresa-local-vacio{padding:18px;border-radius:6px;background:#fff5e9;color:#8a4a08}
 .navbar{min-height:48px!important;z-index:100!important;position:relative!important}.navbar:after{content:"";display:table;clear:both}.ui-dialog{position:relative!important;top:auto!important;left:auto!important;transform:none!important;margin:28px auto!important;max-width:calc(100% - 40px)}
 .plan-barra{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin:10px 0 14px;padding:12px;background:#f3f6f9;border-radius:6px;font:13px Arial,sans-serif}.plan-barra label{display:flex;flex-direction:column;gap:3px;margin:0;font-weight:600}.plan-barra input{min-width:140px}.plan-separador{color:#526579;align-self:center}.plan-eliminar{border:0;background:none;color:#b53b3b;cursor:pointer;text-decoration:underline}.plan-editar{border:0;background:none;color:#2a5d8f;cursor:pointer;text-decoration:underline}
@@ -57,6 +58,42 @@
 .btn-accion-empresa{display:inline-block;margin:0;padding:0;border:0;background:transparent;text-decoration:none;vertical-align:middle}
 @media(max-width:700px){.empresas-acciones-celda{width:146px;min-width:146px}}
 
+/* Diálogo nativo de edición: permanece por encima de cualquier capa heredada del tema. */
+dialog.empresas-modal-nativo{box-sizing:border-box;width:min(960px,calc(100vw - 32px));max-width:960px;max-height:90vh;margin:auto;padding:0;border:0;border-radius:10px;overflow:hidden;background:#fff;color:#21344d;box-shadow:0 18px 60px rgba(0,0,0,.3)}
+dialog.empresas-modal-nativo::backdrop{background:rgba(18,31,44,.68)}
+dialog.empresas-modal-nativo>header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 22px;background:linear-gradient(105deg,#284a94,#5148d9);color:#fff}
+dialog.empresas-modal-nativo>header h2{margin:0;color:#fff;font-size:19px;font-weight:700}
+dialog.empresas-modal-nativo .empresas-modal-cerrar{border:0;background:transparent;color:#fff;font-size:27px;line-height:1;cursor:pointer}
+dialog.empresas-modal-nativo .empresas-modal-contenido{box-sizing:border-box;max-height:calc(90vh - 56px);overflow:auto;padding:18px 24px 22px}
+.empresas-editar-ayuda{margin-bottom:15px;padding:13px 16px;border-left:4px solid #27b6d3;border-radius:5px;background:#f1f6fa;color:#526477;font-size:14px}
+.empresas-editar{display:block}
+.empresas-editar-seccion{margin:0 0 15px;border:1px solid #dbe3ec;border-radius:8px;overflow:hidden}
+.empresas-editar-seccion h3{margin:0;padding:12px 16px;border-bottom:1px solid #dbe3ec;background:#f7f9fc;color:#254985;font-size:15px}
+.empresas-editar-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px;padding:14px 16px}
+.empresas-editar-grid .campo-ancho{grid-column:1/-1}
+.empresas-editar-grid label{display:block;margin:0;color:#405466;font-size:13px;font-weight:600}
+.empresas-editar-grid input,.empresas-editar-grid select{display:block;box-sizing:border-box;width:100%;height:40px;margin-top:5px;padding:8px 11px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#263746;font:14px Arial,sans-serif}
+.empresas-modal-botones{display:flex;justify-content:flex-end;gap:10px;padding-top:2px}
+.empresas-modal-botones button{min-height:40px;padding:9px 16px;border:1px solid #233e72;border-radius:6px;font-weight:700;cursor:pointer}
+.empresas-cancelar-edicion{background:#fff;color:#233e72}
+.empresas-modal-botones .btn-minimalist-royal{background:#263fbb;color:#fff}
+@media(max-width:650px){dialog.empresas-modal-nativo{width:calc(100vw - 16px);max-height:94vh}dialog.empresas-modal-nativo .empresas-modal-contenido{max-height:calc(94vh - 56px);padding:14px}.empresas-editar-grid{grid-template-columns:1fr;padding:12px}.empresas-editar-grid .campo-ancho{grid-column:auto}}
+/* La hoja heredada oculta todas las etiquetas section de forma global. */
+dialog.empresas-modal-nativo section{display:block!important;visibility:visible!important}
+.empresas-clave-sii>p{margin:8px 14px;color:#596b7d;font-size:13px}
+.empresas-clave-entrada{min-width:min(300px,100%)}
+.empresas-clave-entrada>label{display:block;color:#405466;font-size:13px;font-weight:600}
+.empresas-clave-control{display:flex;align-items:stretch;gap:6px;margin-top:5px}
+.empresas-clave-control input{display:block;box-sizing:border-box;min-width:0;width:100%;height:38px;padding:8px 11px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#263746;font:14px Arial,sans-serif}
+.empresas-clave-toggle{flex:0 0 auto;min-width:76px;padding:7px 10px;border:1px solid #233e72;border-radius:6px;background:#fff;color:#233e72;font-weight:700;cursor:pointer}
+.empresas-clave-toggle:hover,.empresas-clave-toggle:focus-visible{background:#edf3fb;outline:2px solid #7aa7ed;outline-offset:1px}
+.empresas-clave-sii>.empresas-clave-entrada{margin:10px 14px}
+.empresas-clave-sii .empresas-clave-control{max-width:500px}
+.empresas-clave-sii-botones{display:flex;gap:9px;margin:10px 14px 14px}
+.empresas-clave-sii-botones button{min-height:38px;padding:8px 13px;border:1px solid #233e72;border-radius:6px;background:#263fbb;color:#fff;font-weight:700;cursor:pointer}
+.empresas-clave-sii-botones button:last-child{background:#fff;color:#233e72}
+.empresas-clave-sii-botones button:disabled{opacity:.55;cursor:wait}
+
 /* Marca Cifrax: azul marino del logo en la barra superior y logo a la izquierda */
 .navbar-inverse{background-color:#10233f!important;border-color:#10233f!important}
 .navbar-inverse .navbar-header{display:flex;align-items:center;gap:14px}
@@ -70,6 +107,19 @@
 .cifrax-volver-flotante{position:fixed;top:12px;left:12px;z-index:2147483645;background:#10233f;border-color:#10233f;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .offline-banner a.cifrax-volver-aviso{margin-right:12px;padding:3px 10px;text-decoration:none}
 .cifrax-volver-flotante:hover,.cifrax-volver-flotante:focus{background:#1b3a63}
+.empresas-sii-consulta{display:block!important;grid-column:1/-1;margin:4px 0 10px;padding:14px 16px;border:1px solid #cbd8e4;border-radius:6px;background:#f7fafc;color:#263746}
+.empresas-sii-consulta h4{margin:0 0 6px;font-size:15px}
+.empresas-sii-consulta p{margin:0 0 10px;color:#566a7c;font-size:13px}
+.empresas-sii-credenciales{display:flex;align-items:end;gap:12px;flex-wrap:wrap}
+.empresas-sii-credenciales .empresas-clave-entrada{width:min(420px,100%)}
+.empresas-sii-credenciales .empresas-clave-control input{height:38px;border-radius:4px}
+#empresas-sii-estado{margin-top:9px;color:#334e68;font-size:13px}
+#empresas-sii-resumen{margin-top:12px;padding:10px 12px;border-left:3px solid #3157c8;background:white}
+.empresas-sii-datos{display:grid;grid-template-columns:minmax(130px,190px) 1fr;gap:4px 12px;margin:0;font-size:13px}
+.empresas-sii-datos dt{color:#637382;font-weight:600}.empresas-sii-datos dd{margin:0;overflow-wrap:anywhere}
+.empresas-sii-coleccion{margin-top:14px;padding-top:10px;border-top:1px solid #e2e7eb}
+.empresas-sii-coleccion h3{margin:0 0 6px;font-size:14px}.empresas-sii-coleccion ul{margin:0;padding-left:20px}
+@media(max-width:640px){.empresas-sii-datos{grid-template-columns:1fr}.empresas-sii-datos dd{margin-bottom:6px}}
 /* Pie de las ventanas emergentes: logo de Cifrax en lugar del de iContador. */
 .ui-dialog .ui-dialog-buttonpane{background-image:url("cifrax-logo.png")!important;background-size:auto 28px!important;background-position:12px center!important}
 @media print{.icontador-footer{display:none!important}}

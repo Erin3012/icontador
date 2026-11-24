@@ -24,7 +24,7 @@ Sin configuración usa SQLite en `data/icontador.sqlite`. Para MySQL, copia `api
 
 ## Integración con el SII
 
-El agente local usa Playwright para iniciar sesión en el SII y descargar compras o ventas del período solicitado desde **RCV**. Empareja el PC desde la pantalla RCV de qlc.cl y mantén `npm start` abierto en una terminal interactiva: la Clave Tributaria se solicita oculta al procesar cada tarea y no se guarda en el servidor ni en archivos. Consulta la instalación y el flujo en [`sii-agent/README.md`](sii-agent/README.md). La consulta automática de datos de empresa permanece deshabilitada.
+Un agente central usa Playwright para descargar compras o ventas del período solicitado desde **RCV** y atiende a todos los usuarios de qlc.cl, limitado por los permisos de cada empresa. Cada Clave Tributaria de RCV se guarda cifrada por empresa; el agente la recibe solo al procesar una tarea y no la conserva localmente. En **Empresas → Crear Empresa**, la consulta de perfil MiSII usa la clave una sola vez y la mantiene cifrada en la cola hasta resolver o vencer la consulta; los datos se muestran para revisión antes de guardar. La ficha incluye actividades, sucursales, características tributarias y documentos autorizados visibles en el perfil. Consulta el enrolamiento y la configuración segura del servidor en [`sii-agent/README.md`](sii-agent/README.md).
 
 ## Boletas de honorarios
 

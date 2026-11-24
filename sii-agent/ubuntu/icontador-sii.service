@@ -1,0 +1,29 @@
+[Unit]
+Description=Agente central SII de iContador
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=icontador-sii
+Group=icontador-sii
+WorkingDirectory=/opt/icontador-sii-agent/sii-agent
+EnvironmentFile=/etc/icontador-sii/agent.env
+Environment=HOME=/var/lib/icontador-sii
+Environment=PLAYWRIGHT_BROWSERS_PATH=/var/lib/icontador-sii/ms-playwright
+LoadCredentialEncrypted=icontador-sii-agent-token:/etc/credstore.encrypted/icontador-sii-agent-token
+ExecStart=/usr/bin/node src/index.js
+Restart=always
+RestartSec=10
+TimeoutStopSec=30
+KillSignal=SIGTERM
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/icontador-sii
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

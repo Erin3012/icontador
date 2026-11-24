@@ -183,6 +183,7 @@ function imprimirInforme({titulo,periodo,salida,horizontal=false,firma={firmas:F
  const datos=[['Razón social',e.razon_social],['RUT',rutConPuntos(e.rut)],['Giro',e.giro],['Régimen',e.regimen],['Teléfono',e.telefono],['Correo',e.email]].filter(([,v])=>v);
  const cont=document.createElement('div');cont.id='conta-impresion';
  const contenido=salida.cloneNode(true);contenido.removeAttribute('id');contenido.querySelectorAll('.conta-titulo,.conta-periodo,.conta-empresa').forEach(n=>n.remove());
+ contenido.querySelectorAll('.re-editar-asiento').forEach(enlace=>enlace.replaceWith(enlace.textContent));
  cont.innerHTML=`<header class="imp-cabecera"><div class="imp-empresa">${datos.length?datos.map(([k,v])=>`<div><span>${k}:</span> ${esc(v)}</div>`).join(''):'<div>Empresa sin datos registrados</div>'}</div>
   <div class="imp-emision">Emitido el ${hoyTexto}</div></header>
   <h1 class="imp-titulo">${esc(titulo)}</h1><p class="imp-periodo">${esc(periodo)}</p>
@@ -200,13 +201,20 @@ function imprimirInforme({titulo,periodo,salida,horizontal=false,firma={firmas:F
 async function pantallaCrear(){
  const dialogo=$('.ui-dialog'),form=$('#ingCabVoucher_form');if(!dialogo||!form)return;
  dialogo.dataset.conta='';dialogo.classList.add('conta-dialogo');
- const caja=$('#ms-error-voucher'),id=new URLSearchParams(location.search).get('id');
+ const parametros=new URLSearchParams(location.search);
+ const caja=$('#ms-error-voucher'),id=parametros.get('id');
+ const empresaEdicion=id ? parametros.get('empresa_id') : null;
+ if(empresaEdicion!==null&&!/^[1-9]\d*$/.test(empresaEdicion)){
+  caja.innerHTML=alerta(['La empresa indicada en el enlace es inválida. Vuelve a abrir el asiento desde Reportes.']);
+  return;
+ }
+ const opcionesEmpresa=empresaEdicion===null ? {} : {headers:{'X-Empresa-Id':empresaEdicion}};
  const tv=$('#tv'),fecha=$('#v_fecha'),glosa=$('#v_glosa'),radios=[...form.querySelectorAll('input[name=t_vou_ifrstrib]')],numero=form.querySelector('.label-minimalist:nth-child(2)');
  tv.innerHTML='<option value="">Seleccione</option>'+Object.entries(TIPOS).map(([k,n])=>`<option value="${k}">${n}</option>`).join('');
  radios.forEach((r,i)=>{r.value=REGISTROS[i];});
  aFecha(fecha);
  let plan=[],existente=null;
- try{[plan,existente]=await Promise.all([api('cuentas.php'),id?api('vouchers.php?id='+encodeURIComponent(id)):null]);}
+ try{[plan,existente]=await Promise.all([api('cuentas.php',opcionesEmpresa),id?api('vouchers.php?id='+encodeURIComponent(id),opcionesEmpresa):null]);}
  catch(e){caja.innerHTML=alerta(e.errores||[e.message]);if(!plan.length)return;}
  if(!plan.length){caja.innerHTML=alerta(['Esta empresa aún no tiene plan de cuentas. Cárguelo en Plan de Cuenta (“Cargar plan de ejemplo”) antes de crear vouchers.']);return;}
  const v=existente||{tipo:'',fecha:hoy(),registro:'Ambos',glosa:'',lineas:[{},{}]};
@@ -243,7 +251,7 @@ async function pantallaCrear(){
   const texto=b.textContent.trim();
   if(/Cerrar|Close/.test(texto)){location.href='voucher.html';return;}
   if((texto==='Crear'||texto==='Guardar')&&!enviando){enviando=true;b.disabled=true;
-   try{const guardado=await api(existente?'vouchers.php?id='+existente.id:'vouchers.php',{method:existente?'PUT':'POST',body:JSON.stringify(leerFormulario())});
+   try{const guardado=await api(existente?'vouchers.php?id='+existente.id:'vouchers.php',{...opcionesEmpresa,method:existente?'PUT':'POST',body:JSON.stringify(leerFormulario())});
     location.href='voucher.html?guardado='+guardado.id;}
    catch(err){caja.innerHTML=alerta(err.errores||[err.message]);caja.scrollIntoView({block:'nearest'});}
    finally{enviando=false;b.disabled=false;}}
@@ -340,10 +348,22 @@ const INFORMES={
  'reportes-libro-inventario.html':{form:'#reporteInventBalan_form',des:'#fdeslib',has:'#fhaslib',titulo:'Libro de Inventario y Balance',archivo:'libro-inventario-balance',
   ruta:f=>'libros.php?'+consulta({libro:'inventario',desde:f.desde,hasta:f.hasta}),filas:filasLibroInventario,vacio:i=>!i.inventario||!i.inventario.categorias||i.inventario.categorias.length===0},
 };
-function tablaFilas(filas,{destacar=()=>false}={}){
+function tablaFilas(filas,{destacar=()=>false,detalle=[],edicion=null}={}){
  const [cab,...cuerpo]=filas,num=v=>typeof v==='number';
- return `<table class="conta-tabla conta-libro"><thead><tr>${cab.map((c,i)=>`<th${cuerpo.some(f=>num(f[i]))?' class="num"':''}>${esc(c)}</th>`).join('')}</tr></thead><tbody>${cuerpo.map((f,j)=>
-  `<tr${destacar(f,j,cuerpo.length)?' class="conta-asiento"':''}>${f.map(v=>num(v)?`<td class="num">${formato(v)}</td>`:`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+ const filasHtml = cuerpo.map((fila, indice) => {
+  const meta = detalle[indice];
+  const enlace = edicion && Number.isSafeInteger(meta?.id) && meta.id > 0;
+  const clases = [destacar(fila, indice, cuerpo.length) ? 'conta-asiento' : '', meta?.marca, enlace ? 're-fila-editable' : ''].filter(Boolean).join(' ');
+  const celdas = fila.map((valor, columna) => {
+   const texto = num(valor) ? formato(valor) : esc(valor);
+   const contenido = enlace && columna === edicion.columna
+    ? `<a class="re-editar-asiento" href="voucher-crear.html?${esc(consulta({id:meta.id,empresa_id:edicion.empresa}))}" aria-label="${esc('Editar ' + meta.nombre)}">${texto}</a>`
+    : texto;
+   return `<td${num(valor) ? ' class="num"' : ''}>${contenido}</td>`;
+  }).join('');
+  return `<tr${clases ? ` class="${clases}"` : ''}>${celdas}</tr>`;
+ });
+ return `<table class="conta-tabla conta-libro"><thead><tr>${cab.map((c,i)=>`<th${cuerpo.some(f=>num(f[i]))?' class="num"':''}>${esc(c)}</th>`).join('')}</tr></thead><tbody>${filasHtml.join('')}</tbody></table>`;
 }
 function pantallaInforme(cfg){
  const form=$(cfg.form);if(!form)return;
@@ -386,9 +406,213 @@ function pantallaInforme(cfg){
  pintar();
 }
 
+const MESA_REPORTES = {
+ balance: {vista:'reportes-libro-balance.html', descripcion:'Revisa las ocho columnas del balance y el resultado del período.'},
+ diario: {vista:'reportes-libro-diario.html', titulo:'Libro Diario', descripcion:'Consulta los asientos contables en orden cronológico.', filas:filasDiario, vacio:d=>!d.asientos.length},
+ mayor: {vista:'reportes-libro-mayor.html', titulo:'Libro Mayor', descripcion:'Consulta los movimientos y el saldo de cada cuenta.', filas:filasMayor, vacio:d=>!d.length},
+ compras: {vista:'reportes-libro-compras.html', descripcion:'Consulta el registro de compras importado desde el SII.'},
+ ventas: {vista:'reportes-libro-ventas.html', descripcion:'Consulta el registro de ventas importado desde el SII.'},
+ honorarios: {vista:'reportes-libro-honorarios.html', descripcion:'Consulta las boletas de honorarios recibidas.'},
+ inventario: {vista:'reportes-libro-inventario.html', descripcion:'Consulta el inventario y el balance al cierre del período.'},
+ resultado: {vista:'reportes-resultados.html', descripcion:'Consulta ingresos, costos, gastos y el resultado del ejercicio.'}
+};
+
+// Estas filas siguen el mismo orden que las salidas del Diario y del Mayor.
+function detalleAsientos(libro, datos) {
+ if (libro === 'diario') {
+  return datos.asientos.flatMap((asiento, indice) => asiento.lineas.map((_, linea) => ({
+   id: asiento.id,
+   nombre: `${asiento.tipoNombre} N° ${asiento.numero}`,
+   marca: [indice % 2 ? 're-asiento-alterno' : '', linea === 0 ? 're-asiento-inicio re-diario-inicio' : ''].filter(Boolean).join(' ')
+  })));
+ }
+ if (libro === 'mayor') {
+  return datos.flatMap(cuenta => {
+   let grupo = -1;
+   let comprobanteAnterior;
+   const movimientos = cuenta.movimientos.map(movimiento => {
+    const inicio = movimiento.voucherId !== comprobanteAnterior;
+    if (inicio) grupo++;
+    comprobanteAnterior = movimiento.voucherId;
+    return {
+     id: movimiento.voucherId,
+     nombre: `${movimiento.tipoNombre} N° ${movimiento.numero}`,
+     marca: [grupo % 2 === 1 ? 're-asiento-alterno' : '', inicio ? 're-asiento-inicio' : ''].filter(Boolean).join(' ')
+    };
+   });
+   return [{marca:'re-cuenta-inicio'}, ...movimientos, {marca:'re-cuenta-total'}];
+  });
+ }
+ return [];
+}
+
+function iniciarMesaReportes(pagina) {
+ const params = new URLSearchParams(location.search);
+ const solicitado = params.get('libro');
+ const clave = Object.hasOwn(MESA_REPORTES, solicitado) ? solicitado
+  : Object.keys(MESA_REPORTES).find(libro => MESA_REPORTES[libro].vista === pagina) || 'balance';
+ const definicion = MESA_REPORTES[clave];
+ const reporte = {...INFORMES[definicion.vista], ...definicion};
+ const form = $('#re-filtros');
+ const salida = $('#re-resultado');
+ const estado = $('#re-estado');
+ const selector = $('#re-empresa');
+ const ver = $('button[type=submit]', form);
+ const botones = [...form.querySelectorAll('[data-exportar]')];
+ const firma = prepararFirma(form);
+ const esRcv = Boolean(reporte.rcv);
+ const tieneRegistro = !esRcv && !reporte.honorarios && clave !== 'inventario';
+ const nombreArchivo = reporte.archivo || 'libro-' + clave;
+ const filasReporte = esRcv ? filasLibroRcv : reporte.honorarios ? filasLibroHonorarios : reporte.filas;
+ let empresa = null;
+ let empresas = [];
+ let resultado = null;
+ let revision = 0;
+
+ salida.addEventListener('click', evento => {
+  if (evento.defaultPrevented || evento.ctrlKey || evento.metaKey || evento.shiftKey || evento.altKey) return;
+  if (evento.target.closest('a') || window.getSelection()?.toString()) return;
+  evento.target.closest('.re-fila-editable')?.querySelector('.re-editar-asiento')?.click();
+ });
+
+ $('#re-titulo').textContent = reporte.titulo;
+ $('#re-descripcion').textContent = reporte.descripcion;
+ document.title = reporte.titulo + ' · Cifrax';
+ document.querySelector(`[data-libro="${clave}"]`)?.setAttribute('aria-current', 'page');
+ if (matchMedia('(max-width: 767px)').matches) $('#re-catalogo').open = false;
+ $('#re-registro').hidden = !tieneRegistro;
+ $('#re-cuenta').hidden = clave !== 'mayor';
+ $('#re-documento').hidden = !esRcv;
+ if (esRcv) {
+  for (const [codigo, nombre] of Object.entries(DOCS_SII)) form.elements.tipo.add(new Option(nombre, codigo));
+ }
+ const fechaValida = valor => /^\d{4}-\d{2}-\d{2}$/.test(valor || '');
+ form.elements.desde.value = fechaValida(params.get('desde')) ? params.get('desde') : hoy().slice(0, 4) + '-01-01';
+ form.elements.hasta.value = fechaValida(params.get('hasta')) ? params.get('hasta') : hoy();
+ if (REGISTROS.includes(params.get('registro'))) form.elements.registro.value = params.get('registro');
+ $('#firComo').value = 'ninguna';
+
+ function informar(mensaje, error = false) {
+  estado.textContent = mensaje;
+  estado.dataset.tipo = error ? 'error' : '';
+ }
+
+ function limpiarResultado() {
+  revision++;
+  resultado = null;
+  salida.replaceChildren();
+  botones.forEach(boton => boton.disabled = true);
+  ver.disabled = !empresa;
+ }
+
+ async function elegirEmpresa(id, recordar) {
+  empresa = empresas.find(ficha => String(ficha.id) === id) || null;
+  limpiarResultado();
+  selector.value = empresa ? String(empresa.id) : '';
+  $('#re-contexto').textContent = empresa ? lineaEmpresa(empresa) : 'Selecciona la empresa del reporte.';
+  informar('');
+  if (!empresa) return;
+  if (recordar) localStorage.setItem('icontador.empresaSeleccionada', JSON.stringify(empresa));
+  if (clave !== 'mayor') return;
+  const actual = empresa.id;
+  form.elements.cuenta.replaceChildren(new Option('Todas', ''));
+  try {
+   const cuentas = await api('cuentas.php', {headers:{'X-Empresa-Id':String(actual)}});
+   if (empresa?.id !== actual) return;
+   for (const cuenta of cuentas) form.elements.cuenta.add(new Option(cuenta.codigo + ' · ' + cuenta.nombre, cuenta.codigo));
+   if (!recordar && params.has('cuenta') && [...form.elements.cuenta.options].some(o => o.value === params.get('cuenta'))) {
+    form.elements.cuenta.value = params.get('cuenta');
+   }
+  } catch {
+   if (empresa?.id === actual) informar('No se pudo cargar el plan de cuentas. Puedes consultar el libro completo.', true);
+  }
+ }
+
+ async function cargarEmpresasMesa() {
+  const actual = typeof empresaSeleccionada === 'function' ? empresaSeleccionada() : null;
+  try {
+   const datos = await api('empresas.php');
+   empresas = datos.empresas.filter(ficha => ficha.estado !== 'inactivo');
+   if (actual?.id && datos.puede_administrar && !empresas.some(ficha => ficha.id === Number(actual.id))) {
+    const todas = await api('empresas.php?vista=todas');
+    const fichaActual = todas.empresas.find(ficha => ficha.id === Number(actual.id) && ficha.estado !== 'inactivo');
+    if (fichaActual) empresas.push(fichaActual);
+   }
+   for (const ficha of empresas) selector.add(new Option(ficha.razon_social, ficha.id));
+   selector.disabled = empresas.length === 0;
+   await elegirEmpresa(String(actual?.id ?? ''), false);
+   if (!empresas.length) informar('No hay empresas activas en tu listado. Revisa Empresas para acceder al reporte.');
+  } catch (error) {
+   $('#re-contexto').textContent = 'No se pudo cargar la empresa.';
+   informar(error.message, true);
+  }
+ }
+
+ selector.addEventListener('change', () => elegirEmpresa(selector.value, true));
+ form.addEventListener('input', evento => {
+  if (!['desde', 'hasta', 'registro', 'tipo', 'cuenta'].includes(evento.target.name)) return;
+  limpiarResultado();
+  informar('');
+ });
+
+ form.addEventListener('submit', async evento => {
+  evento.preventDefault();
+  if (!empresa) return;
+  limpiarResultado();
+  const pedido = revision;
+  const ficha = empresa;
+  const {desde, hasta, registro, cuenta, tipo} = Object.fromEntries(new FormData(form));
+  if (!fechaValida(desde) || !fechaValida(hasta) || desde > hasta) {
+   informar('Ingresa fechas válidas. Desde debe ser anterior o igual a Hasta.', true);
+   return;
+  }
+  const filtros = {desde, hasta, registro:tieneRegistro ? registro : undefined};
+  const ruta = esRcv ? 'rcv.php?' + consulta({...filtros, libro:reporte.rcv, tipo})
+   : reporte.honorarios ? 'honorarios.php?' + consulta({...filtros, libro:reporte.honorarios})
+   : 'libros.php?' + consulta({...filtros, libro:clave, cuenta:clave === 'mayor' ? cuenta : undefined});
+  const periodo = fechaCorta(desde) + ' al ' + fechaCorta(hasta) + (tieneRegistro ? ' · ' + registro : '');
+  ver.disabled = true;
+  informar('Consultando el reporte…');
+  try {
+   const datos = await api(ruta, {headers:{'X-Empresa-Id':String(ficha.id)}});
+   if (pedido !== revision) return;
+   const vacio = esRcv ? !datos.docs.length : reporte.honorarios ? !datos.boletas.length : reporte.vacio(datos);
+   if (vacio) {
+    informar('No hay movimientos para los filtros seleccionados.');
+    return;
+   }
+   const filas = filasReporte(datos);
+   const destacar = fila => fila[0] === '';
+   const detalle = detalleAsientos(clave, datos);
+   const edicion = detalle.length ? {empresa:ficha.id, columna:clave === 'diario' ? 2 : 4} : null;
+   salida.innerHTML = `<h3 class="conta-titulo">${esc(reporte.titulo)}</h3>
+    <p class="conta-empresa">${esc(lineaEmpresa(ficha))}</p><p class="conta-periodo">${esc(periodo)}</p>
+    <div class="re-tabla" tabindex="0" role="region" aria-label="Detalle del reporte">${tablaFilas(filas,{destacar, detalle, edicion})}</div>`;
+   resultado = {ficha, periodo, filas, destacar};
+   botones.forEach(boton => boton.disabled = false);
+   informar('');
+  } catch (error) {
+   if (pedido === revision) informar(error.message, true);
+  } finally {
+   if (pedido === revision) ver.disabled = false;
+  }
+ });
+
+ for (const boton of botones) boton.addEventListener('click', () => {
+  if (!resultado) return;
+  empresaImpresion = resultado.ficha;
+  const opciones = {...resultado, titulo:reporte.titulo, archivo:nombreArchivo};
+  if (boton.dataset.exportar === 'pdf') imprimirInforme({...opciones, salida, horizontal:Boolean(reporte.horizontal || clave === 'diario' || clave === 'mayor'), firma:firma()});
+  else if (boton.dataset.exportar === 'excel') descargarExcel(opciones);
+  else descargar(nombreArchivo + '.csv', csv(resultado.filas));
+ });
+ cargarEmpresasMesa();
+}
+
 function iniciar(){
  const pagina=location.pathname.split('/').pop();
- if(pagina==='voucher-crear.html')pantallaCrear();
+ if($('#re-area'))iniciarMesaReportes(pagina);
+ else if(pagina==='voucher-crear.html')pantallaCrear();
  else if(pagina==='voucher.html')pantallaLista();
  else if(pagina==='reportes-libro-diario.html')pantallaReporte('diario');
  else if(pagina==='reportes-libro-mayor.html')pantallaReporte('mayor');

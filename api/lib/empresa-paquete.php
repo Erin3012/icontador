@@ -9,7 +9,10 @@ require_once __DIR__ . '/honorarios.php';
 require_once __DIR__ . '/liquidaciones.php';
 
 const PAQUETE_FORMATO = 'icontador-empresa';
-const EMPRESA_CAMPOS = ['rut' => 12, 'giro' => 120, 'regimen' => 60, 'telefono' => 30, 'email' => 120];
+const EMPRESA_CAMPOS = ['rut' => 12, 'giro' => 120, 'regimen' => 80, 'telefono' => 30, 'email' => 120,
+    'domicilio' => 191, 'comuna' => 80, 'region' => 80, 'fecha_constitucion' => 10,
+    'fecha_inicio_actividades' => 10, 'categoria_tributaria' => 40, 'tipo_contribuyente' => 80,
+    'subtipo_contribuyente' => 80, 'segmento' => 60, 'glosa_descriptiva' => 191];
 // Columnas que viajan en el paquete, sin id ni empresa_id (se asignan al importar).
 const PAQUETE_COLUMNAS = [
     'vouchers' => ['tipo', 'periodo', 'numero', 'fecha', 'registro', 'glosa', 'creado', 'modificado'],
@@ -50,6 +53,7 @@ function empresas_listar(PDO $db): array
         foreach (array_keys(EMPRESA_CAMPOS) as $campo) {
             $empresa[$campo] = is_scalar($datos[$campo] ?? null) ? (string) $datos[$campo] : '';
         }
+        if (is_array($datos['ficha_sii'] ?? null)) $empresa['ficha_sii'] = $datos['ficha_sii'];
         foreach (['vistas', 'registros', 'cuentas', 'vouchers'] as $n) {
             $empresa[$n] = (int) $f[$n];
         }
@@ -87,6 +91,9 @@ function empresa_crear(PDO $db, array $datos, array $usuario): array
     foreach (EMPRESA_CAMPOS as $campo => $largo) {
         $ficha[$campo] = mb_substr(trim(is_scalar($datos[$campo] ?? null) ? (string) $datos[$campo] : ''), 0, $largo);
     }
+    $fichaSii = $datos['ficha_sii'] ?? null;
+    if (is_string($fichaSii)) $fichaSii = json_decode($fichaSii, true);
+    if (is_array($fichaSii)) $ficha['ficha_sii'] = empresa_ficha_sii_limpia($fichaSii);
     if ($ficha['rut'] !== '') {
         $rut = normalizarRut($ficha['rut']);
         if ($rut === null) {
@@ -112,6 +119,26 @@ function empresa_crear(PDO $db, array $datos, array $usuario): array
     $agregadas = !empty($datos['plan_ejemplo']) ? cargarPlanEjemplo($db, $id) : 0;
     $empresa = array_values(array_filter(empresas_listar($db), fn($e) => $e['id'] === $id))[0];
     return ['empresa' => $empresa, 'cuentas_agregadas' => $agregadas];
+}
+
+/** Conserva solo los datos tributarios mostrados al usuario; omite cualquier campo inesperado. */
+function empresa_ficha_sii_limpia(array $datos): array
+{
+    $campos = ['actividades' => ['descripcion','codigo','categoria','afecta_iva','desde'],
+        'sucursales' => ['codigo','tipo','direccion','desde'],
+        'caracteristicas' => ['nombre','desde'],
+        'documentos_autorizados' => ['tipo','hasta','fecha']];
+    $limpia = [];
+    foreach ($campos as $coleccion => $permitidos) {
+        $limpia[$coleccion] = [];
+        foreach (array_slice(is_array($datos[$coleccion] ?? null) ? $datos[$coleccion] : [], 0, 30) as $fila) {
+            if (!is_array($fila)) continue;
+            $item = [];
+            foreach ($permitidos as $campo) if (is_scalar($fila[$campo] ?? null)) $item[$campo] = mb_substr(trim((string)$fila[$campo]), 0, 191);
+            if ($item) $limpia[$coleccion][] = $item;
+        }
+    }
+    return $limpia;
 }
 
 function empresa_actualizar(PDO $db, int $id, array $datos): array

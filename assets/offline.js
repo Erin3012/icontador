@@ -16,12 +16,23 @@ function cabeceraEmpresa(){
 }
 async function actualizarCabeceraEmpresa(){
  try{
-  const respuesta=await fetch('../api/usuario.php',{headers:{Accept:'application/json'}});
-  if(!respuesta.ok)throw new Error();
-  const usuario=await respuesta.json(),empresa=empresaSeleccionada();
-  const texto='USUARIO TITULAR: '+String(usuario.nombre||usuario.email||'').toUpperCase()+(empresa?' · '+empresa.razon_social:'');
+  const [respuestaUsuario,respuestaEmpresas]=await Promise.all([
+   fetch('../api/usuario.php',{headers:{Accept:'application/json'},credentials:'same-origin',cache:'no-store'}),
+   fetch('../api/empresas.php?vista=todas',{headers:{Accept:'application/json'},credentials:'same-origin',cache:'no-store'}).catch(()=>null)
+  ]);
+  if(!respuestaUsuario.ok)throw new Error('sesion');
+  const usuario=await respuestaUsuario.json();
+  let razon='';
+  if(respuestaEmpresas?.ok){
+   const datos=await respuestaEmpresas.json(),seleccionada=empresaSeleccionada();
+   const empresa=(datos.empresas||[]).find(e=>String(e.id)===String(seleccionada?.id));
+   if(empresa&&!/empresa\s+demo/i.test(String(empresa.razon_social||'')))razon=String(empresa.razon_social||'').trim();
+  }
+  let nombre=String(usuario.nombre||'').trim();
+  if(!nombre||/^usuario\s+demo$/i.test(nombre))nombre=String(usuario.email||'Usuario').trim();
+  const texto='USUARIO TITULAR: '+nombre.toLocaleUpperCase('es-CL')+(razon?' · '+razon.toLocaleUpperCase('es-CL'):'');
   document.querySelectorAll('a.link_blanco').forEach(enlace=>{
-   if(/USUARIO TITULAR:/i.test(enlace.textContent))enlace.textContent=texto;
+   if(/USUARIO TITULAR:/i.test(enlace.textContent)){enlace.textContent=texto;enlace.href='panel.html';enlace.title='Ir a la empresa seleccionada';enlace.setAttribute('aria-label',texto+' · Ir a la empresa seleccionada');}
   });
  }catch{}
 }

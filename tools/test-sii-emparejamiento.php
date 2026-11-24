@@ -1,52 +1,43 @@
 <?php
-// Prueba del emparejamiento de agentes SII (código de un solo uso -> token propio): php tools/test-sii-emparejamiento.php
+// Prueba de enrolamiento de un solo servicio central: php tools/test-sii-emparejamiento.php
 declare(strict_types=1);
 require __DIR__ . '/base-prueba.php';
 require dirname(__DIR__) . '/api/lib/sii.php';
 function check(bool $ok, string $msg): void { if (!$ok) { fwrite(STDERR, "FALLA: $msg\n"); exit(1); } }
 
-$db = base_prueba();
-sii_schema($db);
-rcv_schema($db);
+$db = base_prueba(); sii_schema($db); rcv_schema($db);
+$codigo = sii_servicio_codigo_crear($db);
+check((bool)preg_match('/^[A-Z2-9]{5}(-[A-Z2-9]{5}){3}$/', $codigo['codigo']), 'formato del código de servicio');
+$guardado = (string)$db->query('SELECT codigo_hash FROM sii_servicio WHERE id = 1')->fetchColumn();
+check($guardado === hash('sha256', str_replace('-', '', $codigo['codigo'])), 'solo persiste hash del código');
+$token = sii_servicio_canjear($db, strtolower(str_replace('-', ' ', $codigo['codigo'])), "PC-CENTRAL\n");
+check((bool)preg_match('/^[a-f0-9]{64}$/', $token), 'token técnico de 64 caracteres hex');
+$fila = $db->query('SELECT token_hash, nombre FROM sii_servicio WHERE id = 1')->fetch();
+check($fila['token_hash'] === hash('sha256', $token) && $fila['nombre'] === 'PC-CENTRAL', 'guarda hash y limpia el nombre');
+try { sii_servicio_canjear($db, $codigo['codigo'], 'OTRO'); check(false, 'un código usado no debe canjearse otra vez'); } catch (SiiError) {}
 
-// 1. Código: formato XXXXX-XXXXX, sin guardarlo en claro.
-$c = sii_codigo_crear($db, 1);
-check((bool) preg_match('/^[A-Z2-9]{5}-[A-Z2-9]{5}$/', $c['codigo']), 'formato del código: ' . $c['codigo']);
-$hash = $db->query('SELECT codigo_hash FROM sii_codigos_emparejamiento')->fetchColumn();
-check($hash === hash('sha256', str_replace('-', '', $c['codigo'])) && $hash !== $c['codigo'], 'el código se guarda solo como hash');
+$_SERVER['HTTP_X_AGENTE_TOKEN'] = $token; sii_servicio_autorizar($db);
+$worker1 = '12345678-1234-4234-8234-123456789abc';
+$worker2 = '22345678-1234-4234-8234-123456789abc';
+check(sii_servicio_heartbeat($db, $worker1)['ocupado'] === false, 'una instancia toma el lease');
+check(sii_servicio_heartbeat($db, $worker2)['ocupado'] === true, 'la segunda instancia queda esperando');
+check(sii_servicio_estado($db, true)['conectado'], 'el heartbeat refleja conexión');
+sii_servicio_liberar($db, $worker1);
+check(sii_servicio_heartbeat($db, $worker2)['ocupado'] === false, 'el lease queda libre al cerrar');
 
-// 2. Canje: se acepta en minúsculas y sin guion; devuelve token de 48 hex; no se puede repetir.
-$token = sii_codigo_canjear($db, strtolower(str_replace('-', ' ', $c['codigo'])), "PC-OFICINA\n");
-check((bool) preg_match('/^[a-f0-9]{48}$/', $token), 'token de agente de 48 hex');
-try { sii_codigo_canjear($db, $c['codigo'], 'otro'); check(false, 'un código usado no debe volver a canjearse'); } catch (SiiError $e) {}
-$nombre = $db->query('SELECT nombre FROM sii_agentes')->fetchColumn();
-check($nombre === 'PC-OFICINA', 'nombre del agente sin saltos de línea: ' . json_encode($nombre));
+// Enrolamiento nuevo invalida los tokens individuales y reemplaza el token global previo.
+$db->prepare('INSERT INTO sii_agentes (usuario_id, nombre, token_hash, creado_en) VALUES (1, ?, ?, ?)')
+    ->execute(['LEGADO', hash('sha256', 'legacy-token'), sii_ahora()]);
+$nuevoCodigo = sii_servicio_codigo_crear($db);
+check($db->query('SELECT revocado_en FROM sii_agentes')->fetchColumn() !== null, 'revoca tokens individuales anteriores');
+check((string)$db->query('SELECT token_hash FROM sii_servicio WHERE id = 1')->fetchColumn() === '', 'invalida el token del servicio anterior');
+$nuevoToken = sii_servicio_canjear($db, $nuevoCodigo['codigo'], 'PC-CENTRAL');
+$_SERVER['HTTP_X_AGENTE_TOKEN'] = $nuevoToken; sii_servicio_autorizar($db);
 
-// 3. El token propio autoriza y el token guardado en claro no existe en la base.
-check(sii_agente_por_token($db, $token) === true, 'el token propio autoriza');
-$guardado = $db->query('SELECT token_hash FROM sii_agentes')->fetchColumn();
-check($guardado !== $token && $guardado === hash('sha256', $token), 'el token se guarda solo como hash');
-check(sii_agente_por_token($db, 'no-es-un-token') === false, 'token desconocido no autoriza');
-check($db->query('SELECT ultimo_uso FROM sii_agentes')->fetchColumn() !== null, 'anota el último uso');
+$db->exec("UPDATE sii_servicio SET codigo_hash = '" . hash('sha256', 'A') . "', codigo_expira_en = '2000-01-01 00:00:00'");
+try { sii_servicio_canjear($db, 'A', 'PC'); check(false, 'código vencido no se canjea'); } catch (SiiError) {}
+sii_servicio_revocar($db);
+check(!sii_servicio_estado($db, true)['activo'], 'revoca el servicio global');
+unset($_SERVER['HTTP_X_AGENTE_TOKEN']);
 
-// 4. Un código nuevo invalida el anterior sin usar; un código vencido no se canjea.
-$uno = sii_codigo_crear($db, 2);
-$dos = sii_codigo_crear($db, 2);
-try { sii_codigo_canjear($db, $uno['codigo'], 'x'); check(false, 'el código anterior debe quedar invalidado'); } catch (SiiError $e) {}
-$db->prepare("UPDATE sii_codigos_emparejamiento SET expira_en = '2000-01-01 00:00:00' WHERE usuario_id = 2 AND usado_en IS NULL")->execute();
-try { sii_codigo_canjear($db, $dos['codigo'], 'x'); check(false, 'un código vencido no debe canjearse'); } catch (SiiError $e) {}
-try { sii_codigo_canjear($db, 'ABC', 'x'); check(false, 'un código corto no debe canjearse'); } catch (SiiError $e) {}
-
-// 5. Revocar: solo el dueño, y el token revocado deja de autorizar. Los demás agentes siguen.
-$otro = sii_codigo_crear($db, 2);
-$tokenDos = sii_codigo_canjear($db, $otro['codigo'], 'PC-CASA');
-$id = (int) $db->query("SELECT id FROM sii_agentes WHERE nombre = 'PC-CASA'")->fetchColumn();
-try { sii_agente_revocar($db, 1, $id); check(false, 'otro usuario no puede revocar'); } catch (SiiError $e) {}
-sii_agente_revocar($db, 2, $id);
-check(sii_agente_por_token($db, $tokenDos) === false, 'el token revocado deja de autorizar');
-check(sii_agente_por_token($db, $token) === true, 'el otro PC sigue autorizado');
-$listado = sii_agentes_listar($db, 2);
-check(count($listado) === 1 && $listado[0]['revocado_en'] !== null && !array_key_exists('token_hash', $listado[0]), 'listado sin hash de token y con la revocación');
-check(sii_agentes_activos($db) === 1, 'cuenta solo los agentes activos');
-
-fwrite(STDOUT, "SII emparejamiento: código de un solo uso, token propio por PC, revocación y vencimiento verificados\n");
+echo "SII servicio central: código único, token hash, lease, revocación y renovación verificados\n";

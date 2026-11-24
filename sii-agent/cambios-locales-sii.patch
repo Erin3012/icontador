@@ -1,0 +1,473 @@
+diff --git a/README.md b/README.md
+index 9b1ac1d..2466e68 100644
+--- a/README.md
++++ b/README.md
+@@ -22,9 +22,9 @@ npm run start:php
+ 
+ Sin configuración usa SQLite en `data/icontador.sqlite`. Para MySQL, copia `api/config.example.php` como `api/config.php` con tus datos de conexión (o usa las variables `ICONTADOR_DB_DSN`, `ICONTADOR_DB_USER` e `ICONTADOR_DB_PASS`); la tabla está en `api/schema/rcv.mysql.sql` y se crea sola. Con `npm start` la importación funciona igual, pero no guarda nada. Lee el formato completo del SII: además de los montos guarda el código de IVA no recuperable, el código, valor y tasa de otros impuestos, el IVA de activo fijo, el impuesto sin derecho a crédito, la fecha de recepción y la referencia de las notas de crédito, y muestra los totales por código. Rechaza los archivos `RCV_COMPRA_PENDIENTE`, `NO_INCLUIR` y `RECLAMADO` (no son parte del libro) y los de un RUT distinto al de la empresa elegida. Hay CSV ficticios en `samples/`; `npm test` y `npm run test:php` comprueban el cálculo y el guardado. Para correr las pruebas PHP contra MySQL/MariaDB (como en cPanel), define `ICONTADOR_TEST_MYSQL="host=127.0.0.1;port=3306"`, `ICONTADOR_TEST_USER` e `ICONTADOR_TEST_PASS`: cada prueba crea y borra su propia base.
+ 
+-## Sincronizar el RCV con el SII (agente en tu PC)
++## Integración con el SII
+ 
+-En **RCV**, el botón **Sincronizar SII** pide al agente de `sii-agent/` que descargue el Registro de Compras y Ventas del período y lo guarde en la empresa elegida. El agente corre en tu PC con Playwright, así que la clave tributaria nunca llega al servidor. Instalación, configuración y solución de problemas en [`sii-agent/README.md`](sii-agent/README.md). Pruebas del lado del servidor: `php tools/test-sii-api.php`.
++La sincronización automática y la consulta automática de datos de empresa están deshabilitadas hasta validar un canal autorizado por el SII. El prototipo y su estado se documentan en [`sii-agent/README.md`](sii-agent/README.md). Mientras tanto, descarga los CSV oficiales desde el SII e impórtalos en la vista **RCV**.
+ 
+ ## Boletas de honorarios
+ 
+diff --git a/assets/empresas.js b/assets/empresas.js
+index 30ec960..facfbf0 100644
+--- a/assets/empresas.js
++++ b/assets/empresas.js
+@@ -37,7 +37,7 @@ function iniciar(){
+    <h3>Crear empresa</h3>
+    <div class="empresas-campos">
+     <label>Razón social *<input name="razon_social" class="form-control input-minimalist" required maxlength="191"></label>
+-    <label>RUT<span class="empresas-rut"><input name="rut" class="form-control input-minimalist" maxlength="12" placeholder="76.123.456-7"><button type="button" class="btn-minimalist empresas-traer-sii">Traer datos del SII</button></span></label>
++    <label>RUT<span class="empresas-rut"><input name="rut" class="form-control input-minimalist" maxlength="12" placeholder="76.123.456-7"><a class="btn-minimalist" href="https://www.sii.cl/como_se_hace_para/situacion_trib_terceros.html" target="_blank" rel="noopener noreferrer">Consulta pública del SII</a></span></label>
+     <label>Giro<input name="giro" class="form-control input-minimalist" maxlength="120"></label>
+     <label>Régimen tributario<select name="regimen" class="form-control input-minimalist"><option value="">Seleccione</option><option>Pro Pyme General (14 D N°3)</option><option>Pro Pyme Transparente (14 D N°8)</option><option>Régimen General (14 A)</option><option>Renta presunta</option><option>Sin fines de lucro</option></select></label>
+     <label>Teléfono<input name="telefono" class="form-control input-minimalist" maxlength="30"></label>
+@@ -115,32 +115,6 @@ function iniciar(){
+  document.addEventListener('click',e=>{const a=e.target.closest('a.ic-btn-action-nav');if(!a||!/Crear Empresa/.test(a.textContent))return;
+   e.preventDefault();e.stopPropagation();crear.hidden=false;crear.razon_social.focus();},true);
+  $('.empresas-cancelar',panel).addEventListener('click',()=>{crear.reset();crear.hidden=true;});
+- // "Traer datos del SII": el agente del PC consulta razón social y giro con la clave de su .env; aquí no se escribe la clave.
+- const SII_API='../api/sii.php';
+- const esperar=ms=>new Promise(r=>setTimeout(r,ms));
+- async function traerDatosSii(){
+-  const boton=$('.empresas-traer-sii',panel);const rut=crear.rut.value.trim();
+-  if(!rut){aviso('Escribe el RUT para traer los datos del SII.');crear.rut.focus();return;}
+-  boton.disabled=true;boton.textContent='Consultando el SII…';
+-  try{
+-   const pedido=await fetch(SII_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo:'datos_empresa',rut})});
+-   const inicio=await pedido.json().catch(()=>({}));if(!pedido.ok)throw new Error(inicio.error||'No se pudo pedir la consulta.');
+-   for(let i=0;i<60;i++){
+-    await esperar(3000);
+-    const res=await fetch(SII_API+'?tarea='+inicio.id);const t=await res.json().catch(()=>({}));
+-    if(!res.ok)throw new Error(t.error||'No se pudo leer la consulta.');
+-    if(t.estado==='completada'){
+-     if(t.datos?.razon_social&&!crear.razon_social.value.trim())crear.razon_social.value=t.datos.razon_social;
+-     if(t.datos?.giro&&!crear.giro.value.trim())crear.giro.value=t.datos.giro;
+-     aviso('Datos traídos del SII. Revísalos antes de crear la empresa.');return;
+-    }
+-    if(t.estado==='error')throw new Error(t.mensaje||'El SII no devolvió los datos.');
+-   }
+-   throw new Error('El agente no respondió a tiempo. Revisa que esté corriendo en tu PC.');
+-  }catch(err){aviso(err.message);}
+-  finally{boton.disabled=false;boton.textContent='Traer datos del SII';}
+- }
+- $('.empresas-traer-sii',panel).addEventListener('click',traerDatosSii);
+  crear.addEventListener('submit',async e=>{e.preventDefault();const b=crear.querySelector('[type=submit]');b.disabled=true;
+   const datos=Object.fromEntries(new FormData(crear));datos.plan_ejemplo=crear.plan_ejemplo.checked;
+   try{const r=await api('',{method:'POST',body:JSON.stringify(datos)});crear.reset();crear.hidden=true;
+diff --git a/assets/rcv-import.js b/assets/rcv-import.js
+index aef7404..c7b5ae4 100644
+--- a/assets/rcv-import.js
++++ b/assets/rcv-import.js
+@@ -159,61 +159,13 @@
+  }
+  async function connect(){
+   const note=document.getElementById('rcv-import-storage');
+-  try{await refreshPeriods();state.server=true;note.textContent='Los libros importados se guardan en la base de datos de Cifrax.';if(state.periods.length)await openPeriod(state.periods[0].period);else render();
+-   const sync=document.getElementById('rcv-sii');if(sync)sync.hidden=false;refreshSii().catch(e=>setSiiMsg(e.message));}
++  try{await refreshPeriods();state.server=true;note.textContent='Los libros importados se guardan en la base de datos de Cifrax.';if(state.periods.length)await openPeriod(state.periods[0].period);else render();}
+   catch{state.server=false;note.textContent='Sin servidor PHP: los archivos se procesan en este navegador y no se guardan. Inicia la copia con "npm run start:php" para guardarlos.';render();}
+  }
+- // Sincronización con el SII: la web encola la descarga y el agente del PC (sii-agent/) la ejecuta y devuelve el libro.
+- const SII_API='../api/sii.php';
+- const sii={tareas:[],timer:null};
+- const ESTADO_SII={pendiente:'pendiente',en_proceso:'en proceso',completada:'completada',error:'error'};
+- function setSiiMsg(text){const m=document.getElementById('rcv-sii-msg');if(m)m.textContent=text||'';}
+- async function siiRequest(method,body){
+-  const res=await fetch(SII_API,{method,headers:{...(body?{'Content-Type':'application/json'}:{}),...(typeof cabeceraEmpresa==='function'?cabeceraEmpresa():{})},body:body?JSON.stringify(body):undefined});
+-  const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||('Error '+res.status+' del servidor.'));return data;
+- }
+- function renderSii(){
+-  const list=document.getElementById('rcv-sii-tareas');if(!list)return;
+-  list.replaceChildren(...(sii.tareas.length?sii.tareas.slice(0,8).map(t=>el('li',{class:'rcv-sii-'+t.estado},(t.libro==='compras'?'Compras':'Ventas')+' · '+formatPeriod(t.periodo)+' · '+ESTADO_SII[t.estado]+(t.mensaje?' · '+t.mensaje:''))):[el('li',null,'Sin sincronizaciones todavía.')]));
+- }
+- async function refreshSii(){
+-  clearTimeout(sii.timer);
+-  const anteriores=new Map(sii.tareas.map(t=>[t.id,t.estado]));
+-  sii.tareas=(await siiRequest('GET')).tareas;
+-  renderSii();
+-  // Una tarea que pasó a completada trae sus libros: se abre ese período.
+-  const nuevas=sii.tareas.filter(t=>t.estado==='completada'&&anteriores.has(t.id)&&anteriores.get(t.id)!=='completada');
+-  if(nuevas.length){try{await refreshPeriods();await openPeriod(nuevas[0].periodo);}catch(e){setMsg(e.message);}}
+-  // Mientras haya tareas en cola, vuelve a mirar cada 20 segundos.
+-  if(sii.tareas.some(t=>t.estado==='pendiente'||t.estado==='en_proceso'))sii.timer=setTimeout(()=>refreshSii().catch(e=>setSiiMsg(e.message)),20000);
+- }
+- async function sincronizar(e){
+-  e.preventDefault();
+-  const periodo=document.getElementById('rcv-sii-periodo').value;
+-  const libros=[...document.querySelectorAll('#rcv-sii-form input[name=libro]:checked')].map(i=>i.value);
+-  if(!periodo){setSiiMsg('Elija el período a sincronizar.');return;}
+-  if(!libros.length){setSiiMsg('Elija compras, ventas o ambos.');return;}
+-  try{
+-    const r=await siiRequest('POST',{periodo,libros});
+-    const partes=[];
+-    if(r.creadas.length)partes.push('Tarea creada. Tu agente en el PC la ejecutará en uno o dos minutos.');
+-    if(r.ya_en_cola.length)partes.push('Ya estaba en cola: '+r.ya_en_cola.map(l=>l==='compras'?'Compras':'Ventas').join(', ')+'.');
+-    setSiiMsg(partes.join(' '));
+-    await refreshSii();
+-  }catch(err){setSiiMsg(err.message);}
+- }
+  function buildSii(){
+-  const hoy=new Date();const mes=hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0');
+-  const check=(valor,texto)=>el('label',{class:'rcv-sii-check'},el('input',{type:'checkbox',name:'libro',value:valor,checked:''}),' '+texto);
+-  return el('div',{class:'rcv-import rcv-sii',id:'rcv-sii',hidden:''},
+-   el('h3',null,'Sincronizar con el SII'),
+-   el('p',null,'Pide la descarga del RCV a tu agente en el PC (carpeta sii-agent/). El agente inicia sesión en el SII con la clave que tiene en su archivo .env y guarda el libro en esta empresa.'),
+-   el('form',{id:'rcv-sii-form',class:'rcv-sii-form'},
+-    el('label',null,'Período ',el('input',{type:'month',id:'rcv-sii-periodo',class:'rcv-select',value:mes})),
+-    check('compras','Compras'),check('ventas','Ventas'),
+-    el('button',{type:'submit',class:'rcv-btn'},'Sincronizar SII')),
+-   el('p',{id:'rcv-sii-msg',class:'rcv-msg',role:'status'}),
+-   el('ul',{id:'rcv-sii-tareas',class:'rcv-files'}));
++  return el('div',{class:'rcv-import rcv-sii',id:'rcv-sii'},
++   el('h3',null,'Descarga desde el SII'),
++   el('p',null,'La sincronización automática está deshabilitada mientras se valida un canal autorizado. Descarga los CSV de compras y ventas desde el SII y súbelos en “Importar RCV desde archivo”.'));
+  }
+ 
+  function init(){
+@@ -229,7 +181,6 @@
+    el('ul',{id:'rcv-import-files',class:'rcv-files'}),el('p',{id:'rcv-import-msg',class:'rcv-msg',role:'status'}),el('div',{id:'rcv-import-result'}));
+   host.prepend(panel);
+   const sync=buildSii();host.prepend(sync);
+-  document.getElementById('rcv-sii-form').addEventListener('submit',sincronizar);
+   input.addEventListener('change',()=>{load([...input.files]);input.value='';});
+   periods.addEventListener('change',()=>{openPeriod(periods.value).catch(e=>setMsg(e.message));});
+   clear.addEventListener('click',e=>{e.stopPropagation();clearAll();});
+diff --git a/sii-agent/.env.example b/sii-agent/.env.example
+index f9dac13..d596704 100644
+--- a/sii-agent/.env.example
++++ b/sii-agent/.env.example
+@@ -6,9 +6,6 @@ SII_URL_SERVIDOR=https://qlc.cl
+ # Token secreto del agente. Debe ser igual a sii_agente_token en api/config.php del servidor.
+ SII_TOKEN_AGENTE=cambia-por-el-mismo-token-del-servidor
+ 
+-# Claves tributarias del SII por RUT (JSON; RUT con guion y sin puntos).
+-SII_CLAVES='{"76000000-0":"tu-clave-tributaria"}'
+-
+ # Opcionales
+ # SII_HEADLESS=true          # false para ver la ventana del navegador (útil la primera vez o si el SII pide CAPTCHA)
+ # SII_INTERVALO_SEG=60       # cada cuántos segundos revisar si hay tareas nuevas
+diff --git a/sii-agent/README.md b/sii-agent/README.md
+index aeaa97c..7a88d01 100644
+--- a/sii-agent/README.md
++++ b/sii-agent/README.md
+@@ -1,17 +1,14 @@
+-# Agente SII: sincronización del RCV desde tu PC
++# Prototipo de integración SII (deshabilitado)
+ 
+-Cifrax corre en un hosting compartido (cPanel, PHP y MySQL) donde no se puede instalar Playwright. Por eso el navegador corre en **tu PC**: este agente consulta Cifrax, inicia sesión en el SII con tu clave tributaria, descarga el Registro de Compras y Ventas (RCV) del período pedido y lo envía de vuelta a Cifrax, que lo guarda igual que una importación manual.
++La cola PHP y el agente local están preparados, pero las consultas automáticas están deshabilitadas hasta contar con un canal autorizado y verificar el flujo con el SII. El botón de sincronización no debe desplegarse en `qlc.cl` todavía. La importación manual de los CSV oficiales sigue disponible en la pantalla RCV.
+ 
+-- La **clave tributaria queda solo en `sii-agent/.env` de tu PC**. Nunca se envía al servidor.
+-- El agente solo ve las tareas de las empresas a las que tienes acceso en Cifrax (el servidor filtra por empresa y rol).
+-- Hoy sincroniza **RCV de compras y ventas**. Honorarios queda para después.
++- La Clave Tributaria se solicita oculta en la terminal al procesar una consulta. No se guarda en `.env`, argumentos, archivos ni en el servidor.
++- Si se habilita más adelante, la clave se pedirá oculta en la terminal y no se enviará al servidor.
++- Las rutas automáticas no se ejecutan mientras `src/sii.js` mantiene el canal deshabilitado.
+ 
+-## Cómo funciona
++El agente rechaza las tareas sin pedir la clave. Para importar RCV, descarga los archivos desde la pantalla oficial del SII y cárgalos en la vista RCV.
+ 
+-1. En Cifrax, en **RCV**, eliges un período, marcas Compras, Ventas o ambos y pulsas **Sincronizar SII**. Eso crea una tarea pendiente.
+-2. El agente, que corre en tu PC, revisa las tareas cada minuto (configurable) y reclama las pendientes.
+-3. Abre Chromium, entra al SII, descarga el detalle del libro, valida que sea el período y el libro pedidos y lo envía a Cifrax.
+-4. Cifrax guarda los documentos y la tarea pasa a **completada**. Si algo falla (clave incorrecta, el SII no responde, un archivo de otro RUT), la tarea queda en **error** con el motivo.
++La inspección visual del portal y de la pantalla de acceso, realizada con un perfil de navegador temporal, está documentada en [`INSPECCION-SII.md`](./INSPECCION-SII.md). Se puede repetir con `node .\tools\inspect-sii-ui.cjs`; no inicia sesión ni descarga información tributaria.
+ 
+ ## Requisitos
+ 
+@@ -31,7 +28,8 @@ Luego edita `.env`:
+ 
+ - `SII_URL_SERVIDOR`: la dirección de Cifrax, por ejemplo `https://qlc.cl`.
+ - `SII_TOKEN_AGENTE`: el mismo valor que `sii_agente_token` en `api/config.php` del servidor.
+-- `SII_CLAVES`: un JSON con la clave tributaria de cada empresa, por RUT con guion y sin puntos. Por ejemplo `'{"76000000-0":"mi-clave"}'`.
++
++Cuando se habilite el canal, el agente pedirá la clave oculta en una terminal interactiva. Si tienes una línea `SII_CLAVES` de una instalación anterior, elimínala de `sii-agent/.env`; el agente la rechazará para evitar usar claves guardadas.
+ 
+ Para crear el token en el servidor, usa un valor largo y aleatorio, por ejemplo con `php -r "echo bin2hex(random_bytes(24));"`, y ponlo en `api/config.php`:
+ 
+@@ -41,40 +39,24 @@ Para crear el token en el servidor, usa un valor largo y aleatorio, por ejemplo
+ 
+ (También sirve la variable de entorno `ICONTADOR_SII_TOKEN`.)
+ 
+-## Uso
++## Preparación futura
+ 
+-Para dejarlo corriendo mientras trabajas:
++No ejecutes el agente todavía. Cuando se habilite un canal autorizado, se podrá iniciar con:
+ 
+ ```powershell
+ npm start
+ ```
+ 
+-Para probar una sola vez, por ejemplo después de pedir una sincronización:
+-
+-```powershell
+-npm run una-vez
+-```
+-
+-La primera vez conviene ver la ventana del navegador: pon `SII_HEADLESS=false` en `.env`. Si el SII pide un CAPTCHA o un paso extra, resuélvelo en esa ventana.
+-
+-Cada CSV descargado se borra después de importarlo. Para conservarlos, pon `SII_CONSERVAR=true`.
+-
+-## Pruebas
+-
+-```powershell
+-npm test
+-```
+-
+-Las pruebas no abren el navegador ni llaman al SII: verifican la lectura del `.env`, la validación de RUT y período, y el envío al servidor con datos de prueba.
++## Estado de la integración
+ 
+-En el servidor, `php tools/test-sii-api.php` prueba la cola de tareas, el reclamo del agente y la importación.
++La consulta pública de situación tributaria de terceros permite consultar razón social y giro con el RUT, sin iniciar sesión; el SII la documenta como consulta abierta. En cambio, el Web Service que entrega identificación y actividades económicas está descrito para un convenio institucional: requiere perfil asignado e IP autorizada por el SII. No es una API general para conectar cualquier hosting.
+ 
+-## Qué revisar al primer uso
++`src/sii.js` bloquea las consultas automáticas y no contiene rutas internas del SII. Para habilitarlas se requiere un canal aprobado y su documentación técnica, además de confirmar que la respuesta corresponde al RUT solicitado. La consulta pública de terceros y la descarga manual de CSV se mantienen como alternativas oficiales.
+ 
+-Las direcciones del SII, los nombres de los campos de inicio de sesión y el selector de período están agrupados en `src/sii.js`, en el objeto `SII`. No se pudieron verificar contra el sitio real al escribir el agente (no hay acceso al SII desde el entorno de desarrollo), y **el SII cambia sus pantallas**: si una tarea falla con "No se pudo iniciar sesión" o "No se pudo descargar el RCV", abre `src/sii.js` con `SII_HEADLESS=false` y ajusta el selector que no encuentra.
++Fuentes oficiales: [consulta de terceros](https://www.sii.cl/como_se_hace_para/situacion_trib_terceros.html), [SII: servicios y consultas disponibles](https://www.sii.cl/ccp/consultas_sit_trib.html), [Resolución SII 129/2019, convenio SENCE y perfiles/IP autorizadas](https://www.sii.cl/normativa_legislacion/resoluciones/2019/reso129.pdf).
+ 
+ ## Seguridad
+ 
+-- `.env` y `descargas/` están en `.gitignore`: no se suben a git.
++- `.env` y `descargas/` están en `.gitignore`: no se suben a git. `.env` contiene solo la URL y el token técnico del agente; nunca la Clave Tributaria.
+ - El token del agente da acceso a las tareas de sincronización y a la importación del RCV. Si se filtra, cambia `sii_agente_token` en el servidor y en `.env`.
+ - Los endpoints del agente están en `api/sii-agente.php`; no usan sesión y exigen el token. El resto de la API exige sesión.
+diff --git a/sii-agent/src/index.js b/sii-agent/src/index.js
+index ec1bc20..18dd159 100644
+--- a/sii-agent/src/index.js
++++ b/sii-agent/src/index.js
+@@ -7,6 +7,7 @@ const path = require('node:path');
+ const { cargarEnv } = require('./env');
+ const { crearServidor } = require('./api');
+ const { descargarLibro, consultarEmpresa } = require('./sii');
++const { solicitarClaveSii } = require('./secret');
+ const { parseRcv } = require('../../assets/rcv-import.js');
+ 
+ /** "76.000.000-0" -> "76000000-0" (la forma en que se busca la clave). */
+@@ -29,24 +30,34 @@ function leerClaves(texto) {
+ }
+ 
+ /** Consulta de datos para crear una empresa: usa la clave del RUT y devuelve razón social y giro. */
+-async function procesarConsultaEmpresa({ servidor, tarea, claves, consultar, log = console.log }) {
++async function procesarConsultaEmpresa({ servidor, tarea, claves, solicitarClave = solicitarClaveSii, consultar = consultarEmpresa, log = console.log }) {
+   const rut = normalizarRut(tarea.rut);
+-  const clave = rut && claves[rut];
+-  if (!clave) {
+-    const mensaje = rut ? `Falta la clave del SII para el RUT ${rut} en sii-agent/.env (SII_CLAVES).` : 'El RUT pedido no es válido.';
++  if (!rut) {
++    const mensaje = 'El RUT pedido no es válido.';
+     await servidor.fallar(tarea.id, mensaje).catch(() => {});
+     return { ok: false, mensaje };
+   }
++  if (consultar.canalSiiHabilitado === false) {
++    const mensaje = 'La consulta automática de empresa está deshabilitada hasta validar un canal autorizado por el SII.';
++    await servidor.fallar(tarea.id, mensaje).catch(() => {});
++    return { ok: false, mensaje };
++  }
++  let clave = '';
+   try {
++    clave = claves !== undefined ? String(claves[rut] || '') : await solicitarClave(rut);
++    if (!clave) throw new Error('No se ingresó la Clave Tributaria.');
+     const datos = await consultar({ rut, clave });
+     await servidor.resultadoEmpresa(tarea.id, datos);
+     log(`Consulta ${tarea.id}: datos de ${rut} enviados.`);
+     return { ok: true, datos };
+   } catch (e) {
+-    const mensaje = `No se pudieron traer los datos del SII: ${e.message}`;
++    const detalle = String(e?.message || 'Error desconocido.');
++    const mensaje = `No se pudieron traer los datos del SII: ${clave ? detalle.split(clave).join('[oculta]') : detalle}`;
+     log(`Consulta ${tarea.id}: ${mensaje}`);
+     await servidor.fallar(tarea.id, mensaje).catch(() => {});
+     return { ok: false, mensaje };
++  } finally {
++    clave = '';
+   }
+ }
+ 
+@@ -54,18 +65,25 @@ async function procesarConsultaEmpresa({ servidor, tarea, claves, consultar, log
+  * Ejecuta una tarea: descarga el libro, lo valida con el mismo lector del navegador (assets/rcv-import.js)
+  * y lo envía a Cifrax. Los fallos locales se informan a la tarea; los que rechaza el servidor ya quedan registrados allí.
+  */
+-async function procesarTarea({ servidor, tarea, claves, descargar, consultar = consultarEmpresa, carpeta, conservar, log = console.log }) {
+-  if (tarea.tipo === 'datos_empresa') return procesarConsultaEmpresa({ servidor, tarea, claves, consultar, log });
++async function procesarTarea({ servidor, tarea, claves, solicitarClave = solicitarClaveSii, descargar, consultar = consultarEmpresa, carpeta, conservar, log = console.log }) {
++  if (tarea.tipo === 'datos_empresa') return procesarConsultaEmpresa({ servidor, tarea, claves, solicitarClave, consultar, log });
+   const rut = normalizarRut(tarea.rut);
+   if (!rut) return servidor.fallar(tarea.id, 'La empresa no tiene RUT en Cifrax.');
+-  const clave = claves[rut];
+-  if (!clave) return servidor.fallar(tarea.id, `Falta la clave del SII para el RUT ${rut} en sii-agent/.env (SII_CLAVES).`);
++  if (descargar.canalSiiHabilitado === false) {
++    return servidor.fallar(tarea.id, 'La descarga automática del RCV está deshabilitada hasta validar un canal autorizado por el SII.');
++  }
+ 
+   let archivo = null;
++  let clave = '';
+   try {
++    clave = claves !== undefined ? String(claves[rut] || '') : await solicitarClave(rut);
++    if (!clave) throw new Error('No se ingresó la Clave Tributaria.');
+     archivo = await descargar({ rut, clave, periodo: tarea.periodo, libro: tarea.libro, carpeta });
++    clave = '';
+   } catch (e) {
+-    const mensaje = `No se pudo descargar el RCV del SII: ${e.message}`;
++    const detalle = String(e?.message || 'Error desconocido.');
++    const mensaje = `No se pudo descargar el RCV del SII: ${clave ? detalle.split(clave).join('[oculta]') : detalle}`;
++    clave = '';
+     log(`Tarea ${tarea.id}: ${mensaje}`);
+     await servidor.fallar(tarea.id, mensaje).catch(() => {});
+     return { ok: false, mensaje };
+@@ -99,10 +117,10 @@ function configurar(env) {
+   const url = env.SII_URL_SERVIDOR;
+   const token = env.SII_TOKEN_AGENTE;
+   if (!url || !token) throw new Error('Faltan SII_URL_SERVIDOR y SII_TOKEN_AGENTE en sii-agent/.env.');
++  if (env.SII_CLAVES) throw new Error('Elimina SII_CLAVES de sii-agent/.env; el agente ahora pide la clave en la terminal sin guardarla.');
+   return {
+     url,
+     token,
+-    claves: leerClaves(env.SII_CLAVES),
+     headless: String(env.SII_HEADLESS ?? 'true').toLowerCase() !== 'false',
+     intervaloMs: Math.max(15, Number(env.SII_INTERVALO_SEG || 60)) * 1000,
+     carpeta: path.resolve(__dirname, '..', env.SII_CARPETA || 'descargas'),
+@@ -111,13 +129,18 @@ function configurar(env) {
+ }
+ 
+ /** Una vuelta: reclama las tareas pendientes y las procesa una por una. */
+-async function revisar({ servidor, config, descargar = descargarLibro, consultar = consultarEmpresa, log }) {
++async function revisar({ servidor, config, descargar = descargarLibro, consultar = consultarEmpresa, solicitarClave = solicitarClaveSii, log }) {
+   const tareas = await servidor.pendientes();
++  const conHeadless = (fn) => {
++    const envuelta = (opciones) => fn({ ...opciones, headless: config.headless });
++    if (fn.canalSiiHabilitado === false) envuelta.canalSiiHabilitado = false;
++    return envuelta;
++  };
+   for (const tarea of tareas) {
+     await procesarTarea({
+-      servidor, tarea, claves: config.claves, carpeta: config.carpeta, conservar: config.conservar, log,
+-      descargar: (opciones) => descargar({ ...opciones, headless: config.headless }),
+-      consultar: (opciones) => consultar({ ...opciones, headless: config.headless }),
++      servidor, tarea, solicitarClave, carpeta: config.carpeta, conservar: config.conservar, log,
++      descargar: conHeadless(descargar),
++      consultar: conHeadless(consultar),
+     });
+   }
+   return tareas.length;
+diff --git a/sii-agent/src/sii.js b/sii-agent/src/sii.js
+index 5f0fc50..6d15b14 100644
+--- a/sii-agent/src/sii.js
++++ b/sii-agent/src/sii.js
+@@ -1,88 +1,40 @@
+ 'use strict';
+-// Navegación en el SII con Playwright: inicia sesión con RUT y clave tributaria y descarga el "Detalle" del RCV.
+-// Las direcciones y los selectores están agrupados en SII para ajustarlos si el SII cambia su sitio.
+-// Solo este archivo habla con el SII; el resto del agente trabaja con el CSV descargado.
+-const fs = require('node:fs');
+-const path = require('node:path');
+-
++// Enlaces del SII documentados para consulta manual. No se llaman rutas privadas desde el agente.
+ const SII = {
+-  login: 'https://zeusr.sii.cl/AUT2000/InicioAutenticacion/IngresoRutClave.html',
+-  rcv: { compras: 'https://www4.sii.cl/rcvcompraInternet/', ventas: 'https://www4.sii.cl/rcvventainternet/' },
+-  selectores: {
+-    // Según la pantalla "Identificación de Contribuyentes": campo RUT con ejemplo "Ej: 123456789" (sin puntos ni guion)
+-    // y campo "Ingresar Clave Tributaria". Los ids de respaldo se verifican con el primer uso real.
+-    rut: '#rutcntr, input[name="rutcntr"], input[placeholder^="Ej"]',
+-    clave: '#clave, input[type="password"]',
+-    ingresar: '#bt_ingresar, button:has-text("INGRESAR")',
+-    periodo: 'select[name="periodo"]',
+-    descargarDetalle: 'text=Descargar Detalles',
+-  },
+-  // Datos del contribuyente (razón social, giro). Dirección y selectores sin verificar contra el SII real.
+-  datosContribuyente: 'https://www4.sii.cl/getdatosinternet/',
+-  selectoresEmpresa: { razon: '#razonSocial', giro: '#giro' },
+-  tiempoMs: 120000,
++  inicio: 'https://homer.sii.cl/',
++  rcv: 'https://www4.sii.cl/consdcvinternetui/#/index',
++  consultaTerceros: 'https://www.sii.cl/como_se_hace_para/situacion_trib_terceros.html',
+ };
+ 
+-// "2026-10" -> "10-2026", el formato que muestra el selector de período del SII.
++// El SII no publica para uso general el endpoint de consulta automatizada de empresa/RCV.
++// El Web Service de identificación y actividades requiere perfiles e IP autorizados por convenio.
++const CANALES_AUTOMATICOS_HABILITADOS = false;
++
+ function periodoSii(periodo) {
+   const [anio, mes] = String(periodo).split('-');
+   return `${mes}-${anio}`;
+ }
+ 
+-/** RUT como lo pide el formulario del SII: solo dígitos y dígito verificador, sin puntos ni guion. */
++/** RUT como lo acepta el formulario del SII: dígitos y DV, sin puntos ni guion. */
+ function rutParaFormulario(rut) {
+   return String(rut).replace(/[^0-9kK]/g, '').toUpperCase();
+ }
+ 
+-async function iniciarSesion(page, { rut, clave }) {
+-  await page.goto(SII.login, { timeout: SII.tiempoMs });
+-  await page.fill(SII.selectores.rut, rutParaFormulario(rut));
+-  await page.fill(SII.selectores.clave, clave);
+-  await page.click(SII.selectores.ingresar);
+-  try {
+-    await page.waitForURL((url) => !url.toString().includes('IngresoRutClave'), { timeout: SII.tiempoMs });
+-  } catch {
+-    throw new Error('No se pudo iniciar sesión en el SII. Revisa la clave tributaria en sii-agent/.env.');
+-  }
++function requiereCanalAutorizado(tipo) {
++  const detalle = tipo === 'empresa'
++    ? 'La consulta pública de razón social y giro está disponible en el SII, pero su extracción automática requiere un canal autorizado.'
++    : 'La descarga automática del RCV requiere un canal autorizado por el SII; usa la descarga oficial desde la pantalla RCV.';
++  throw new Error(`${detalle} Se bloqueó el acceso automático desde este agente.`);
+ }
+ 
+-/** Descarga el detalle del RCV de un período y libro. Devuelve la ruta del CSV guardado en `carpeta`. */
+-async function descargarLibro({ rut, clave, periodo, libro, carpeta, headless = true }) {
+-  const { chromium } = require('playwright');
+-  fs.mkdirSync(carpeta, { recursive: true });
+-  const navegador = await chromium.launch({ headless });
+-  try {
+-    const contexto = await navegador.newContext({ acceptDownloads: true });
+-    const page = await contexto.newPage();
+-    await iniciarSesion(page, { rut, clave });
+-    await page.goto(SII.rcv[libro], { timeout: SII.tiempoMs });
+-    await page.selectOption(SII.selectores.periodo, periodoSii(periodo));
+-    const [descarga] = await Promise.all([
+-      page.waitForEvent('download', { timeout: SII.tiempoMs }),
+-      page.click(SII.selectores.descargarDetalle),
+-    ]);
+-    const destino = path.join(carpeta, `RCV_${libro.toUpperCase()}_${rut}_${periodo.replace('-', '')}_${Date.now()}.csv`);
+-    await descarga.saveAs(destino);
+-    return destino;
+-  } finally {
+-    await navegador.close();
+-  }
++async function descargarLibro() {
++  return requiereCanalAutorizado('rcv');
+ }
++descargarLibro.canalSiiHabilitado = CANALES_AUTOMATICOS_HABILITADOS;
+ 
+-/** Lee razón social y giro del contribuyente con la clave del agente. No descarga nada. */
+-async function consultarEmpresa({ rut, clave, headless = true }) {
+-  const { chromium } = require('playwright');
+-  const navegador = await chromium.launch({ headless });
+-  try {
+-    const page = await (await navegador.newContext()).newPage();
+-    await iniciarSesion(page, { rut, clave });
+-    await page.goto(SII.datosContribuyente, { timeout: SII.tiempoMs });
+-    const razon_social = (await page.locator(SII.selectoresEmpresa.razon).first().innerText({ timeout: SII.tiempoMs })).trim();
+-    const giro = (await page.locator(SII.selectoresEmpresa.giro).first().innerText({ timeout: 5000 }).catch(() => '')).trim();
+-    return { razon_social, giro };
+-  } finally {
+-    await navegador.close();
+-  }
++async function consultarEmpresa() {
++  return requiereCanalAutorizado('empresa');
+ }
++consultarEmpresa.canalSiiHabilitado = CANALES_AUTOMATICOS_HABILITADOS;
+ 
+-module.exports = { descargarLibro, consultarEmpresa, periodoSii, rutParaFormulario, SII };
++module.exports = { descargarLibro, consultarEmpresa, periodoSii, rutParaFormulario, SII, CANALES_AUTOMATICOS_HABILITADOS };

@@ -20,6 +20,11 @@ $compras = $libros[0];
 check($compras['kind'] === 'compras' && count($compras['docs']) === 2 && $compras['fileName'] === 'c2.csv', 'compras leídas');
 check($compras['docs'][0]['iva'] === 190000 && $compras['docs'][0]['razon'] === 'PROVEEDOR' && $compras['docs'][1]['tipo'] === 61, 'campos');
 check(rcv_periodos($db) === [['period' => '2026-09', 'compras' => 2, 'ventas' => 1]], 'períodos');
+$res48=['kind'=>'ventas','period'=>'2026-10','fileName'=>'RCV_RESUMEN_VENTA_10406537-6_202610.csv','rutEmpresa'=>'10406537-6','resumen'=>[['tipo'=>48,'tipoNombre'=>'Comprobantes Pago Electrónico (48)','documentos'=>187,'exento'=>0,'neto'=>1369623,'iva'=>260227,'total'=>1629850]]];
+check(rcv_guardar_resumen($db,$res48)===187,'guarda conteo agregado de ventas');
+$resumenes=rcv_leer_resumenes($db,'2026-10');check(count($resumenes)===1&&$resumenes[0]['resumen'][0]['documentos']===187&&$resumenes[0]['docs']===[],'lee resumen separado del detalle');
+check(rcv_periodos($db)[0]===['period'=>'2026-10','compras'=>0,'ventas'=>187],'conteo resumen en selector');
+check(rcv_leer($db,'2026-10')===[],'resumen no se mezcla con los documentos/vouchers');
 foreach ([['kind' => 'otro', 'period' => '2026-09', 'docs' => []], ['kind' => 'compras', 'period' => '2026-13', 'docs' => []], ['kind' => 'compras', 'period' => '2026-09', 'docs' => [['tipo' => 33, 'iva' => 'mucho']]], ['kind' => 'compras', 'period' => '2026-09', 'docs' => [['folio' => '1']]]] as $malo) {
     try { rcv_guardar($db, $malo); check(false, 'debió rechazar ' . json_encode($malo)); } catch (RcvError) {}
 }
@@ -32,5 +37,6 @@ check(rcv_libro($db, 'ventas')['totales']['total'] === 2380000, 'Libro de Ventas
 foreach ([['01-09-2026', null], [null, '2026-02-30'], ['2026-09-30', '2026-09-01']] as [$d, $h]) {
     try { rcv_libro($db, 'compras', $d, $h); check(false, "debió rechazar $d $h"); } catch (RcvError) {}
 }
+check(rcv_borrar($db, '2026-10') === 1 && rcv_periodos($db)[0]['period']==='2026-09','borrar resumen');
 check(rcv_borrar($db, '2026-09') === 3 && rcv_periodos($db) === [], 'borrar');
 echo "RCV PHP: guardar, reemplazar, leer, validar y borrar verificados\n";
