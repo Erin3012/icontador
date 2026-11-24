@@ -1,92 +1,81 @@
 <?php
 /**
- * API Presupuestos - Comparativa Presupuestado vs Real
+ * API Presupuestos - comparativa presupuestado vs real y mantenimiento de presupuestos
  *
- * Endpoint: GET /api/presupuestos.php?anio=2026&mes=10 (optional)
- * Retorna comparativa de presupuesto vs gastos reales con alertas
+ * GET  /api/presupuestos.php?anio=2026[&mes=10]   Comparativa del período (sin mes = anual), presupuestos del año y cuentas disponibles
+ * GET  /api/presupuestos.php?csrf=1               Token CSRF para las operaciones de escritura
+ * POST /api/presupuestos.php  (JSON, cabecera X-CSRF-Token)
+ *      {accion:'crear', nombre, anio, mes|null, lineas:[{cuenta_codigo, concepto, monto_presupuestado}]}
+ *      {accion:'archivar', id}
  *
- * Autenticación requerida: Sí (sesión)
+ * Autenticación requerida: sesión. La empresa se toma de la cabecera X-Empresa-Id.
  */
-
-header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/lib/sesion.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/lib/empresas.php';
+require_once __DIR__ . '/lib/vouchers.php';
 require_once __DIR__ . '/lib/presupuestos.php';
 
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
+header('X-Content-Type-Options: nosniff');
+
+function presupuestos_responder(int $status, array $cuerpo): never {
+    http_response_code($status);
+    echo json_encode($cuerpo, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 try {
-    // Validar sesión
-    if (!isset($_SESSION['usuario_id'])) {
-        http_response_code(401);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Autenticación requerida',
-        ]);
-        exit;
+    $db = icontador_db();
+    $metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+    if ($metodo === 'GET' && ($_GET['csrf'] ?? '') === '1') {
+        presupuestos_responder(200, ['success' => true, 'csrf' => auth_csrf()]);
     }
 
-    // Obtener empresa actual del usuario
-    $empresa_id = empresa_actual(icontador_db());
-    if (!$empresa_id) {
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Empresa no seleccionada',
-        ]);
-        exit;
-    }
+    $empresa_id = empresa_actual($db);
+    if ($empresa_id <= 0) presupuestos_responder(400, ['success' => false, 'error' => 'Empresa no seleccionada']);
 
-    // Crear esquema si no existe
-    Presupuestos::crearEsquema(icontador_db());
+    crearEsquema($db);               // comprobantes y plan de cuentas (lib/vouchers.php)
+    Presupuestos::crearEsquema($db);
+    $presupuestos = new Presupuestos($db, $empresa_id);
 
-    // Obtener parámetros
-    $anio = isset($_GET['anio']) ? (int)$_GET['anio'] : date('Y');
-    $mes = isset($_GET['mes']) ? (int)$_GET['mes'] : null;
-
-    // Validar año
-    if ($anio < 2000 || $anio > 2099) {
-        $anio = date('Y');
-    }
-
-    // Validar mes si se proporciona
-    if ($mes !== null && ($mes < 1 || $mes > 12)) {
-        $mes = null;
-    }
-
-    // Inicializar clase Presupuestos
-    $presupuestos = new Presupuestos(icontador_db(), $empresa_id);
-
-    // Obtener datos según parámetros
-    if ($mes !== null) {
-        // Comparativa mensual
+    if ($metodo === 'GET') {
+        $anio = $_GET['anio'] ?? date('Y');
+        $mes = $_GET['mes'] ?? null;
         $datos = $presupuestos->obtenerComparativa($anio, $mes);
-    } else {
-        // Comparativa anual
-        $datos = $presupuestos->obtenerComparativa($anio);
+        $datos['presupuestos_disponibles'] = $presupuestos->listarPresupuestos($anio);
+        $datos['cuentas_presupuestables'] = $presupuestos->listarCuentasPresupuestables();
+        presupuestos_responder(200, ['success' => true, 'data' => $datos]);
     }
 
-    // Agregar listado de presupuestos disponibles
-    $datos['presupuestos_disponibles'] = $presupuestos->listarPresupuestos($anio);
+    if ($metodo !== 'POST') {
+        header('Allow: GET, POST');
+        presupuestos_responder(405, ['success' => false, 'error' => 'Método no permitido']);
+    }
+    if (!auth_csrf_valido($_SERVER['HTTP_X_CSRF_TOKEN'] ?? null)) {
+        presupuestos_responder(403, ['success' => false, 'error' => 'La sesión de seguridad venció. Recarga la página e inténtalo de nuevo.']);
+    }
+    if (stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== 0) {
+        presupuestos_responder(415, ['success' => false, 'error' => 'Se espera JSON.']);
+    }
+    $d = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($d)) presupuestos_responder(400, ['success' => false, 'error' => 'JSON inválido.']);
 
-    // Retornar respuesta
-    echo json_encode([
-        'success' => true,
-        'data' => $datos,
-    ]);
-
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Error en base de datos',
-        'debug' => defined('DEBUG') ? $e->getMessage() : null,
-    ]);
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Error al procesar presupuestos',
-        'debug' => defined('DEBUG') ? $e->getMessage() : null,
-    ]);
+    switch ($d['accion'] ?? '') {
+        case 'crear':
+            $id = $presupuestos->crearPresupuesto($d['nombre'] ?? null, $d['anio'] ?? null, $d['mes'] ?? null, $d['lineas'] ?? null);
+            presupuestos_responder(201, ['success' => true, 'message' => 'Presupuesto creado', 'presupuesto_id' => $id]);
+        case 'archivar':
+            $presupuestos->archivarPresupuesto($d['id'] ?? null);
+            presupuestos_responder(200, ['success' => true, 'message' => 'Presupuesto archivado']);
+    }
+    presupuestos_responder(400, ['success' => false, 'error' => 'Acción no válida.']);
+} catch (PresupuestoError | EmpresaError $e) {
+    presupuestos_responder(422, ['success' => false, 'error' => $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log('presupuestos.php: ' . $e);
+    presupuestos_responder(500, ['success' => false, 'error' => 'Error al procesar presupuestos']);
 }

@@ -337,6 +337,98 @@
                 font-size: 20px;
             }
         }
+        .panel-form {
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel-form h2 {
+            margin: 0 0 12px;
+            font-size: 18px;
+        }
+
+        .form-fila {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .form-fila label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .lineas-form table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        .lineas-form td {
+            padding: 4px;
+        }
+
+        .lineas-form select, .lineas-form input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .btn-secundario {
+            background: white;
+            color: var(--color-primary);
+            border: 1px solid var(--color-primary);
+        }
+
+        .btn-secundario:hover {
+            background: #eef5fc;
+        }
+
+        .btn-peligro {
+            background: white;
+            color: var(--color-danger);
+            border: 1px solid var(--color-danger);
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .btn-peligro:hover {
+            background: #fdeceb;
+        }
+
+        .mensaje-form {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .mensaje-form.ok {
+            color: var(--color-success);
+        }
+
+        .mensaje-form.error {
+            color: var(--color-danger);
+        }
+
+        .cuenta-nombre {
+            display: block;
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .seccion-totales h3 {
+            margin: 20px 0 8px;
+            font-size: 15px;
+            color: #444;
+        }
+
+        .estado-archivado {
+            color: #999;
+        }
     </style>
 </head>
 <body>
@@ -345,20 +437,15 @@
         <div class="header">
             <div>
                 <h1>Presupuesto vs Real</h1>
-                <p>Comparativa de gastos presupuestados con ejecución real</p>
+                <p>Comparativa de lo presupuestado con la ejecución real según los comprobantes</p>
             </div>
             <div class="controls">
                 <div class="form-group">
-                    <label>Año:</label>
-                    <select id="selectAnio">
-                        <option value="2024">2024</option>
-                        <option value="2025">2025</option>
-                        <option value="2026" selected>2026</option>
-                        <option value="2027">2027</option>
-                    </select>
+                    <label for="selectAnio">Año:</label>
+                    <select id="selectAnio"></select>
                 </div>
                 <div class="form-group">
-                    <label>Mes:</label>
+                    <label for="selectMes">Mes:</label>
                     <select id="selectMes">
                         <option value="">Anual</option>
                         <option value="1">Enero</option>
@@ -370,15 +457,45 @@
                         <option value="7">Julio</option>
                         <option value="8">Agosto</option>
                         <option value="9">Septiembre</option>
-                        <option value="10" selected>Octubre</option>
+                        <option value="10">Octubre</option>
                         <option value="11">Noviembre</option>
                         <option value="12">Diciembre</option>
                     </select>
                 </div>
-                <button id="btnActualizar" onclick="cargarComparativa()">
-                    Actualizar
-                </button>
+                <button id="btnActualizar" type="button">Actualizar</button>
+                <button id="btnNuevo" type="button" class="btn-secundario">➕ Nuevo presupuesto</button>
             </div>
+        </div>
+
+        <div class="panel-form" id="panelNuevo" hidden>
+            <h2>Nuevo presupuesto</h2>
+            <form id="formNuevo" novalidate>
+                <div class="form-fila">
+                    <label>Nombre
+                        <input type="text" id="nuevoNombre" maxlength="120" placeholder="Ej.: Presupuesto octubre">
+                    </label>
+                    <label>Año
+                        <select id="nuevoAnio"></select>
+                    </label>
+                    <label>Período
+                        <select id="nuevoMes"></select>
+                    </label>
+                </div>
+                <div class="lineas-form">
+                    <table>
+                        <thead>
+                            <tr><th>Cuenta</th><th>Concepto (opcional)</th><th>Monto (CLP)</th><th></th></tr>
+                        </thead>
+                        <tbody id="lineasNuevo"></tbody>
+                    </table>
+                    <button type="button" id="btnAgregarLinea" class="btn-secundario">+ Agregar línea</button>
+                </div>
+                <div style="margin-top: 14px; display: flex; gap: 10px;">
+                    <button type="submit" id="btnGuardar">Guardar presupuesto</button>
+                    <button type="button" id="btnCancelar" class="btn-secundario">Cancelar</button>
+                </div>
+                <div class="mensaje-form" id="mensajeNuevo" role="status"></div>
+            </form>
         </div>
 
         <div id="contenido">
@@ -389,232 +506,301 @@
     </div>
 
     <script>
+        const MESES = ['Anual', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         let chartVarianza = null;
         let chartDistribucion = null;
+        let cuentas = [];
+        let tokenCsrf = null;
+        let cargaActual = 0;
 
+        function esc(valor) {
+            return String(valor ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        // Monto con "$" y signo delante del símbolo: $5.000 / -$5.000 (con style:'currency' salía "$-5.000", y las plantillas anteponían otro "$").
+        function formatearNumero(num) {
+            const n = Number(num) || 0;
+            return (n < 0 ? '-' : '') + '$' + new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 }).format(Math.abs(n));
+        }
+
+        function signo(n) { return n > 0 ? '+' : ''; }
+
+        // --- Acceso a la API
+        async function escribir(cuerpo) {
+            for (let intento = 0; intento < 2; intento++) {
+                if (!tokenCsrf) {
+                    const t = await fetch('../api/presupuestos.php?csrf=1', { cache: 'no-store' });
+                    const dt = await t.json().catch(() => ({}));
+                    if (!t.ok || !dt.csrf) throw new Error(dt.error || 'No se pudo validar la sesión.');
+                    tokenCsrf = dt.csrf;
+                }
+                const r = await fetch('../api/presupuestos.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': tokenCsrf },
+                    body: JSON.stringify(cuerpo),
+                });
+                const resultado = await r.json().catch(() => ({}));
+                if (r.status === 403 && intento === 0) { tokenCsrf = null; continue; }
+                if (!r.ok || !resultado.success) throw new Error(resultado.error || 'Error inesperado del servidor (HTTP ' + r.status + ').');
+                return resultado;
+            }
+        }
+
+        // --- Comparativa
         async function cargarComparativa() {
-            const btnActualizar = document.getElementById('btnActualizar');
+            const numero = ++cargaActual; // solo se dibuja la última carga si hay varias en vuelo
+            const btn = document.getElementById('btnActualizar');
             const anio = document.getElementById('selectAnio').value;
             const mes = document.getElementById('selectMes').value;
-
-            btnActualizar.disabled = true;
+            btn.disabled = true;
             document.getElementById('contenido').innerHTML = '<div class="loading"><div class="spinner"></div> Cargando datos...</div>';
-
             try {
                 const url = new URL('../api/presupuestos.php', window.location.origin);
                 url.searchParams.append('anio', anio);
                 if (mes) url.searchParams.append('mes', mes);
-
                 const response = await fetch(url);
-                const resultado = await response.json();
-
-                if (!resultado.success) {
-                    document.getElementById('contenido').innerHTML = `<div class="no-data">Error: ${resultado.error}</div>`;
+                const resultado = await response.json().catch(() => ({}));
+                if (numero !== cargaActual) return;
+                if (!response.ok || !resultado.success) {
+                    document.getElementById('contenido').innerHTML = '<div class="no-data">Error: ' + esc(resultado.error || 'respuesta inesperada del servidor (HTTP ' + response.status + ')') + '</div>';
                     return;
                 }
-
+                cuentas = resultado.data.cuentas_presupuestables || [];
                 renderizarComparativa(resultado.data);
             } catch (error) {
-                document.getElementById('contenido').innerHTML = `<div class="no-data">Error al cargar datos: ${error.message}</div>`;
+                if (numero !== cargaActual) return;
+                document.getElementById('contenido').innerHTML = '<div class="no-data">Error al cargar datos: ' + esc(error.message) + '</div>';
             } finally {
-                btnActualizar.disabled = false;
+                if (numero === cargaActual) btn.disabled = false;
             }
+        }
+
+        function tarjetasTotales(titulo, t, etiquetaReal, mejorSiBaja) {
+            if (!t.presupuestado && !t.real) return '';
+            const mala = mejorSiBaja ? t.varianza > 0 : t.varianza < 0;
+            const clase = t.varianza === 0 ? '' : (mala ? 'negative' : 'positive');
+            return `
+                <div class="seccion-totales"><h3>${esc(titulo)}</h3></div>
+                <div class="totales-grid">
+                    <div class="total-card"><div class="total-label">Presupuestado</div><div class="total-value">${formatearNumero(t.presupuestado)}</div></div>
+                    <div class="total-card"><div class="total-label">${esc(etiquetaReal)}</div><div class="total-value">${formatearNumero(t.real)}</div></div>
+                    <div class="total-card"><div class="total-label">Varianza</div><div class="total-value ${clase}">${signo(t.varianza)}${formatearNumero(t.varianza)}</div></div>
+                    <div class="total-card"><div class="total-label">% Varianza</div><div class="total-value ${clase}">${signo(t.varianza_pct)}${Number(t.varianza_pct)}%</div></div>
+                </div>`;
+        }
+
+        // Rojo = desfavorable, verde = favorable: en gastos preocupa gastar de más; en ingresos, recibir de menos.
+        function claseVarianza(l) {
+            const pct = l.varianza_pct;
+            // Un gasto sin presupuesto (presupuestado 0) no tiene porcentaje, pero sí es desfavorable: el servidor también lo alerta.
+            const sinPresupuesto = l.naturaleza === 'gasto' && l.monto_presupuestado === 0 && l.monto_real > 0;
+            const desfavorable = sinPresupuesto || (l.naturaleza === 'ingreso' ? pct < -10 : pct > 10);
+            const favorable = l.naturaleza === 'ingreso' ? pct > 10 : pct < -10;
+            return desfavorable ? 'varianza-positiva' : favorable ? 'varianza-negativa' : 'varianza-neutral';
         }
 
         function renderizarComparativa(datos) {
+            if (chartVarianza) { chartVarianza.destroy(); chartVarianza = null; }
+            if (chartDistribucion) { chartDistribucion.destroy(); chartDistribucion = null; }
             let html = '';
 
-            // Sección de alertas
             if (datos.alertas && datos.alertas.length > 0) {
-                html += '<div class="alertas-section">';
-                html += '<h2 style="margin-top: 0;">⚠️ Alertas (Varianza > 10%)</h2>';
-                html += '<div class="alertas-grid">';
-
+                html += '<div class="alertas-section"><h2 style="margin-top: 0;">⚠️ Alertas (varianza mayor al 10%)</h2><div class="alertas-grid">';
                 datos.alertas.forEach(alerta => {
-                    const tipoClass = alerta.tipo === 'warning' ? 'warning' : 'info';
                     html += `
-                        <div class="alert-card ${tipoClass}">
-                            <div class="alert-title">${alerta.titulo}</div>
-                            <div class="alert-message">${alerta.mensaje}</div>
-                            <div class="alert-detail">
-                                Presupuestado: $${formatearNumero(alerta.presupuestado)}<br>
-                                Real: $${formatearNumero(alerta.real)}
-                            </div>
-                        </div>
-                    `;
+                        <div class="alert-card ${alerta.tipo === 'warning' ? 'warning' : 'info'}">
+                            <div class="alert-title">${esc(alerta.titulo)}</div>
+                            <div class="alert-message">${esc(alerta.mensaje)}</div>
+                            <div class="alert-detail">Presupuestado: ${formatearNumero(alerta.presupuestado)}<br>Real: ${formatearNumero(alerta.real)}</div>
+                        </div>`;
                 });
-
                 html += '</div></div>';
             }
 
-            // Tarjetas de totales
-            const totales = datos.totales;
-            html += '<div class="totales-grid">';
-            html += `
-                <div class="total-card">
-                    <div class="total-label">Presupuestado</div>
-                    <div class="total-value">$${formatearNumero(totales.presupuestado)}</div>
-                </div>
-                <div class="total-card">
-                    <div class="total-label">Gasto Real</div>
-                    <div class="total-value">$${formatearNumero(totales.real)}</div>
-                </div>
-                <div class="total-card">
-                    <div class="total-label">Varianza</div>
-                    <div class="total-value ${totales.varianza > 0 ? 'negative' : 'positive'}">
-                        ${totales.varianza > 0 ? '+' : ''}$${formatearNumero(totales.varianza)}
-                    </div>
-                </div>
-                <div class="total-card">
-                    <div class="total-label">% Varianza</div>
-                    <div class="total-value ${totales.varianza_pct > 0 ? 'negative' : 'positive'}">
-                        ${totales.varianza_pct > 0 ? '+' : ''}${totales.varianza_pct}%
-                    </div>
-                </div>
-            `;
-            html += '</div>';
+            const hayLineas = datos.lineas && datos.lineas.length > 0;
+            if (hayLineas) {
+                html += '<p style="margin: 0 0 8px; color: #666;">' + esc(datos.nombre) + ' · ' + esc(datos.periodo)
+                    + ' <button type="button" class="btn-peligro" data-archivar="' + Number(datos.presupuesto_id) + '">Archivar</button></p>';
+                html += tarjetasTotales('Gastos', datos.totales.gasto, 'Gasto real', true);
+                html += tarjetasTotales('Ingresos', datos.totales.ingreso, 'Ingreso real', false);
 
-            // Gráficos
-            if (datos.lineas && datos.lineas.length > 0) {
-                html += '<div class="charts-grid">';
-                html += '<div class="chart-container"><div class="chart-title">Varianza por Concepto</div><div class="chart-wrapper"><canvas id="chartVarianza"></canvas></div></div>';
-                html += '<div class="chart-container"><div class="chart-title">Distribución Presupuestado vs Real</div><div class="chart-wrapper"><canvas id="chartDistribucion"></canvas></div></div>';
-                html += '</div>';
-            }
+                // La dona compara los gastos: sin líneas de gasto (solo ingresos) quedaría vacía, así que no se dibuja.
+                const hayGastos = datos.totales.gasto.presupuestado > 0 || datos.totales.gasto.real > 0;
+                html += '<div class="charts-grid">'
+                    + '<div class="chart-container"><div class="chart-title">Varianza por concepto (%)</div><div class="chart-wrapper"><canvas id="chartVarianza"></canvas></div></div>'
+                    + (hayGastos ? '<div class="chart-container"><div class="chart-title">Presupuestado vs real (gastos)</div><div class="chart-wrapper"><canvas id="chartDistribucion"></canvas></div></div>' : '')
+                    + '</div>';
 
-            // Tabla comparativa
-            if (datos.lineas && datos.lineas.length > 0) {
-                html += '<div class="table-container"><table>';
-                html += `
-                    <thead>
-                        <tr>
-                            <th>Cuenta</th>
-                            <th>Concepto</th>
-                            <th class="numero">Presupuestado</th>
-                            <th class="numero">Real</th>
-                            <th class="numero">Varianza</th>
-                            <th class="numero">%</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                `;
-
-                datos.lineas.forEach(linea => {
-                    const clasVarianza = linea.varianza_pct > 10 ? 'varianza-positiva'
-                                       : linea.varianza_pct < -10 ? 'varianza-negativa'
-                                       : 'varianza-neutral';
-
+                html += '<div class="table-container"><table><thead><tr><th>Cuenta</th><th>Concepto</th><th class="numero">Presupuestado</th><th class="numero">Real</th><th class="numero">Varianza</th><th class="numero">%</th></tr></thead><tbody>';
+                datos.lineas.forEach(l => {
+                    const clase = claseVarianza(l);
                     html += `
                         <tr>
-                            <td><span class="cuenta-badge">${linea.cuenta_codigo}</span></td>
-                            <td>${linea.concepto || 'Sin concepto'}</td>
-                            <td class="numero">$${formatearNumero(linea.monto_presupuestado)}</td>
-                            <td class="numero">$${formatearNumero(linea.monto_real)}</td>
-                            <td class="numero ${clasVarianza}">
-                                ${linea.varianza > 0 ? '+' : ''}$${formatearNumero(linea.varianza)}
-                            </td>
-                            <td class="numero ${clasVarianza}">
-                                ${linea.varianza_pct > 0 ? '+' : ''}${linea.varianza_pct}%
-                            </td>
-                        </tr>
-                    `;
+                            <td><span class="cuenta-badge">${esc(l.cuenta_codigo)}</span>${l.cuenta_nombre ? '<span class="cuenta-nombre">' + esc(l.cuenta_nombre) + '</span>' : ''}</td>
+                            <td>${esc(l.concepto || 'Sin concepto')}</td>
+                            <td class="numero">${formatearNumero(l.monto_presupuestado)}</td>
+                            <td class="numero">${formatearNumero(l.monto_real)}</td>
+                            <td class="numero ${clase}">${signo(l.varianza)}${formatearNumero(l.varianza)}</td>
+                            <td class="numero ${clase}">${signo(l.varianza_pct)}${Number(l.varianza_pct)}%</td>
+                        </tr>`;
                 });
-
                 html += '</tbody></table></div>';
-
-                // Destruir gráficos anteriores
-                if (chartVarianza) chartVarianza.destroy();
-                if (chartDistribucion) chartDistribucion.destroy();
             } else {
-                html += '<div class="no-data">No hay presupuesto configurado para este período</div>';
+                html += '<div class="no-data">No hay presupuesto activo para este período.<br><br><button type="button" id="btnCrearDesdeVacio">Crear presupuesto</button></div>';
+            }
+
+            const lista = datos.presupuestos_disponibles || [];
+            if (lista.length) {
+                html += '<h2 style="margin: 30px 0 10px;">Presupuestos de ' + esc(document.getElementById('selectAnio').value) + '</h2><div class="table-container"><table><thead><tr><th>Nombre</th><th>Período</th><th>Estado</th><th></th></tr></thead><tbody>';
+                lista.forEach(pr => {
+                    html += '<tr><td>' + esc(pr.nombre) + '</td><td>' + (pr.mes ? esc(MESES[pr.mes]) : 'Anual') + '</td><td class="' + (pr.estado === 'activo' ? '' : 'estado-archivado') + '">'
+                        + esc(pr.estado) + '</td><td>' + (pr.estado === 'activo' ? '<button type="button" class="btn-peligro" data-archivar="' + Number(pr.id) + '">Archivar</button>' : '') + '</td></tr>';
+                });
+                html += '</tbody></table></div>';
             }
 
             document.getElementById('contenido').innerHTML = html;
-
-            // Crear gráficos si hay datos
-            if (datos.lineas && datos.lineas.length > 0) {
-                crearGraficos(datos.lineas, datos.totales);
+            if (hayLineas) {
+                if (typeof Chart !== 'undefined') {
+                    crearGraficos(datos.lineas, datos.totales.gasto);
+                } else {
+                    document.querySelectorAll('.chart-wrapper').forEach(w => { w.textContent = 'No se pudieron cargar los gráficos (sin acceso a Chart.js).'; });
+                }
             }
         }
 
-        function crearGraficos(lineas, totales) {
-            // Gráfico de Varianza
+        function crearGraficos(lineas, totalesGasto) {
             const ctxVarianza = document.getElementById('chartVarianza');
             if (ctxVarianza) {
-                const labels = lineas.map(l => l.concepto || l.cuenta_codigo);
                 const varianzas = lineas.map(l => l.varianza_pct);
-                const colores = varianzas.map(v => v > 10 ? '#dd2211' : v < -10 ? '#00aa44' : '#ffaa00');
-
+                const colores = lineas.map(l => ({ 'varianza-positiva': '#dd2211', 'varianza-negativa': '#00aa44', 'varianza-neutral': '#ffaa00' }[claseVarianza(l)]));
                 chartVarianza = new Chart(ctxVarianza, {
                     type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: '% Varianza',
-                            data: varianzas,
-                            backgroundColor: colores,
-                            borderRadius: 4,
-                        }]
-                    },
+                    data: { labels: lineas.map(l => l.concepto || l.cuenta_codigo), datasets: [{ label: '% Varianza', data: varianzas, backgroundColor: colores, borderRadius: 4 }] },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        indexAxis: 'y',
-                        plugins: {
-                            legend: { display: false }
-                        },
-                        scales: {
-                            x: {
-                                ticks: { callback: v => v + '%' },
-                                grid: { color: '#f0f0f0' }
-                            },
-                            y: {
-                                ticks: { font: { size: 11 } }
-                            }
-                        }
-                    }
+                        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                        plugins: { legend: { display: false } },
+                        scales: { x: { ticks: { callback: v => v + '%' }, grid: { color: '#f0f0f0' } }, y: { ticks: { font: { size: 11 } } } },
+                    },
                 });
             }
-
-            // Gráfico de Distribución
             const ctxDistribucion = document.getElementById('chartDistribucion');
             if (ctxDistribucion) {
                 chartDistribucion = new Chart(ctxDistribucion, {
                     type: 'doughnut',
-                    data: {
-                        labels: ['Presupuestado', 'Real ejecutado'],
-                        datasets: [{
-                            data: [totales.presupuestado, totales.real],
-                            backgroundColor: ['#0066cc', '#00aa44'],
-                            borderColor: 'white',
-                            borderWidth: 2,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: { padding: 15, font: { size: 13 } }
-                            }
-                        }
-                    }
+                    // Un real negativo (más Haber que Debe, p. ej. notas de crédito) no se puede representar como porción de la dona.
+                    data: { labels: ['Presupuestado', 'Real ejecutado'], datasets: [{ data: [Math.max(0, totalesGasto.presupuestado), Math.max(0, totalesGasto.real)], backgroundColor: ['#0066cc', '#00aa44'], borderColor: 'white', borderWidth: 2 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 15, font: { size: 13 } } } } },
                 });
             }
         }
 
-        function formatearNumero(num) {
-            return new Intl.NumberFormat('es-CL', {
-                style: 'currency',
-                currency: 'CLP',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(num).replace('CLP', '').trim();
+        // --- Nuevo presupuesto
+        function mensajeNuevo(texto, clase) {
+            const el = document.getElementById('mensajeNuevo');
+            el.textContent = texto;
+            el.className = 'mensaje-form ' + (clase || '');
         }
 
-        // Cargar datos al inicio
-        document.addEventListener('DOMContentLoaded', cargarComparativa);
+        function filaLinea() {
+            const opciones = cuentas.length
+                ? '<option value="">Elige una cuenta…</option>' + cuentas.map(c => '<option value="' + esc(c.codigo) + '">' + esc(c.codigo) + ' · ' + esc(c.nombre) + (c.naturaleza === 'ingreso' ? ' (ingreso)' : '') + '</option>').join('')
+                : '<option value="">No hay cuentas de gasto o ingreso en el plan de cuentas</option>';
+            return '<tr><td><select class="lin-cuenta">' + opciones + '</select></td>'
+                + '<td><input type="text" class="lin-concepto" maxlength="200" placeholder="Ej.: Arriendo oficina"></td>'
+                + '<td><input type="number" class="lin-monto" min="0" step="1" placeholder="0"></td>'
+                + '<td><button type="button" class="btn-peligro" data-quitar="1">Quitar</button></td></tr>';
+        }
+
+        function abrirNuevo() {
+            const anio = document.getElementById('selectAnio').value;
+            document.getElementById('nuevoAnio').value = anio;
+            document.getElementById('nuevoMes').value = document.getElementById('selectMes').value;
+            document.getElementById('nuevoNombre').value = '';
+            document.getElementById('lineasNuevo').innerHTML = filaLinea();
+            mensajeNuevo('', '');
+            document.getElementById('panelNuevo').hidden = false;
+            document.getElementById('nuevoNombre').focus();
+        }
+
+        async function guardarNuevo(evento) {
+            evento.preventDefault();
+            const boton = document.getElementById('btnGuardar');
+            const nombre = document.getElementById('nuevoNombre').value.trim();
+            const lineas = [];
+            for (const fila of document.querySelectorAll('#lineasNuevo tr')) {
+                const cuenta = fila.querySelector('.lin-cuenta').value;
+                const concepto = fila.querySelector('.lin-concepto').value.trim();
+                const monto = fila.querySelector('.lin-monto').value.trim();
+                if (!cuenta && !concepto && !monto) continue; // fila vacía
+                if (!cuenta) return mensajeNuevo('Elige la cuenta de cada línea (o quita la línea).', 'error');
+                if (!/^\d+$/.test(monto)) return mensajeNuevo('El monto de cada línea debe ser un número entero mayor o igual a cero.', 'error');
+                lineas.push({ cuenta_codigo: cuenta, concepto, monto_presupuestado: Number(monto) });
+            }
+            if (!nombre) return mensajeNuevo('Escribe un nombre para el presupuesto.', 'error');
+            if (!lineas.length) return mensajeNuevo('Agrega al menos una línea.', 'error');
+            if (new Set(lineas.map(l => l.cuenta_codigo)).size !== lineas.length) return mensajeNuevo('Hay cuentas repetidas: cada cuenta va una sola vez.', 'error');
+
+            boton.disabled = true;
+            mensajeNuevo('Guardando…', '');
+            try {
+                await escribir({
+                    accion: 'crear', nombre, anio: Number(document.getElementById('nuevoAnio').value),
+                    mes: document.getElementById('nuevoMes').value ? Number(document.getElementById('nuevoMes').value) : null, lineas,
+                });
+                document.getElementById('selectAnio').value = document.getElementById('nuevoAnio').value;
+                document.getElementById('selectMes').value = document.getElementById('nuevoMes').value;
+                document.getElementById('panelNuevo').hidden = true;
+                cargarComparativa();
+            } catch (error) {
+                mensajeNuevo(error.message, 'error');
+            } finally {
+                boton.disabled = false;
+            }
+        }
+
+        async function archivar(id, boton) {
+            if (!confirm('¿Archivar este presupuesto? Dejará de compararse con lo real y podrás crear otro para el mismo período.')) return;
+            boton.disabled = true;
+            try {
+                await escribir({ accion: 'archivar', id });
+                cargarComparativa();
+            } catch (error) {
+                boton.disabled = false;
+                alert(error.message);
+            }
+        }
+
+        // --- Inicio
+        document.addEventListener('DOMContentLoaded', () => {
+            const hoy = new Date();
+            const anios = [];
+            for (let a = hoy.getFullYear() - 3; a <= hoy.getFullYear() + 2; a++) anios.push(a);
+            const opcionesAnio = anios.map(a => '<option value="' + a + '">' + a + '</option>').join('');
+            document.getElementById('selectAnio').innerHTML = opcionesAnio;
+            document.getElementById('nuevoAnio').innerHTML = opcionesAnio;
+            document.getElementById('selectAnio').value = hoy.getFullYear();
+            document.getElementById('selectMes').value = String(hoy.getMonth() + 1);
+            document.getElementById('nuevoMes').innerHTML = MESES.map((m, i) => '<option value="' + (i === 0 ? '' : i) + '">' + (i === 0 ? 'Anual' : m) + '</option>').join('');
+
+            document.getElementById('btnActualizar').addEventListener('click', cargarComparativa);
+            document.getElementById('selectAnio').addEventListener('change', cargarComparativa);
+            document.getElementById('selectMes').addEventListener('change', cargarComparativa);
+            document.getElementById('btnNuevo').addEventListener('click', abrirNuevo);
+            document.getElementById('btnCancelar').addEventListener('click', () => { document.getElementById('panelNuevo').hidden = true; });
+            document.getElementById('btnAgregarLinea').addEventListener('click', () => document.getElementById('lineasNuevo').insertAdjacentHTML('beforeend', filaLinea()));
+            document.getElementById('lineasNuevo').addEventListener('click', e => {
+                const b = e.target.closest('button[data-quitar]');
+                if (b) b.closest('tr').remove();
+            });
+            document.getElementById('formNuevo').addEventListener('submit', guardarNuevo);
+            document.getElementById('contenido').addEventListener('click', e => {
+                const a = e.target.closest('button[data-archivar]');
+                if (a) archivar(Number(a.dataset.archivar), a);
+                if (e.target.closest('#btnCrearDesdeVacio')) abrirNuevo();
+            });
+            cargarComparativa();
+        });
     </script>
 <script src="../assets/theme.js"></script>
 <button id="theme-toggle-btn" class="theme-toggle-btn" title="Cambiar tema (claro/oscuro/automático)" aria-label="Alternar tema">🌙</button>

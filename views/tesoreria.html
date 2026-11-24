@@ -611,13 +611,9 @@
             });
         }
 
+        // Solo el número con separador de miles: quienes lo usan anteponen el "$". Con style:'currency' el resultado ya traía "$" y salía "$$5.000".
         function formatearNumero(num) {
-            return new Intl.NumberFormat('es-CL', {
-                style: 'currency',
-                currency: 'CLP',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(num).replace('CLP', '').trim();
+            return new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 }).format(num || 0);
         }
 
         const etiquetasRecurrencia = { una_vez: 'Una vez', diaria: 'Diaria', semanal: 'Semanal', mensual: 'Mensual' };
