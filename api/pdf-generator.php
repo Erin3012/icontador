@@ -33,6 +33,18 @@ switch ($tipo) {
             echo '<p>ID de contrato requerido</p>';
         }
         break;
+    case 'anexo':
+        if ($id) {
+            $anexo = anexo_obtener($db, $id, $empresa);
+            if ($anexo) {
+                $contrato = contrato_obtener($db, (int)$anexo['contrato_id'], $empresa);
+                $anexo['empleado_nombre'] = $contrato['empleado_nombre'] ?? '';
+            }
+            echo generar_anexo_html($anexo);
+        } else {
+            echo '<p>ID de anexo requerido</p>';
+        }
+        break;
     case 'permiso':
         if ($id) {
             $permiso = permiso_obtener($db, $id, $empresa);
@@ -186,10 +198,11 @@ HTML;
 
 function generar_anexo_html($anexo) {
     if (!$anexo) return '<p>Anexo no encontrado</p>';
-    $emp_nombre = $anexo['empleado_nombre'] ?? '';
-    $emp_rut = $anexo['empleado_rut'] ?? '';
-    $detalle = $anexo['detalle'] ?? '';
-    $fecha = $anexo['fecha'] ?? date('d/m/Y');
+    $esc = static fn($v): string => htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $emp_nombre = $esc($anexo['empleado_nombre'] ?? '');
+    $emp_rut = $esc($anexo['empleado_rut'] ?? '');
+    $detalle = nl2br($esc($anexo['detalle'] ?? ''));
+    $fecha = $esc($anexo['fecha'] ?? date('d/m/Y'));
 
     return <<<HTML
 <!DOCTYPE html>

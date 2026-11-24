@@ -43,6 +43,26 @@ try {
         $ok = contrato_actualizar($db, $id, $_POST, $empresa);
         responder(200, ['ok' => $ok ? 1 : 0]);
     }
+    elseif ($op === 'anexo_crear' && $metodo === 'POST') {
+        $contratoId = (int)($_POST['contrato_id'] ?? 0);
+        $rut = trim((string)($_POST['empleado_rut'] ?? ''));
+        $detalle = trim((string)($_POST['detalle'] ?? ''));
+        $fecha = (string)($_POST['fecha'] ?? '');
+        $fechaValida = preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha) && checkdate((int)substr($fecha, 5, 2), (int)substr($fecha, 8, 2), (int)substr($fecha, 0, 4));
+        if ($contratoId <= 0 || $rut === '' || $detalle === '' || !$fechaValida) {
+            responder(422, ['ok' => 0, 'error' => 'Contrato, RUT, fecha (AAAA-MM-DD) y detalle son obligatorios']);
+        }
+        if (!contrato_obtener($db, $contratoId, $empresa)) {
+            responder(404, ['ok' => 0, 'error' => 'El contrato no existe en esta empresa']);
+        }
+        $id = anexo_crear($db, $empresa, ['contrato_id' => $contratoId, 'empleado_rut' => $rut, 'fecha' => $fecha, 'detalle' => $detalle]);
+        responder(201, ['ok' => 1, 'id' => $id]);
+    }
+    elseif ($op === 'anexo_obtener' && $metodo === 'GET') {
+        $id = (int)($_GET['id'] ?? 0);
+        $anexo = anexo_obtener($db, $id, $empresa);
+        responder($anexo ? 200 : 404, $anexo ? $anexo : ['ok' => 0, 'error' => 'No encontrado']);
+    }
     elseif ($op === 'permiso_crear' && $metodo === 'POST') {
         $id = permiso_crear($db, $empresa, $_POST);
         responder(201, ['ok' => 1, 'id' => $id]);
