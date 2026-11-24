@@ -1,28 +1,37 @@
 <?php
 /**
- * Tesorería Mejorada - Flujo de caja y pagos programados
+ * Tesorería - Flujo de caja proyectado y pagos programados
  *
- * Calcula flujo de caja proyectado a 30/60/90 días,
- * gestiona pagos programados/recurrentes y genera alertas de insolvencia
+ * - Saldo actual: suma de la cartola bancaria cargada (tabla extractos; los cargos son negativos).
+ * - Proyección: aplica día a día los pagos/ingresos programados pendientes (una vez, diaria, semanal o mensual).
+ * - Los pagos se crean, se marcan como pagados o se cancelan; nunca se borran.
  */
 
+class TesoreriaError extends RuntimeException {}
+
 class Tesoreria {
-    private $db;
-    private $empresa_id;
+    public const TIPOS = ['pago', 'ingreso'];
+    public const RECURRENCIAS = ['una_vez', 'diaria', 'semanal', 'mensual'];
+    public const MONTO_MAXIMO = 1000000000000;
+    private const SALDO_BAJO = 500000;
+
+    private PDO $db;
+    private int $empresa_id;
 
     public function __construct($db, $empresa_id) {
         $this->db = $db;
-        $this->empresa_id = $empresa_id;
+        $this->empresa_id = (int) $empresa_id;
     }
 
-    /**
-     * Crear tabla de esquema si no existe
-     * @param PDO $db
-     */
+    /** Crea las tablas si no existen (MySQL y SQLite). */
     public static function crearEsquema($db): void {
         $mysql = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
         $id = $mysql ? 'INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
         $motor = $mysql ? ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4' : '';
+        $llaves = $mysql ? ",
+            KEY idx_pagos_empresa_fecha (empresa_id, fecha_pago),
+            KEY idx_pagos_empresa_estado (empresa_id, estado),
+            KEY idx_pagos_recurrencia (recurrencia)" : '';
 
         $db->exec("CREATE TABLE IF NOT EXISTS pagos_programados (
             id $id,
@@ -37,12 +46,11 @@ class Tesoreria {
             fecha_fin DATE NULL,
             estado VARCHAR(20) NOT NULL DEFAULT 'pendiente',
             creado_en VARCHAR(25) NOT NULL,
-            actualizado_en VARCHAR(25) NOT NULL,
-            KEY idx_pagos_empresa_fecha (empresa_id, fecha_pago),
-            KEY idx_pagos_empresa_estado (empresa_id, estado),
-            KEY idx_pagos_recurrencia (recurrencia)
+            actualizado_en VARCHAR(25) NOT NULL$llaves
         )$motor");
 
+        $llavesFlujo = $mysql ? ",
+            UNIQUE KEY uq_flujo_proyecciones (empresa_id, fecha)" : '';
         $db->exec("CREATE TABLE IF NOT EXISTS flujo_proyecciones (
             id $id,
             empresa_id INT NOT NULL DEFAULT 0,
@@ -50,259 +58,236 @@ class Tesoreria {
             saldo_estimado BIGINT NOT NULL DEFAULT 0,
             ingresos_acumulados BIGINT NOT NULL DEFAULT 0,
             egresos_acumulados BIGINT NOT NULL DEFAULT 0,
-            creado_en VARCHAR(25) NOT NULL,
-            UNIQUE KEY uq_flujo_proyecciones (empresa_id, fecha)
+            creado_en VARCHAR(25) NOT NULL$llavesFlujo
         )$motor");
-    }
 
-    /**
-     * Obtener flujo de caja proyectado para N días
-     * @param int $dias (30, 60, 90)
-     * @return array Flujo proyectado con alertas
-     */
-    public function obtenerFlujoCaja($dias = 30): array {
-        try {
-            $saldoActual = $this->obtenerSaldoActual();
-            $hoy = date('Y-m-d');
-            $fechaFin = date('Y-m-d', strtotime("+$dias days"));
-
-            // Obtener flujos diarios proyectados
-            $flujos = $this->calcularFlujoDiario($hoy, $fechaFin, $saldoActual);
-
-            // Detectar alertas de insolvencia
-            $alertas = $this->detectarAlertas($flujos);
-
-            return [
-                'saldo_actual' => $saldoActual,
-                'dias_proyectados' => $dias,
-                'fecha_inicio' => $hoy,
-                'fecha_fin' => $fechaFin,
-                'flujos' => $flujos,
-                'alertas' => $alertas,
-                'saldo_minimo' => min(array_column($flujos, 'saldo_estimado')),
-                'saldo_promedio' => array_sum(array_column($flujos, 'saldo_estimado')) / count($flujos),
-            ];
-        } catch (Exception $e) {
-            return [
-                'error' => $e->getMessage(),
-                'flujos' => [],
-                'alertas' => [],
-            ];
+        if (!$mysql) {
+            $db->exec('CREATE INDEX IF NOT EXISTS idx_pagos_empresa_fecha ON pagos_programados (empresa_id, fecha_pago)');
+            $db->exec('CREATE INDEX IF NOT EXISTS idx_pagos_empresa_estado ON pagos_programados (empresa_id, estado)');
+            $db->exec('CREATE UNIQUE INDEX IF NOT EXISTS uq_flujo_proyecciones ON flujo_proyecciones (empresa_id, fecha)');
         }
     }
 
-    /**
-     * Calcular saldo actual desde banco_movimientos
-     */
+    /** Flujo de caja proyectado a N días (30 a 90). */
+    public function obtenerFlujoCaja($dias = 30): array {
+        $dias = max(1, min((int) $dias, 365));
+        $saldoActual = $this->obtenerSaldoActual();
+        $hoy = date('Y-m-d');
+        $fechaFin = date('Y-m-d', strtotime("+$dias days"));
+        $pagos = $this->pagosPendientes();
+
+        $flujos = $this->calcularFlujoDiario($hoy, $fechaFin, $saldoActual, $pagos);
+        $saldos = array_column($flujos, 'saldo_estimado');
+
+        return [
+            'saldo_actual' => $saldoActual,
+            'dias_proyectados' => $dias,
+            'fecha_inicio' => $hoy,
+            'fecha_fin' => $fechaFin,
+            'flujos' => $flujos,
+            'alertas' => $this->detectarAlertas($flujos),
+            'saldo_minimo' => min($saldos),
+            'saldo_promedio' => array_sum($saldos) / count($saldos),
+        ];
+    }
+
+    /** Saldo de la cartola bancaria de la empresa. */
     private function obtenerSaldoActual(): int {
         try {
-            $result = $this->db->query(
-                "SELECT SUM(CASE WHEN tipo='deposito' THEN monto ELSE -monto END) as saldo
-                 FROM banco_movimientos
-                 WHERE empresa_id = ?",
-                [$this->empresa_id]
-            )->fetch();
-
-            return $result['saldo'] ?? 0;
-        } catch (Exception $e) {
-            return 0;
+            $st = $this->db->prepare('SELECT COALESCE(SUM(monto), 0) FROM extractos WHERE empresa_id = ?');
+            $st->execute([$this->empresa_id]);
+            return (int) $st->fetchColumn();
+        } catch (PDOException $e) {
+            return 0; // todavía no se ha cargado ninguna cartola (la tabla no existe)
         }
     }
 
-    /**
-     * Calcular flujo diario proyectado (combina vouchers reales + pagos programados)
-     */
-    private function calcularFlujoDiario($fechaInicio, $fechaFin, $saldoInicial): array {
+    private function calcularFlujoDiario(string $fechaInicio, string $fechaFin, int $saldoInicial, array $pagos): array {
         $flujos = [];
-        $saldoAcumulado = $saldoInicial;
+        $saldo = $saldoInicial;
         $ingresoAcumulado = 0;
         $egresoAcumulado = 0;
+        $hoy = date('Y-m-d');
 
         $fecha = new DateTime($fechaInicio);
-        $fechaTermino = new DateTime($fechaFin);
-
-        while ($fecha <= $fechaTermino) {
-            $fechaFormato = $fecha->format('Y-m-d');
-
-            // Obtener ingresos/egresos reales de ese día (si pasado)
-            $movDia = $this->obtenerMovimientoDia($fechaFormato);
-
-            // Obtener pagos programados de ese día
-            $pagosDia = $this->obtenerPagosProgramados($fechaFormato);
-
-            $ingresosDia = $movDia['ingresos'] + $pagosDia['ingresos'];
-            $egresosDia = $movDia['egresos'] + $pagosDia['egresos'];
-            $neto = $ingresosDia - $egresosDia;
-
-            $saldoAcumulado += $neto;
-            $ingresoAcumulado += $ingresosDia;
-            $egresoAcumulado += $egresosDia;
-
+        $termino = new DateTime($fechaFin);
+        while ($fecha <= $termino) {
+            $dia = $fecha->format('Y-m-d');
+            $ingresos = 0;
+            $egresos = 0;
+            foreach ($pagos as $pago) {
+                if (!self::ocurre($pago, $dia)) continue;
+                if ($pago['tipo'] === 'ingreso') $ingresos += (int) $pago['monto'];
+                else $egresos += (int) $pago['monto'];
+            }
+            $neto = $ingresos - $egresos;
+            $saldo += $neto;
+            $ingresoAcumulado += $ingresos;
+            $egresoAcumulado += $egresos;
             $flujos[] = [
-                'fecha' => $fechaFormato,
+                'fecha' => $dia,
                 'dia_semana' => $this->nombreDiaSemana($fecha),
-                'ingresos' => $ingresosDia,
-                'egresos' => $egresosDia,
+                'ingresos' => $ingresos,
+                'egresos' => $egresos,
                 'neto' => $neto,
-                'saldo_estimado' => $saldoAcumulado,
+                'saldo_estimado' => $saldo,
                 'ingresos_acumulados' => $ingresoAcumulado,
                 'egresos_acumulados' => $egresoAcumulado,
-                'es_futuro' => $fechaFormato > date('Y-m-d'),
+                'es_futuro' => $dia > $hoy,
             ];
-
             $fecha->modify('+1 day');
         }
-
         return $flujos;
     }
 
     /**
-     * Obtener movimientos reales de un día
+     * ¿El pago programado cae en esa fecha? Los mensuales de día 29 a 31 caen el último día de los meses más cortos.
      */
-    private function obtenerMovimientoDia($fecha): array {
-        $sql = "SELECT
-                    SUM(CASE WHEN v.tipo='Ingreso' THEN vl.debe ELSE 0 END) as ingresos,
-                    SUM(CASE WHEN v.tipo='Egreso' THEN vl.debe ELSE 0 END) as egresos
-                FROM vouchers v
-                LEFT JOIN voucher_lineas vl ON v.id = vl.voucher_id
-                WHERE v.empresa_id = ?
-                AND DATE(v.fecha) = ?
-                AND v.estado = 'registrado'";
+    public static function ocurre(array $pago, string $fecha): bool {
+        $inicio = substr((string) $pago['fecha_pago'], 0, 10);
+        if ($fecha < $inicio) return false;
+        $fin = $pago['fecha_fin'] ?? null;
+        if ($fin !== null && $fin !== '' && $fecha > substr((string) $fin, 0, 10)) return false;
 
-        $result = $this->db->query($sql, [$this->empresa_id, $fecha])->fetch();
-        return [
-            'ingresos' => $result['ingresos'] ?? 0,
-            'egresos' => $result['egresos'] ?? 0,
-        ];
-    }
-
-    /**
-     * Obtener pagos programados para una fecha
-     */
-    private function obtenerPagosProgramados($fecha): array {
-        $hoy = date('Y-m-d');
-        $soloFuturos = $fecha > $hoy;
-
-        $sql = "SELECT tipo, SUM(monto) as total
-                FROM pagos_programados
-                WHERE empresa_id = ? AND estado = 'pendiente'
-                AND (
-                    (recurrencia = 'una_vez' AND DATE(fecha_pago) = ?)
-                    OR (recurrencia = 'diaria' AND DATE(fecha_pago) <= ? AND (fecha_fin IS NULL OR DATE(fecha_fin) >= ?))
-                    OR (recurrencia = 'semanal' AND DAYOFWEEK(fecha_pago) = DAYOFWEEK(?) AND DATE(fecha_pago) <= ? AND (fecha_fin IS NULL OR DATE(fecha_fin) >= ?))
-                    OR (recurrencia = 'mensual' AND DAY(fecha_pago) = DAY(?) AND DATE(fecha_pago) <= ? AND (fecha_fin IS NULL OR DATE(fecha_fin) >= ?))
-                )
-                GROUP BY tipo";
-
-        $params = [$this->empresa_id, $fecha, $fecha, $fecha, $fecha, $fecha, $fecha, $fecha, $fecha, $fecha];
-        $resultado = $this->db->query($sql, $params)->fetchAll();
-
-        $ingresos = 0;
-        $egresos = 0;
-
-        foreach ($resultado as $row) {
-            if ($row['tipo'] === 'ingreso') {
-                $ingresos += $row['total'];
-            } else {
-                $egresos += $row['total'];
-            }
+        switch ($pago['recurrencia']) {
+            case 'una_vez':
+                return $fecha === $inicio;
+            case 'diaria':
+                return true;
+            case 'semanal':
+                return (new DateTime($fecha))->format('w') === (new DateTime($inicio))->format('w');
+            case 'mensual':
+                $diaPago = (int) substr($inicio, 8, 2);
+                $f = new DateTime($fecha);
+                return (int) $f->format('j') === min($diaPago, (int) $f->format('t'));
         }
-
-        return ['ingresos' => $ingresos, 'egresos' => $egresos];
+        return false;
     }
 
-    /**
-     * Detectar alertas de insolvencia
-     */
-    private function detectarAlertas($flujos): array {
-        $alertas = [];
+    /** Pagos pendientes de la empresa. */
+    private function pagosPendientes(): array {
+        $st = $this->db->prepare("SELECT id, concepto, monto, fecha_pago, fecha_fin, tipo, recurrencia, estado
+            FROM pagos_programados WHERE empresa_id = ? AND estado = 'pendiente' ORDER BY fecha_pago, id");
+        $st->execute([$this->empresa_id]);
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
 
-        // Buscar saldos negativos
-        $diasNegativos = array_filter($flujos, fn($f) => $f['saldo_estimado'] < 0);
-        if (count($diasNegativos) > 0) {
-            $primeraNegativa = reset($diasNegativos);
+    private function detectarAlertas(array $flujos): array {
+        $alertas = [];
+        $negativos = array_filter($flujos, fn($f) => $f['saldo_estimado'] < 0);
+        if ($negativos) {
+            $primero = reset($negativos);
             $alertas[] = [
                 'tipo' => 'error',
-                'titulo' => '⚠️ Insolvencia Proyectada',
-                'mensaje' => 'Saldo estimado negativo a partir del ' . $this->formatearFecha($primeraNegativa['fecha']),
-                'fecha' => $primeraNegativa['fecha'],
-                'saldo' => $primeraNegativa['saldo_estimado'],
+                'titulo' => 'Riesgo de insolvencia',
+                'mensaje' => 'El saldo proyectado queda negativo desde el ' . $primero['fecha'] . '.',
+                'fecha' => $primero['fecha'],
+                'dias_afectados' => count($negativos),
             ];
         }
-
-        // Alertas de saldo bajo (< 500k CLP)
-        $diasBajos = array_filter($flujos, fn($f) => $f['saldo_estimado'] > 0 && $f['saldo_estimado'] < 500000);
-        if (count($diasBajos) > 2) {
+        $bajos = array_filter($flujos, fn($f) => $f['saldo_estimado'] >= 0 && $f['saldo_estimado'] < self::SALDO_BAJO);
+        if (count($bajos) > 2) {
             $alertas[] = [
                 'tipo' => 'warning',
-                'titulo' => '⚠️ Saldo Bajo Sostenido',
-                'mensaje' => 'Más de 2 días con saldo < $500.000',
-                'dias_afectados' => count($diasBajos),
+                'titulo' => 'Saldo bajo sostenido',
+                'mensaje' => 'Más de 2 días con saldo menor a $500.000.',
+                'dias_afectados' => count($bajos),
             ];
         }
-
         return $alertas;
     }
 
     /**
-     * Crear pago programado
+     * Crea un pago o ingreso programado y devuelve su id.
+     * @throws TesoreriaError si algún dato no es válido
      */
-    public function crearPagoProgramado($concepto, $monto, $fechaPago, $tipo = 'pago', $recurrencia = 'una_vez'): int {
-        $creado_en = date('Y-m-d H:i:s');
+    public function crearPagoProgramado($concepto, $monto, $fechaPago, $tipo = 'pago', $recurrencia = 'una_vez', $fechaFin = null): int {
+        $concepto = trim((string) $concepto);
+        if ($concepto === '' || mb_strlen($concepto) > 255) throw new TesoreriaError('El concepto es obligatorio (máximo 255 caracteres).');
+        if (is_string($monto)) $monto = trim($monto);
+        if ((!is_int($monto) && !(is_string($monto) && preg_match('/^\d{1,13}$/', $monto))) || (int) $monto <= 0 || (int) $monto > self::MONTO_MAXIMO) {
+            throw new TesoreriaError('El monto debe ser un número entero positivo.');
+        }
+        $fechaPago = self::fechaValida($fechaPago, 'La fecha de pago');
+        if (!in_array($tipo, self::TIPOS, true)) throw new TesoreriaError('El tipo debe ser pago o ingreso.');
+        if (!in_array($recurrencia, self::RECURRENCIAS, true)) throw new TesoreriaError('La recurrencia debe ser una vez, diaria, semanal o mensual.');
+        if ($fechaFin === '' || $fechaFin === null) {
+            $fechaFin = null;
+        } else {
+            $fechaFin = self::fechaValida($fechaFin, 'La fecha de término');
+            if ($recurrencia === 'una_vez') throw new TesoreriaError('La fecha de término solo aplica a pagos recurrentes.');
+            if ($fechaFin < $fechaPago) throw new TesoreriaError('La fecha de término no puede ser anterior a la fecha de pago.');
+        }
 
-        $stmt = $this->db->prepare(
+        $ahora = date('Y-m-d H:i:s');
+        $st = $this->db->prepare(
             "INSERT INTO pagos_programados
-             (empresa_id, concepto, monto, fecha_pago, tipo, recurrencia, creado_en, actualizado_en)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+             (empresa_id, concepto, monto, fecha_pago, tipo, recurrencia, fecha_inicio, fecha_fin, estado, creado_en, actualizado_en)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', ?, ?)"
         );
-
-        $stmt->execute([
-            $this->empresa_id,
-            $concepto,
-            $monto,
-            $fechaPago,
-            $tipo,
-            $recurrencia,
-            $creado_en,
-            $creado_en,
-        ]);
-
-        return $this->db->lastInsertId();
+        $st->execute([$this->empresa_id, $concepto, (int) $monto, $fechaPago, $tipo, $recurrencia, $fechaPago, $fechaFin, $ahora, $ahora]);
+        return (int) $this->db->lastInsertId();
     }
 
     /**
-     * Listar pagos programados próximos
+     * Cambia el estado de un pago pendiente de esta empresa: 'cancelado', o 'pagado' (solo pagos de una vez).
+     * @throws TesoreriaError si no existe, ya no está pendiente o el cambio no aplica
+     */
+    public function cambiarEstado(int $id, string $estado): void {
+        if (!in_array($estado, ['cancelado', 'pagado'], true)) throw new TesoreriaError('Estado no válido.');
+        $st = $this->db->prepare('SELECT recurrencia, estado FROM pagos_programados WHERE id = ? AND empresa_id = ?');
+        $st->execute([$id, $this->empresa_id]);
+        $pago = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$pago) throw new TesoreriaError('El pago programado no existe en esta empresa.');
+        if ($pago['estado'] !== 'pendiente') throw new TesoreriaError('El pago ya no está pendiente.');
+        if ($estado === 'pagado' && $pago['recurrencia'] !== 'una_vez') throw new TesoreriaError('Un pago recurrente no se marca como pagado: cancélalo cuando termine.');
+        $up = $this->db->prepare('UPDATE pagos_programados SET estado = ?, actualizado_en = ? WHERE id = ? AND empresa_id = ?');
+        $up->execute([$estado, date('Y-m-d H:i:s'), $id, $this->empresa_id]);
+    }
+
+    /**
+     * Pagos pendientes con su próxima fecha dentro de los próximos N días (incluye los recurrentes iniciados antes).
      */
     public function listarPagosProgramados($dias = 30): array {
-        try {
-            $hoy = date('Y-m-d');
-            $fechaFin = date('Y-m-d', strtotime("+$dias days"));
-
-            $result = $this->db->query(
-                "SELECT id, concepto, monto, fecha_pago, tipo, recurrencia, estado
-                 FROM pagos_programados
-                 WHERE empresa_id = ? AND estado = 'pendiente'
-                 AND fecha_pago BETWEEN ? AND ?
-                 ORDER BY fecha_pago ASC",
-                [$this->empresa_id, $hoy, $fechaFin]
-            )->fetchAll();
-
-            return $result ?: [];
-        } catch (Exception $e) {
-            return [];
+        $dias = max(1, min((int) $dias, 365));
+        $hoy = date('Y-m-d');
+        $limite = date('Y-m-d', strtotime("+$dias days"));
+        $lista = [];
+        foreach ($this->pagosPendientes() as $pago) {
+            $proxima = self::proximaFecha($pago, $hoy, $limite);
+            if ($proxima === null) continue;
+            $pago['id'] = (int) $pago['id'];
+            $pago['monto'] = (int) $pago['monto'];
+            $pago['proxima_fecha'] = $proxima;
+            $lista[] = $pago;
         }
+        usort($lista, fn($a, $b) => [$a['proxima_fecha'], $a['id']] <=> [$b['proxima_fecha'], $b['id']]);
+        return $lista;
     }
 
-    /**
-     * Helpers
-     */
+    /** Primera fecha entre $desde y $hasta (inclusive) en que cae el pago, o null. */
+    public static function proximaFecha(array $pago, string $desde, string $hasta): ?string {
+        $f = new DateTime($desde);
+        $fin = new DateTime($hasta);
+        while ($f <= $fin) {
+            $dia = $f->format('Y-m-d');
+            if (self::ocurre($pago, $dia)) return $dia;
+            $f->modify('+1 day');
+        }
+        return null;
+    }
+
+    private static function fechaValida($valor, string $etiqueta): string {
+        $valor = is_string($valor) ? trim($valor) : '';
+        $d = DateTime::createFromFormat('!Y-m-d', $valor);
+        if (!$d || $d->format('Y-m-d') !== $valor || $valor < '2000-01-01' || $valor > '2100-12-31') {
+            throw new TesoreriaError("$etiqueta debe ser una fecha válida (AAAA-MM-DD).");
+        }
+        return $valor;
+    }
+
     private function nombreDiaSemana(DateTime $fecha): string {
         $dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-        return $dias[$fecha->format('w')];
-    }
-
-    private function formatearFecha($fecha): string {
-        $dt = new DateTime($fecha);
-        return $dt->format('d/m/Y');
+        return $dias[(int) $fecha->format('w')];
     }
 }
