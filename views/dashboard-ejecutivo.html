@@ -457,8 +457,8 @@
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">Razón Corriente</div>
-                    <div class="kpi-value">${kpis.razon_corriente}</div>
-                    <div class="kpi-detail">${kpis.razon_corriente >= 1 ? '✓ Sano' : '⚠ Bajo'}</div>
+                    <div class="kpi-value">${kpis.razon_corriente === null ? '—' : kpis.razon_corriente}</div>
+                    <div class="kpi-detail">${kpis.razon_corriente === null ? 'Sin pasivo circulante' : kpis.razon_corriente >= 1 ? '✓ Sano' : '⚠ Bajo'}</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">Endeudamiento</div>
@@ -485,12 +485,12 @@
                 };
 
                 html += `
-                    <div class="alerta ${alerta.tipo}">
+                    <div class="alerta ${iconos[alerta.tipo] ? alerta.tipo : 'info'}">
                         <div class="alerta-icon">${iconos[alerta.tipo] || '•'}</div>
                         <div class="alerta-content">
-                            <div class="alerta-titulo">${alerta.titulo}</div>
-                            <div class="alerta-mensaje">${alerta.mensaje}</div>
-                            <div class="alerta-accion">${alerta.accion}</div>
+                            <div class="alerta-titulo">${esc(alerta.titulo)}</div>
+                            <div class="alerta-mensaje">${esc(alerta.mensaje)}</div>
+                            <div class="alerta-accion">${esc(alerta.accion)}</div>
                         </div>
                     </div>
                 `;
@@ -510,8 +510,8 @@
 
             tbody.innerHTML = balance.map(cuenta => `
                 <tr>
-                    <td>${cuenta.banco}</td>
-                    <td>${cuenta.numero_cuenta || 'N/A'}</td>
+                    <td>${esc(cuenta.banco)}</td>
+                    <td>${esc(cuenta.numero_cuenta || 'N/A')}</td>
                     <td><strong>$${formatNumber(cuenta.saldo)}</strong></td>
                 </tr>
             `).join('');
@@ -528,9 +528,9 @@
             tbody.innerHTML = vouchers.map(v => `
                 <tr>
                     <td>${formatDate(v.fecha)}</td>
-                    <td>${v.numero}</td>
-                    <td><span class="voucher-tipo ${v.tipo.toLowerCase()}">${v.tipo}</span></td>
-                    <td>${v.descripcion || '-'}</td>
+                    <td>${esc(v.numero)}</td>
+                    <td><span class="voucher-tipo ${String(v.tipo_nombre || '').toLowerCase().replace(/[^a-z]/g, '')}">${esc(v.tipo_nombre || v.tipo)}</span></td>
+                    <td>${esc(v.descripcion || '-')}</td>
                     <td>$${formatNumber(v.total_debe)}</td>
                     <td>$${formatNumber(v.total_haber)}</td>
                 </tr>
@@ -630,7 +630,13 @@
         }
 
         function formatDate(date) {
-            return new Date(date).toLocaleDateString('es-CL');
+            // Las fechas llegan como AAAA-MM-DD: new Date() las leería en UTC y mostraría el día anterior en Chile.
+            const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(date));
+            return m ? `${m[3]}-${m[2]}-${m[1]}` : String(date ?? '');
+        }
+
+        function esc(valor) {
+            return String(valor ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
 
         // Cargar al iniciar

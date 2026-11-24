@@ -3,64 +3,40 @@
  * Dashboard Ejecutivo API
  *
  * Endpoint: GET /api/dashboard.php
- * Retorna KPIs, balance caja, flujos, alertas
+ * Retorna KPIs, saldos de caja y bancos, últimos comprobantes, flujo mensual, alertas e inventario
+ * de la empresa indicada en la cabecera X-Empresa-Id.
  *
- * Autenticación requerida: Sí (sesión)
+ * Autenticación requerida: sesión.
  */
-
-header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/lib/sesion.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/lib/empresas.php';
 require_once __DIR__ . '/lib/dashboard.php';
 
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
+header('X-Content-Type-Options: nosniff');
+
+function dashboard_responder(int $status, array $cuerpo): never {
+    http_response_code($status);
+    echo json_encode($cuerpo, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 try {
-    // Validar sesión
-    if (!isset($_SESSION['usuario_id'])) {
-        http_response_code(401);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Autenticación requerida',
-        ]);
-        exit;
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+        header('Allow: GET');
+        dashboard_responder(405, ['success' => false, 'error' => 'Método no permitido']);
     }
+    $db = icontador_db();
+    $empresa_id = empresa_actual($db);
+    if ($empresa_id <= 0) dashboard_responder(400, ['success' => false, 'error' => 'Empresa no seleccionada']);
 
-    // Obtener empresa actual del usuario
-    $empresa_id = empresa_actual(icontador_db());
-    if (!$empresa_id) {
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Empresa no seleccionada',
-        ]);
-        exit;
-    }
-
-    // Inicializar clase Dashboard
-    $dashboard = new Dashboard(icontador_db(), $empresa_id);
-
-    // Obtener datos
-    $datos = $dashboard->obtenerResumen();
-
-    // Retornar respuesta
-    echo json_encode([
-        'success' => true,
-        'data' => $datos,
-    ]);
-
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Error en base de datos',
-        'debug' => defined('DEBUG') ? $e->getMessage() : null,
-    ]);
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Error al procesar dashboard',
-        'debug' => defined('DEBUG') ? $e->getMessage() : null,
-    ]);
+    dashboard_responder(200, ['success' => true, 'data' => (new Dashboard($db, $empresa_id))->obtenerResumen()]);
+} catch (EmpresaError $e) {
+    dashboard_responder(422, ['success' => false, 'error' => $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log('dashboard.php: ' . $e);
+    dashboard_responder(500, ['success' => false, 'error' => 'Error al procesar dashboard']);
 }
