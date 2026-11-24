@@ -1,151 +1,87 @@
 <?php
 /**
- * API Activos Fijos - Gestión de activos fijos, depreciaciones y reportes
+ * API Activos Fijos
  *
- * Endpoints:
- * GET  /api/activos_fijos.php?accion=listar&estado=vigente
- * GET  /api/activos_fijos.php?accion=reporte
- * POST /api/activos_fijos.php (crear nuevo activo)
- * POST /api/activos_fijos.php?accion=baja (dar de baja)
+ * GET  /api/activos_fijos.php?accion=listar[&estado=vigente|baja]   Activos con su valuación y las categorías disponibles
+ * GET  /api/activos_fijos.php?accion=reporte                        Totales, detalle y resumen por categoría de los activos vigentes
+ * GET  /api/activos_fijos.php?csrf=1                                Token CSRF para las operaciones de escritura
+ * POST /api/activos_fijos.php?accion=crear   (JSON, cabecera X-CSRF-Token)
+ *      {codigo, nombre, categoria, fecha_adquisicion, valor_adquisicion, vida_util_anos, metodo_depreciacion, tasa_depreciacion_acelerada, descripcion}
+ * POST /api/activos_fijos.php?accion=baja    (JSON, cabecera X-CSRF-Token)
+ *      {activo_id, fecha_baja, razon}
  *
- * Autenticación requerida: Sí (sesión)
+ * Autenticación requerida: sesión. La empresa se toma de la cabecera X-Empresa-Id.
  */
-
-header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/lib/sesion.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/lib/empresas.php';
 require_once __DIR__ . '/lib/activos_fijos.php';
 
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
+header('X-Content-Type-Options: nosniff');
+
+function activos_responder(int $status, array $cuerpo): never {
+    http_response_code($status);
+    echo json_encode($cuerpo, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 try {
-    // Validar sesión
-    if (!isset($_SESSION['usuario_id'])) {
-        http_response_code(401);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Autenticación requerida',
-        ]);
-        exit;
+    $db = icontador_db();
+    $metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+    if ($metodo === 'GET' && ($_GET['csrf'] ?? '') === '1') {
+        activos_responder(200, ['success' => true, 'csrf' => auth_csrf()]);
     }
 
-    // Obtener empresa actual
-    $empresa_id = empresa_actual(icontador_db());
-    if (!$empresa_id) {
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Empresa no seleccionada',
-        ]);
-        exit;
-    }
+    $empresa_id = empresa_actual($db);
+    if ($empresa_id <= 0) activos_responder(400, ['success' => false, 'error' => 'Empresa no seleccionada']);
 
-    // Crear esquema
-    ActivosFijos::crearEsquema(icontador_db());
+    ActivosFijos::crearEsquema($db);
+    $activos = new ActivosFijos($db, $empresa_id);
+    $accion = (string) ($_GET['accion'] ?? 'listar');
 
-    $activos = new ActivosFijos(icontador_db(), $empresa_id);
-    $accion = $_GET['accion'] ?? 'listar';
-    $metodo = $_SERVER['REQUEST_METHOD'];
-
-    // Listar activos
-    if ($accion === 'listar' && $metodo === 'GET') {
-        $estado = $_GET['estado'] ?? 'vigente';
-        $resultado = $activos->listarActivos($estado);
-
-        echo json_encode([
-            'success' => true,
-            'data' => $resultado,
-            'categorias' => $activos->obtenerCategorias(),
-        ]);
-    }
-
-    // Obtener reporte
-    elseif ($accion === 'reporte' && $metodo === 'GET') {
-        $reporte = $activos->obtenerReporteActivos();
-
-        echo json_encode([
-            'success' => true,
-            'data' => $reporte,
-        ]);
-    }
-
-    // Crear nuevo activo
-    elseif ($accion === 'crear' && $metodo === 'POST') {
-        $data = json_decode(file_get_contents('php://input'), true);
-
-        $codigo = $data['codigo'] ?? null;
-        $nombre = $data['nombre'] ?? null;
-        $categoria = $data['categoria'] ?? null;
-        $fechaAdquisicion = $data['fecha_adquisicion'] ?? date('Y-m-d');
-        $valorAdquisicion = (int)($data['valor_adquisicion'] ?? 0);
-        $vidaUtil = (int)($data['vida_util_anos'] ?? 5);
-        $metodoDepreciacion = $data['metodo_depreciacion'] ?? 'lineal';
-        $tasaAcelerada = isset($data['tasa_depreciacion_acelerada']) ? (float)$data['tasa_depreciacion_acelerada'] : null;
-
-        if (!$codigo || !$nombre || !$categoria) {
-            http_response_code(400);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Parámetros requeridos: codigo, nombre, categoria',
-            ]);
-            exit;
+    if ($metodo === 'GET') {
+        if ($accion === 'listar') {
+            activos_responder(200, ['success' => true, 'data' => $activos->listarActivos((string) ($_GET['estado'] ?? 'vigente')), 'categorias' => $activos->obtenerCategorias()]);
         }
-
-        $activoId = $activos->crearActivo($codigo, $nombre, $categoria, $fechaAdquisicion, $valorAdquisicion, $vidaUtil, $metodoDepreciacion, $tasaAcelerada);
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Activo fijo creado exitosamente',
-            'activo_id' => $activoId,
-        ]);
-    }
-
-    // Dar de baja
-    elseif ($accion === 'baja' && $metodo === 'POST') {
-        $data = json_decode(file_get_contents('php://input'), true);
-
-        $activoId = $data['activo_id'] ?? null;
-        $fechaBaja = $data['fecha_baja'] ?? date('Y-m-d');
-        $razon = $data['razon'] ?? 'Baja de activo fijo';
-
-        if (!$activoId) {
-            http_response_code(400);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Se requiere activo_id',
-            ]);
-            exit;
+        if ($accion === 'reporte') {
+            activos_responder(200, ['success' => true, 'data' => $activos->obtenerReporteActivos()]);
         }
-
-        $resultado = $activos->darDeBaja($activoId, $fechaBaja, $razon);
-
-        echo json_encode([
-            'success' => $resultado,
-            'message' => $resultado ? 'Activo dado de baja exitosamente' : 'Error al dar de baja',
-        ]);
+        activos_responder(400, ['success' => false, 'error' => 'Acción no válida']);
     }
 
-    // Acción no reconocida
-    else {
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Acción no válida: ' . $accion,
-        ]);
+    if ($metodo !== 'POST') {
+        header('Allow: GET, POST');
+        activos_responder(405, ['success' => false, 'error' => 'Método no permitido']);
     }
+    if (!auth_csrf_valido($_SERVER['HTTP_X_CSRF_TOKEN'] ?? null)) {
+        activos_responder(403, ['success' => false, 'error' => 'La sesión de seguridad venció. Recarga la página e inténtalo de nuevo.']);
+    }
+    if (stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== 0) {
+        activos_responder(415, ['success' => false, 'error' => 'Se espera JSON.']);
+    }
+    $datos = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($datos)) activos_responder(400, ['success' => false, 'error' => 'JSON inválido.']);
 
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Error en base de datos',
-        'debug' => defined('DEBUG') ? $e->getMessage() : null,
-    ]);
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Error al procesar activos fijos',
-        'debug' => defined('DEBUG') ? $e->getMessage() : null,
-    ]);
+    if ($accion === 'crear') {
+        $id = $activos->crearActivo(
+            $datos['codigo'] ?? '', $datos['nombre'] ?? '', $datos['categoria'] ?? '', $datos['fecha_adquisicion'] ?? null,
+            $datos['valor_adquisicion'] ?? null, $datos['vida_util_anos'] ?? 5, $datos['metodo_depreciacion'] ?? 'lineal',
+            $datos['tasa_depreciacion_acelerada'] ?? null, $datos['descripcion'] ?? null
+        );
+        activos_responder(201, ['success' => true, 'message' => 'Activo fijo creado exitosamente', 'activo_id' => $id]);
+    }
+    if ($accion === 'baja') {
+        $baja = $activos->darDeBaja($datos['activo_id'] ?? 0, $datos['fecha_baja'] ?? null, $datos['razon'] ?? null);
+        activos_responder(200, ['success' => true, 'message' => 'Activo dado de baja exitosamente', 'data' => $baja]);
+    }
+    activos_responder(400, ['success' => false, 'error' => 'Acción no válida']);
+} catch (ActivosError | EmpresaError $e) {
+    activos_responder(422, ['success' => false, 'error' => $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log('activos_fijos.php: ' . $e);
+    activos_responder(500, ['success' => false, 'error' => 'Error al procesar activos fijos']);
 }

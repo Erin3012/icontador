@@ -393,8 +393,8 @@
                             <option value="acelerada">Acelerada</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="tasaAcelerada">Tasa Acelerada (%)</label>
+                    <div class="form-group" id="grupo-tasa" style="display:none">
+                        <label for="tasaAcelerada">Factor de aceleración (2 = el doble de la lineal)</label>
                         <input type="number" id="tasaAcelerada" value="2" min="1" max="5" step="0.1">
                     </div>
                 </div>
@@ -439,8 +439,12 @@
     <script>
         // Inicializar
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('fechaAdquisicion').valueAsDate = new Date();
-            document.getElementById('fechaBaja').valueAsDate = new Date();
+            document.getElementById('fechaAdquisicion').value = hoyLocal();
+            document.getElementById('fechaBaja').value = hoyLocal();
+            const metodo = document.getElementById('metodoDepreciacion');
+            const alternarFactor = () => { document.getElementById('grupo-tasa').style.display = metodo.value === 'acelerada' ? '' : 'none'; };
+            metodo.addEventListener('change', alternarFactor);
+            alternarFactor();
             cargarReporte();
             cargarCategorias();
             cargarActivosBaja();
@@ -451,10 +455,46 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${tab}`).classList.add('active');
-            event.target.classList.add('active');
+            document.getElementById('mensaje-crear').innerHTML = '';
+            document.getElementById('mensaje-baja').innerHTML = '';
+            const botones = document.querySelectorAll('.tab-btn');
+            const posicion = ['reporte', 'nuevo', 'baja'].indexOf(tab);
+            if (botones[posicion]) botones[posicion].classList.add('active');
 
             if (tab === 'reporte') {
                 cargarReporte();
+            }
+        }
+
+        function esc(valor) {
+            return String(valor ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        // Fecha de hoy en la zona horaria local (valueAsDate usaría UTC y de noche ya sería el día siguiente en Chile)
+        function hoyLocal() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+
+        let tokenCsrf = null;
+        async function escribirActivos(accion, cuerpo) {
+            for (let intento = 0; intento < 2; intento++) {
+                if (!tokenCsrf) {
+                    const t = await fetch('/api/activos_fijos.php?csrf=1', { cache: 'no-store' });
+                    const dt = await t.json().catch(() => ({}));
+                    if (!t.ok || !dt.csrf) throw new Error(dt.error || 'No se pudo validar la sesión.');
+                    tokenCsrf = dt.csrf;
+                }
+                const response = await fetch('/api/activos_fijos.php?accion=' + accion, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': tokenCsrf },
+                    body: JSON.stringify(cuerpo),
+                });
+                const resultado = await response.json().catch(() => ({}));
+                if (response.status === 403 && intento === 0) { tokenCsrf = null; continue; }
+                // Una respuesta que no es JSON (error del proxy, fallo de PHP) no debe mostrarse como un mensaje vacío.
+                if (!resultado.success && !resultado.error) resultado.error = 'Error inesperado del servidor (HTTP ' + response.status + '). Reintenta en unos segundos.';
+                return resultado;
             }
         }
 
@@ -469,10 +509,14 @@
         }
 
         // Cargar reporte
+        let cargaReporte = 0;
+        let graficoCategorias = null;
         async function cargarReporte() {
+            const numero = ++cargaReporte; // si hay varias cargas en vuelo, solo se dibuja la última
             try {
                 const response = await fetch('/api/activos_fijos.php?accion=reporte');
                 const resultado = await response.json();
+                if (numero !== cargaReporte) return;
 
                 if (resultado.success) {
                     mostrarReporte(resultado.data);
@@ -527,7 +571,7 @@
                         <tbody>
                             ${Object.entries(datos.por_categoria).map(([categoria, info]) => `
                                 <tr>
-                                    <td>${categoria}</td>
+                                    <td>${esc(categoria)}</td>
                                     <td class="text-right">${info.cantidad}</td>
                                     <td class="text-right currency">${formatearCLP(info.valor_bruto)}</td>
                                     <td class="text-right currency">${formatearCLP(info.depreciacion_acumulada)}</td>
@@ -555,9 +599,9 @@
                         <tbody>
                             ${datos.activos.map(a => `
                                 <tr>
-                                    <td><strong>${a.codigo}</strong></td>
-                                    <td>${a.nombre}</td>
-                                    <td>${a.categoria}</td>
+                                    <td><strong>${esc(a.codigo)}</strong></td>
+                                    <td>${esc(a.nombre)}</td>
+                                    <td>${esc(a.categoria)}</td>
                                     <td class="text-right currency">${formatearCLP(a.valor_adquisicion)}</td>
                                     <td class="text-right currency">${formatearCLP(a.depreciacion_anual)}</td>
                                     <td class="text-right currency">${formatearCLP(a.depreciacion_acumulada)}</td>
@@ -569,40 +613,39 @@
                 </div>
             `;
 
+            if (graficoCategorias) { graficoCategorias.destroy(); graficoCategorias = null; }
             contenido.innerHTML = html;
 
-            setTimeout(() => {
-                const ctx = document.getElementById('chartCategorias');
-                if (ctx) {
-                    new Chart(ctx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: Object.keys(datos.por_categoria),
-                            datasets: [{
-                                data: Object.values(datos.por_categoria).map(c => c.valor_neto),
-                                backgroundColor: [
-                                    '#667eea',
-                                    '#764ba2',
-                                    '#f093fb',
-                                    '#4facfe',
-                                    '#00f2fe',
-                                    '#43e97b',
-                                    '#fa709a',
-                                ],
-                            }],
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                },
+            const ctx = document.getElementById('chartCategorias');
+            if (ctx && typeof Chart !== 'undefined') {
+                graficoCategorias = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(datos.por_categoria),
+                        datasets: [{
+                            data: Object.values(datos.por_categoria).map(c => c.valor_neto),
+                            backgroundColor: [
+                                '#667eea',
+                                '#764ba2',
+                                '#f093fb',
+                                '#4facfe',
+                                '#00f2fe',
+                                '#43e97b',
+                                '#fa709a',
+                            ],
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
                             },
                         },
-                    });
-                }
-            }, 100);
+                    },
+                });
+            }
         }
 
         // Cargar categorías
@@ -614,7 +657,7 @@
                 if (resultado.success && resultado.categorias) {
                     const select = document.getElementById('categoria');
                     select.innerHTML = resultado.categorias
-                        .map(cat => `<option value="${cat}">${cat}</option>`)
+                        .map(cat => `<option value="${esc(cat)}">${esc(cat)}</option>`)
                         .join('');
                 }
             } catch (error) {
@@ -630,9 +673,9 @@
 
                 if (resultado.success) {
                     const select = document.getElementById('activoBaja');
-                    select.innerHTML = resultado.data
-                        .map(a => `<option value="${a.id}">${a.codigo} - ${a.nombre}</option>`)
-                        .join('');
+                    select.innerHTML = resultado.data.length
+                        ? resultado.data.map(a => `<option value="${esc(a.id)}">${esc(a.codigo)} - ${esc(a.nombre)}</option>`).join('')
+                        : '<option value="">No hay activos vigentes</option>';
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -645,33 +688,49 @@
             const nombre = document.getElementById('nombre').value;
             const categoria = document.getElementById('categoria').value;
             const fechaAdquisicion = document.getElementById('fechaAdquisicion').value;
-            const valorAdquisicion = parseInt(document.getElementById('valorAdquisicion').value) || 0;
-            const vidaUtil = parseInt(document.getElementById('vidaUtil').value) || 5;
+            const textoValor = document.getElementById('valorAdquisicion').value.trim();
+            const textoVida = document.getElementById('vidaUtil').value.trim();
             const metodoDepreciacion = document.getElementById('metodoDepreciacion').value;
-            const tasaAcelerada = parseFloat(document.getElementById('tasaAcelerada').value) || null;
+            const textoTasa = document.getElementById('tasaAcelerada').value.trim();
+            const descripcion = document.getElementById('descripcion').value.trim();
 
-            if (!codigo || !nombre || !categoria || valorAdquisicion === 0) {
-                mostrarErrorCrear('Completa todos los campos requeridos');
+            // Se valida lo que escribió la persona en vez de corregirlo en silencio (antes 0 o vacío se enviaban como 5 años).
+            if (!codigo.trim() || !nombre.trim() || !categoria) {
+                mostrarErrorCrear('Completa código, nombre y categoría.');
                 return;
             }
+            if (!fechaAdquisicion) {
+                mostrarErrorCrear('Indica la fecha de adquisición.');
+                return;
+            }
+            if (!/^\d+$/.test(textoValor) || Number(textoValor) < 1) {
+                mostrarErrorCrear('El valor de adquisición debe ser un número entero mayor a cero (sin decimales ni separadores).');
+                return;
+            }
+            if (!/^\d+$/.test(textoVida) || Number(textoVida) < 1 || Number(textoVida) > 100) {
+                mostrarErrorCrear('La vida útil debe ser un número entero de años entre 1 y 100.');
+                return;
+            }
+            const tasaAcelerada = metodoDepreciacion === 'acelerada' ? Number(textoTasa) : null;
+            if (metodoDepreciacion === 'acelerada' && (!textoTasa || !(tasaAcelerada >= 1 && tasaAcelerada <= 5))) {
+                mostrarErrorCrear('El factor de aceleración debe estar entre 1 y 5.');
+                return;
+            }
+            const valorAdquisicion = Number(textoValor);
+            const vidaUtil = Number(textoVida);
 
             try {
-                const response = await fetch('/api/activos_fijos.php?accion=crear', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        codigo, nombre, categoria, fecha_adquisicion: fechaAdquisicion,
-                        valor_adquisicion: valorAdquisicion, vida_util_anos: vidaUtil,
-                        metodo_depreciacion: metodoDepreciacion,
-                        tasa_depreciacion_acelerada: tasaAcelerada,
-                    }),
+                const resultado = await escribirActivos('crear', {
+                    codigo, nombre, categoria, fecha_adquisicion: fechaAdquisicion,
+                    valor_adquisicion: valorAdquisicion, vida_util_anos: vidaUtil,
+                    metodo_depreciacion: metodoDepreciacion,
+                    tasa_depreciacion_acelerada: tasaAcelerada,
+                    descripcion,
                 });
-
-                const resultado = await response.json();
                 if (resultado.success) {
-                    document.getElementById('mensaje-crear').innerHTML = '<div class="success-message">✓ ' + resultado.message + '</div>';
                     limpiarFormulario();
-                    setTimeout(() => cargarActivosBaja(), 1000);
+                    document.getElementById('mensaje-crear').innerHTML = '<div class="success-message">✓ ' + esc(resultado.message) + '</div>';
+                    cargarActivosBaja();
                 } else {
                     mostrarErrorCrear(resultado.error);
                 }
@@ -695,30 +754,26 @@
                 return;
             }
 
+            const boton = document.querySelector('#tab-baja .btn-danger');
+            boton.disabled = true;
             try {
-                const response = await fetch('/api/activos_fijos.php?accion=baja', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        activo_id: activoId,
-                        fecha_baja: fechaBaja,
-                        razon: razon || 'Baja de activo',
-                    }),
+                const resultado = await escribirActivos('baja', {
+                    activo_id: Number(activoId),
+                    fecha_baja: fechaBaja,
+                    razon: razon || 'Baja de activo',
                 });
-
-                const resultado = await response.json();
                 if (resultado.success) {
-                    document.getElementById('mensaje-baja').innerHTML = '<div class="success-message">✓ ' + resultado.message + '</div>';
-                    setTimeout(() => {
-                        cargarReporte();
-                        cargarActivosBaja();
-                        cambiarTab('reporte');
-                    }, 1500);
+                    document.getElementById('razonBaja').value = '';
+                    document.getElementById('mensaje-baja').innerHTML = '<div class="success-message">✓ ' + esc(resultado.message) + '</div>';
+                    cargarActivosBaja(); // el activo dado de baja deja de ofrecerse de inmediato
+                    setTimeout(() => cambiarTab('reporte'), 1500); // cambiarTab recarga el reporte y limpia los mensajes
                 } else {
                     mostrarErrorBaja(resultado.error);
                 }
             } catch (error) {
                 mostrarErrorBaja('Error: ' + error.message);
+            } finally {
+                boton.disabled = false;
             }
         }
 
@@ -737,15 +792,15 @@
         }
 
         function mostrarErrorCrear(msg) {
-            document.getElementById('mensaje-crear').innerHTML = '<div class="error-message">❌ ' + msg + '</div>';
+            document.getElementById('mensaje-crear').innerHTML = '<div class="error-message">❌ ' + esc(msg) + '</div>';
         }
 
         function mostrarErrorBaja(msg) {
-            document.getElementById('mensaje-baja').innerHTML = '<div class="error-message">❌ ' + msg + '</div>';
+            document.getElementById('mensaje-baja').innerHTML = '<div class="error-message">❌ ' + esc(msg) + '</div>';
         }
 
         function mostrarError(msg) {
-            document.getElementById('contenido-reporte').innerHTML = '<div class="error-message">❌ ' + msg + '</div>';
+            document.getElementById('contenido-reporte').innerHTML = '<div class="error-message">❌ ' + esc(msg) + '</div>';
         }
     </script>
 <script src="../assets/theme.js"></script>
