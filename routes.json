@@ -7,7 +7,7 @@
     "js_icargarModuloHonorarios": "honorarios.html",
     "js_icargarModuloBancos": "banco.html",
     "js_icargarModuloRemuneraciones": "remuneraciones.html",
-    "js_icargarModuloActivosFijos": "activos-fijos.html",
+    "js_icargarModuloActivosFijos": "activos_fijos.html",
     "js_icargarModuloIfrs": "ifrs.html",
     "js_icargarModuloParametros": "parametros.html",
     "js_icargarModuloReportes": "reportes.html",
