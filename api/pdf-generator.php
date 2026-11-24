@@ -526,16 +526,3 @@ td { padding: 6px; border-bottom: 1px solid #ddd; }
 HTML;
 }
 
-function comprobante_obtener($id) {
-    global $pdo;
-    $stmt = $pdo->prepare('SELECT * FROM comprobantes_feriado WHERE id = ?');
-    $stmt->execute([$id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}
-
-function anexo_obtener($id) {
-    global $pdo;
-    $stmt = $pdo->prepare('SELECT * FROM anexos_contrato WHERE id = ?');
-    $stmt->execute([$id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}

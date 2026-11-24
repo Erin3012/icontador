@@ -71,7 +71,7 @@ $guardado = rcv_centralizacion_confirmar($db, 1, $scope);
 comprobar_cent($guardado['creados'] === 5 && $guardado['resumenes_48_centralizados'] === 1 && count(listarVouchers($db, [], 1)) === 5, 'confirma lote atómico con el asiento agregado de ventas');
 $repetida = rcv_centralizacion_preparar($db, 1, $scope);
 comprobar_cent($repetida['vouchers_nuevos'] === 0 && $repetida['ya_centralizados'] === 5, 'repetir la operación omite documentos y resumen ya centralizados');
-$vacios = rcv_centralizacion_preparar($db, 1, ['desde' => '2026-09', 'hasta' => '2026-10', 'libros' => ['compras', 'ventas']]);
+$vacios = rcv_centralizacion_preparar($db, 1, ['desde' => '2026-09', 'hasta' => '2026-09', 'libros' => ['compras', 'ventas']]);
 comprobar_cent(count($vacios['periodos_sin_datos']) === 2 && $vacios['periodos_sin_datos'][0]['periodo'] === '2026-09', 'la vista previa identifica libros/períodos sin documentos importados');
 $soloEmpresa2 = rcv_centralizacion_preparar($db, 2, $scope);
 comprobar_cent($soloEmpresa2['documentos_seleccionados'] === 1 && count($soloEmpresa2['items']) === 1 && $soloEmpresa2['items'][0]['folio'] === '999', 'cada empresa solo centraliza sus propios documentos con su plan de cuentas');

@@ -18,7 +18,7 @@ Expand-Archive -LiteralPath $nodeZip -DestinationPath $buildRoot
 Copy-Item -Path (Join-Path $nodeExtract '*') -Destination (Join-Path $stage 'node') -Recurse -Force
 Copy-Item -LiteralPath (Join-Path $agentRoot 'src') -Destination (Join-Path $stage 'sii-agent\src') -Recurse
 Copy-Item -LiteralPath (Join-Path $agentRoot 'package.json'),(Join-Path $agentRoot 'package-lock.json') -Destination (Join-Path $stage 'sii-agent')
-Copy-Item -LiteralPath (Join-Path $repoRoot 'assets\rcv-import.js') -Destination (Join-Path $stage 'assets')
+Copy-Item -LiteralPath (Join-Path $repoRoot 'assets\rcv-import.js'),(Join-Path $repoRoot 'assets\honorarios-import.js') -Destination (Join-Path $stage 'assets')
 $npm = Join-Path $stage 'node\npm.cmd'
 Push-Location (Join-Path $stage 'sii-agent')
 try { & $npm ci --omit=dev; if ($LASTEXITCODE -ne 0) { throw 'npm ci falló.' } }
