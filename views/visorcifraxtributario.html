@@ -48,6 +48,9 @@
         <h2>DECLARACIONES</h2>
         <button class="cf-paso" role="tab" data-panel="p-6" aria-selected="false"><span class="cf-numero">6</span>Certificado 70 y DJ 1948</button>
         <button class="cf-paso" role="tab" data-panel="p-7" aria-selected="false"><span class="cf-numero">7</span>Cierre anual</button>
+        <h2>CONSULTAS SII</h2>
+        <button class="cf-paso" role="tab" data-panel="p-f22" aria-selected="false"><span class="cf-numero">F</span>Formulario 22</button>
+        <button class="cf-paso" role="tab" data-panel="p-ddjj" aria-selected="false"><span class="cf-numero">D</span>DDJJ</button>
     </nav>
 
     <main class="cf-contenido">
@@ -264,6 +267,131 @@
                 </div>
             </div>
         </section>
+        <!-- Consultas SII: Formulario 22 (maqueta, mismos campos que iTributario) -->
+        <section class="cf-panel" id="p-f22">
+            <h2 class="cf-titulo">Formulario 22</h2>
+            <p class="cf-descripcion">Estado de la renta de tus empresas activas en el SII, para el año tributario elegido.</p>
+            <div class="cf-barra">
+                <div class="cf-campo">
+                    <label for="f22-anio">Año tributario</label>
+                    <select id="f22-anio"><option>2026</option><option>2025</option><option>2024</option><option>2023</option><option>2022</option><option>2021</option><option>2020</option></select>
+                </div>
+                <button class="cf-boton" disabled>Exportar a Excel</button>
+            </div>
+            <div class="cf-chips">
+                <div class="cf-chip"><strong>0</strong><span>Con inconsistencia</span></div>
+                <div class="cf-chip"><strong>0</strong><span>Devolución retenida</span></div>
+                <div class="cf-chip"><strong>0</strong><span>Pago diferido</span></div>
+                <div class="cf-chip"><strong>1</strong><span>Con cambios</span></div>
+                <div class="cf-chip"><strong>0</strong><span>Error de acceso</span></div>
+            </div>
+            <div class="cf-barra">
+                <input class="cf-buscar" type="search" placeholder="Buscar por razón social o RUT" aria-label="Buscar">
+                <select class="cf-filtro" aria-label="Filtrar por estado">
+                    <option>Todos los estados</option><option>Aceptada</option><option>Con inconsistencia</option><option>Devolución retenida</option><option>En proceso</option><option>Sin declaración</option><option>Error de acceso</option><option>Sin consultar</option><option>Sin clave</option><option>Clave rechazada</option><option>Con cambios</option><option>Pago diferido</option>
+                </select>
+            </div>
+            <div class="cf-tarjeta">
+                <table class="cf-tabla">
+                    <thead><tr><th>Razón social</th><th>RUT</th><th>Estado del F22</th><th>Última consulta</th><th></th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>Empresa de ejemplo</td><td>76.000.000-0</td>
+                            <td><span class="cf-listo cf-estado">Aceptada</span> con devolución $3.621.300<br><small class="cf-pendiente">Cambió el 20-11-2026: antes En proceso</small></td>
+                            <td>23-11-2026 07:34</td>
+                            <td class="cf-acciones-celda"><button class="cf-boton" data-historial="f22">Ver historial</button> <button class="cf-boton" disabled>Reconsultar</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="cf-nota">1 empresa · Mostrando 1–1 de 1</p>
+            </div>
+        </section>
+
+        <!-- Consultas SII: DDJJ (maqueta) -->
+        <section class="cf-panel" id="p-ddjj">
+            <h2 class="cf-titulo">Declaraciones Juradas</h2>
+            <p class="cf-descripcion">Declaraciones juradas presentadas por tus empresas activas en el SII, para el año tributario elegido. Se consulta una empresa a la vez y de ella todas sus DJ.</p>
+            <div class="cf-barra">
+                <div class="cf-campo">
+                    <label for="ddjj-anio">Año tributario</label>
+                    <select id="ddjj-anio"><option>2026</option><option>2025</option><option>2024</option><option>2023</option><option>2022</option><option>2021</option><option>2020</option></select>
+                </div>
+                <button class="cf-boton" disabled>Exportar a Excel</button>
+            </div>
+            <div class="cf-chips">
+                <div class="cf-chip"><strong>1</strong><span>Con observadas</span></div>
+                <div class="cf-chip"><strong>1</strong><span>Con cambios</span></div>
+                <div class="cf-chip"><strong>0</strong><span>Error de acceso</span></div>
+                <div class="cf-chip"><strong>0</strong><span>Sin consultar</span></div>
+                <div class="cf-chip"><strong>0</strong><span>Todas aceptadas</span></div>
+            </div>
+            <div class="cf-barra">
+                <input class="cf-buscar" type="search" placeholder="Buscar por razón social o RUT" aria-label="Buscar">
+                <select class="cf-filtro" aria-label="Filtrar por estado">
+                    <option>Todos los estados</option><option>Todas aceptadas</option><option>Con observadas</option><option>Sin DJ presentadas</option><option>Error de acceso</option><option>Sin consultar</option><option>Sin clave</option><option>Clave rechazada</option><option>Con cambios</option>
+                </select>
+            </div>
+            <div class="cf-tarjeta">
+                <table class="cf-tabla">
+                    <thead><tr><th></th><th>Razón social</th><th>RUT</th><th>Declaraciones juradas</th><th>Última consulta</th><th></th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><button class="cf-boton cf-expandir" aria-expanded="false" aria-controls="ddjj-detalle">▸</button></td>
+                            <td>Empresa de ejemplo</td><td>76.000.000-0</td>
+                            <td><span class="cf-pendiente cf-estado">Con observadas</span><br><small>4 presentadas · 1 observada</small><br><small class="cf-pendiente">Cambió el 21-11-2026: antes Todas aceptadas</small></td>
+                            <td>23-11-2026 07:34</td>
+                            <td><button class="cf-boton" disabled>Reconsultar</button></td>
+                        </tr>
+                        <tr id="ddjj-detalle" hidden>
+                            <td colspan="6">
+                                <table class="cf-tabla cf-tabla-interna">
+                                    <thead><tr><th>Formulario</th><th>Estado</th><th>Folio</th><th>Presentada</th><th>Tipo</th><th></th></tr></thead>
+                                    <tbody>
+                                        <tr><td><strong>DJ 1948</strong><br><small>Retiros, remesas o distribuciones y créditos (Certificado 70)</small></td><td class="cf-listo cf-estado">Aceptada</td><td>7100234561</td><td>26-03-2026 12:00</td><td>Original</td><td></td></tr>
+                                        <tr><td><strong>DJ 1879</strong><br><small>Retenciones de impuestos por honorarios</small></td><td class="cf-listo cf-estado">Aceptada</td><td>7100234102</td><td>18-03-2026 12:00</td><td>Original</td><td></td></tr>
+                                        <tr><td><strong>DJ 1887</strong><br><small>Rentas del trabajo (sueldos)</small></td><td class="cf-listo cf-estado">Aceptada</td><td>7100233874</td><td>12-03-2026 12:00</td><td>Original</td><td></td></tr>
+                                        <tr><td><strong>DJ 1847</strong><br><small>Balance 8 columnas y antecedentes del ejercicio</small></td><td class="cf-pendiente cf-estado">Observada</td><td>7100235019</td><td>30-03-2026 12:00</td><td>Original</td><td><button class="cf-boton" data-observaciones="1">Ver observaciones</button></td></tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="cf-nota">1 empresa · Mostrando 1–1 de 1</p>
+            </div>
+        </section>
+
+        <!-- Ventana de historial del SII (maqueta) -->
+        <div class="cf-modal" id="cf-modal-historial" hidden role="dialog" aria-modal="true" aria-labelledby="cf-modal-titulo">
+            <div class="cf-modal-caja">
+                <div class="cf-modal-cab">
+                    <div>
+                        <strong id="cf-modal-titulo">Empresa de ejemplo</strong>
+                        <div class="cf-nota">76.000.000-0 · Año tributario 2026</div>
+                    </div>
+                    <button class="cf-boton" data-cerrar="1" aria-label="Cerrar">×</button>
+                </div>
+                <p><span class="cf-listo cf-estado">Aceptada</span> con devolución $3.621.300</p>
+                <div class="cf-cifras cf-cifras-2">
+                    <div class="cf-cifra"><span>Folio</span><strong>9300125587</strong></div>
+                    <div class="cf-cifra"><span>Último evento</span><strong>20-11-2026</strong></div>
+                    <div class="cf-cifra"><span>Consultado</span><strong>23-11-2026 07:34</strong></div>
+                </div>
+                <h3>Historial del SII</h3>
+                <table class="cf-tabla">
+                    <thead><tr><th>Fecha</th><th>Evento</th></tr></thead>
+                    <tbody>
+                        <tr><td>17-04-2026</td><td>Declaración recibida por el SII</td></tr>
+                        <tr><td>17-04-2026</td><td>En proceso de revisión</td></tr>
+                        <tr><td>20-11-2026</td><td>Declaración aceptada</td></tr>
+                    </tbody>
+                </table>
+                <div class="cf-acciones">
+                    <button class="cf-boton principal" disabled>Ver F22</button>
+                    <button class="cf-boton" data-cerrar="1">Cerrar</button>
+                </div>
+            </div>
+        </div>
     </main>
 </div>
 
@@ -388,6 +516,26 @@
             }).catch(function (e) { aviso.textContent = e.message; });
         });
         cargarSync();
+
+        // Consultas SII (maqueta): historial en ventana, filas desplegables de DJ
+        var modal = document.getElementById('cf-modal-historial');
+        document.querySelectorAll('[data-historial]').forEach(function (b) {
+            b.addEventListener('click', function () { modal.hidden = false; });
+        });
+        document.querySelectorAll('[data-cerrar]').forEach(function (b) {
+            b.addEventListener('click', function () { modal.hidden = true; });
+        });
+        modal.addEventListener('click', function (e) { if (e.target === modal) modal.hidden = true; });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') modal.hidden = true; });
+        document.querySelectorAll('.cf-expandir').forEach(function (b) {
+            b.addEventListener('click', function () {
+                var fila = document.getElementById(b.getAttribute('aria-controls'));
+                var abierta = b.getAttribute('aria-expanded') === 'true';
+                b.setAttribute('aria-expanded', abierta ? 'false' : 'true');
+                b.textContent = abierta ? '▸' : '▾';
+                fila.hidden = abierta;
+            });
+        });
 
         // Atras: cierra la ventana emergente
         document.getElementById('cf-atras').addEventListener('click', function () { window.close(); });
