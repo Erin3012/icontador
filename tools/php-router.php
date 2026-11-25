@@ -13,6 +13,11 @@ if (preg_match('#^/(api|auth)/[a-z0-9_-]+\.php$#', $path) && is_file($root . $pa
     require $root . $path;
     return true;
 }
+// Carpetas con index.php (como Apache con DirectoryIndex): /cifraxtributario/ y /visorcifraxtributario/
+if (str_ends_with($path, '/') && is_file($root . $path . 'index.php')) {
+    require $root . $path . 'index.php';
+    return true;
+}
 if (str_ends_with($path, '.php') || str_starts_with($path, '/api/')) {
     http_response_code(404);
     return true;
