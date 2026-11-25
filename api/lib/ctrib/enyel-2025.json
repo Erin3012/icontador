@@ -1,0 +1,193 @@
+{
+ "empresa_razon_social_contiene": "ENYEL",
+ "anio_tributario": 2026,
+ "anio_comercial": 2025,
+ "mapeo": {
+  "1": "ACTIVO",
+  "2": "PASIVO",
+  "3": "CAPITAL",
+  "4": "PERDIDA",
+  "5": "GANANCIA"
+ },
+ "balance": [
+  {
+   "codigo": "101001",
+   "nombre": "CAJA",
+   "debitos": 5315000,
+   "creditos": 5315000
+  },
+  {
+   "codigo": "101002",
+   "nombre": "BANCOS",
+   "debitos": 34234307,
+   "creditos": 16877843
+  },
+  {
+   "codigo": "101006",
+   "nombre": "IVA CRÉDITO FISCAL",
+   "debitos": 1648101,
+   "creditos": 1648101
+  },
+  {
+   "codigo": "101060",
+   "nombre": "CLIENTES",
+   "debitos": 20107000,
+   "creditos": 20107000
+  },
+  {
+   "codigo": "101090",
+   "nombre": "PAGO PROVISIONALES MENSUALES",
+   "debitos": 13062,
+   "creditos": 0
+  },
+  {
+   "codigo": "102073",
+   "nombre": "EQUIPOS",
+   "debitos": 3139900,
+   "creditos": 0
+  },
+  {
+   "codigo": "202040",
+   "nombre": "PROVEEDORES",
+   "debitos": 14194036,
+   "creditos": 14265436
+  },
+  {
+   "codigo": "202050",
+   "nombre": "RETENCION 2DA. CATEGORIA",
+   "debitos": 386754,
+   "creditos": 441023
+  },
+  {
+   "codigo": "202081",
+   "nombre": "CREDITOS LARGO PLAZO",
+   "debitos": 21600,
+   "creditos": 12000000
+  },
+  {
+   "codigo": "202085",
+   "nombre": "HONORARIOS POR PAGAR",
+   "debitos": 2600515,
+   "creditos": 2600515
+  },
+  {
+   "codigo": "301001",
+   "nombre": "CAPITAL",
+   "debitos": 0,
+   "creditos": 1500000
+  },
+  {
+   "codigo": "404001",
+   "nombre": "COSTO DE VENTAS",
+   "debitos": 5790226,
+   "creditos": 0
+  },
+  {
+   "codigo": "405002",
+   "nombre": "HONORARIOS PROFESIONALES",
+   "debitos": 3041538,
+   "creditos": 0
+  },
+  {
+   "codigo": "405004",
+   "nombre": "GASTOS DE OFICINA",
+   "debitos": 245301,
+   "creditos": 0
+  },
+  {
+   "codigo": "405005",
+   "nombre": "PATENTES",
+   "debitos": 124562,
+   "creditos": 0
+  },
+  {
+   "codigo": "405010",
+   "nombre": "ASESORIAS",
+   "debitos": 321300,
+   "creditos": 0
+  },
+  {
+   "codigo": "405020",
+   "nombre": "GASTOS GENERALES",
+   "debitos": 1545197,
+   "creditos": 0
+  },
+  {
+   "codigo": "405021",
+   "nombre": "GASTOS BANCARIOS",
+   "debitos": 44789,
+   "creditos": 0
+  },
+  {
+   "codigo": "405025",
+   "nombre": "ENERGIA ELECTRICA",
+   "debitos": 234519,
+   "creditos": 0
+  },
+  {
+   "codigo": "405029",
+   "nombre": "ARRIENDOS",
+   "debitos": 2436461,
+   "creditos": 0
+  },
+  {
+   "codigo": "405031",
+   "nombre": "TELEFONIA Y COMUNICACIONES",
+   "debitos": 81605,
+   "creditos": 0
+  },
+  {
+   "codigo": "405033",
+   "nombre": "SUSCRIPCIONES Y PUBLICACIONES",
+   "debitos": 869359,
+   "creditos": 0
+  },
+  {
+   "codigo": "405038",
+   "nombre": "ARTICULOS DE LIBRERIA Y OFICINA",
+   "debitos": 138210,
+   "creditos": 0
+  },
+  {
+   "codigo": "406001",
+   "nombre": "INTERESES Y REAJUSTES BANCOS",
+   "debitos": 239576,
+   "creditos": 0
+  },
+  {
+   "codigo": "505002",
+   "nombre": "VENTAS EXENTAS",
+   "debitos": 0,
+   "creditos": 22018000
+  }
+ ],
+ "homologacion_itributario": {
+  "1400": [
+   "505002"
+  ],
+  "1402": [
+   "406001"
+  ],
+  "1409": [
+   "404001",
+   "405004",
+   "405020",
+   "405033",
+   "405038"
+  ],
+  "1412": [
+   "405002"
+  ],
+  "1415": [
+   "405029"
+  ],
+  "1424": [
+   "405005",
+   "405010",
+   "405021",
+   "405025",
+   "405031"
+  ]
+ },
+ "nota": "Captura de iTributario AT 2026 (25-11-2026). La homologación 1402←406001 es un error conocido: debe ir a 1419."
+}

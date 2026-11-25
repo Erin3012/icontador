@@ -1,0 +1,233 @@
+<?php
+// Recuadro 17 (Base Imponible Pro Pyme) de Cifrax Tributario: cálculo por código, campos manuales, incentivo al ahorro,
+// finalizar y reabrir. Reglas según el catálogo y el cálculo de iTributario (ENYEL AT 2026, ver itributario_inventario.md).
+declare(strict_types=1);
+
+require_once __DIR__ . '/ctrib.php';
+
+const CTRIB_R17_MANUALES = ['1404', '1405', '1406', '1407', '1408', '1426', '1433'];
+const CTRIB_R17_TOPE_UF = 5000; // tope del incentivo al ahorro (art. 14 E LIR) en UF
+const CTRIB_R17_PENDIENTES = [
+    '1400' => 'cuentas de ajuste CXC (saldo inicial y final)',
+    '1409' => 'cuentas de ajuste CXP y existencias',
+    '1817' => 'reparto de cobros de ejercicios anteriores',
+    '1818' => 'reparto FIFO de pagos de ejercicios anteriores',
+    '1432' => 'confirmaciones de elegibilidad (límites de ingresos y rentas pasivas)',
+];
+
+/** Valores manuales del recuadro: código => monto (magnitud positiva; el signo lo da el catálogo). */
+function ctrib_valores_manuales(PDO $pdo, int $empresa, int $anio, string $recuadro): array
+{
+    $st = $pdo->prepare('SELECT codigo, monto FROM ctrib_valores WHERE empresa_id = ? AND anio = ? AND recuadro = ?');
+    $st->execute([$empresa, $anio, $recuadro]);
+    $salida = [];
+    foreach ($st as $f) {
+        $salida[(string) $f['codigo']] = (int) $f['monto'];
+    }
+    return $salida;
+}
+
+function ctrib_estado_recuadro(PDO $pdo, int $empresa, int $anio, string $recuadro): array
+{
+    $st = $pdo->prepare('SELECT estado, finalizado, usuario, snapshot FROM ctrib_recuadros WHERE empresa_id = ? AND anio = ? AND recuadro = ?');
+    $st->execute([$empresa, $anio, $recuadro]);
+    $f = $st->fetch();
+    if (!$f) {
+        return ['estado' => 'BORRADOR', 'finalizado' => null, 'usuario' => null, 'snapshot' => null];
+    }
+    return ['estado' => $f['estado'], 'finalizado' => $f['finalizado'] ?: null, 'usuario' => $f['usuario'] ?: null,
+        'snapshot' => $f['snapshot'] ? json_decode($f['snapshot'], true) : null];
+}
+
+/** Un recuadro finalizado está desactualizado si alguna de sus líneas cambió desde el snapshot. */
+function ctrib_desactualizado(array $estado, array $montosActuales): bool
+{
+    return $estado['estado'] === 'FINALIZADO' && $estado['snapshot'] !== null
+        && (array_diff_assoc($montosActuales, $estado['snapshot']) !== [] || array_diff_assoc($estado['snapshot'], $montosActuales) !== []);
+}
+
+/** Guarda el recuadro como FINALIZADO con el snapshot de sus líneas y lo registra en el historial. */
+function ctrib_recuadro_finalizar(PDO $pdo, int $empresa, int $anio, string $recuadro, array $lineas, string $usuario): void
+{
+    $snapshot = [];
+    foreach ($lineas as $l) {
+        $snapshot[$l['codigo']] = $l['monto'];
+    }
+    $pdo->prepare('DELETE FROM ctrib_recuadros WHERE empresa_id = ? AND anio = ? AND recuadro = ?')->execute([$empresa, $anio, $recuadro]);
+    $pdo->prepare('INSERT INTO ctrib_recuadros (empresa_id, anio, recuadro, estado, finalizado, usuario, snapshot) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        ->execute([$empresa, $anio, $recuadro, 'FINALIZADO', ctrib_ahora(), $usuario, json_encode($snapshot)]);
+    ctrib_registrar_historial($pdo, $empresa, $anio, 'recuadro', $recuadro, 'BORRADOR', 'FINALIZADO', 'Recuadro finalizado', $usuario);
+}
+
+function ctrib_recuadro_reabrir(PDO $pdo, int $empresa, int $anio, string $recuadro, string $usuario, string $motivo): void
+{
+    $pdo->prepare('UPDATE ctrib_recuadros SET estado = ?, finalizado = ?, usuario = ? WHERE empresa_id = ? AND anio = ? AND recuadro = ?')
+        ->execute(['BORRADOR', '', '', $empresa, $anio, $recuadro]);
+    ctrib_registrar_historial($pdo, $empresa, $anio, 'recuadro', $recuadro, 'FINALIZADO', 'BORRADOR', $motivo !== '' ? $motivo : 'Recuadro reabierto', $usuario);
+}
+
+/** UF al 31 de diciembre del año comercial, si la tabla de factores del año está en el repositorio. */
+function ctrib_uf(int $anioComercial): ?float
+{
+    $ruta = __DIR__ . '/ctrib/factores-' . $anioComercial . '.json';
+    if (!is_file($ruta)) {
+        return null;
+    }
+    $datos = json_decode((string) file_get_contents($ruta), true);
+    return isset($datos['uf31Diciembre']) ? (float) $datos['uf31Diciembre'] : null;
+}
+
+/** Cálculo completo del R17 del año: líneas por código en orden del catálogo, totales, incentivo y estado. */
+function ctrib_r17(PDO $pdo, int $empresa, int $anio): array
+{
+    $catalogo = ctrib_catalogo_r17();
+    $homologacion = ctrib_homologacion($pdo, $empresa, $anio);
+    $manuales = ctrib_valores_manuales($pdo, $empresa, $anio, 'R17');
+    $cuentasPorCodigo = [];
+    foreach ($homologacion['codigos'] as $c) {
+        $cuentasPorCodigo[$c['codigo']] = $c['cuentas'];
+    }
+
+    $montos = [];   // código => monto final (positivo)
+    $lineas = [];
+    foreach ($catalogo as $codigo => $c) {
+        $linea = [
+            'codigo' => (string) $codigo, 'glosa' => $c['glosa'], 'seccion' => $c['seccion'], 'signo' => $c['signo'],
+            'naturaleza' => $c['naturalezaConfiguracion'], 'monto' => 0, 'origen' => 'CALCULADO', 'cuentas' => [], 'huboPisoEnCero' => false,
+        ];
+        if ($c['naturalezaConfiguracion'] === 'CUENTA_DEPENDIENTE') {
+            $cuentas = $cuentasPorCodigo[$codigo] ?? [];
+            $suma = array_sum(array_column($cuentas, 'saldo'));
+            $linea['monto'] = max(0, $suma);
+            $linea['huboPisoEnCero'] = $suma < 0;
+            $linea['origen'] = 'CUENTAS';
+            $linea['cuentas'] = array_map(fn($x) => ['cuenta' => $x['cuenta'], 'nombre' => $x['nombre'], 'saldo' => $x['saldo']], $cuentas);
+        } elseif ($c['naturalezaConfiguracion'] === 'MANUAL') {
+            $linea['monto'] = $manuales[$codigo] ?? 0;
+            $linea['origen'] = 'MANUAL';
+        }
+        $montos[$codigo] = $linea['monto'];
+        $lineas[$codigo] = $linea;
+    }
+
+    // Códigos calculados a partir de otros.
+    $m1422 = $montos['1422'] ?? 0;
+    $montos['1431'] = $m1422;                       // copia del 1422: anula su efecto en la base
+    $lineas['1431']['monto'] = $m1422;
+    $lineas['1431']['origen'] = 'COPIA_1422';
+
+    $total = static function (string $seccion, string $signo) use ($catalogo, $montos): int {
+        $suma = 0;
+        foreach ($catalogo as $codigo => $c) {
+            if ($c['seccion'] === $seccion && $c['signo'] === $signo && isset($montos[$codigo])) {
+                $suma += $montos[$codigo];
+            }
+        }
+        return $suma;
+    };
+    $t1410 = $total('INGRESOS', 'POSITIVO');
+    $t1430 = $total('EGRESOS', 'NEGATIVO') - $montos['1431'];
+    $t1729 = $t1410 - $t1430;
+
+    // Incentivo al ahorro (art. 14 E): tope del 50% de la base reinvertida y 5.000 UF.
+    $retiros = ctrib_retiros_total($pdo, $empresa, $anio);
+    $baseReinvertida = $t1729 - $m1422 - $retiros;
+    $topeMitad = $baseReinvertida * 0.5;
+    $uf = ctrib_uf($anio - 1);
+    $topeUf = $uf !== null ? CTRIB_R17_TOPE_UF * $uf : null;
+    $tope = $topeUf !== null ? min($topeMitad, $topeUf) : $topeMitad;
+    $m1432 = $baseReinvertida > 0 ? (int) round($tope, 0, PHP_ROUND_HALF_UP) : 0;
+    $m1433 = $montos['1433'] ?? 0;
+    $t1440 = $t1729 - $m1432 - $m1433;
+
+    $asignar = function (string $codigo, int $monto) use (&$montos, &$lineas): void {
+        $montos[$codigo] = $monto;
+        $lineas[$codigo]['monto'] = $monto;
+    };
+    $asignar('1410', $t1410);
+    $asignar('1430', $t1430);
+    $asignar('1729', $t1729);
+    $asignar('1432', $m1432);
+    $asignar('1440', $t1440);
+    foreach (CTRIB_R17_PENDIENTES as $codigo => $_) {
+        if (isset($lineas[$codigo]) && $lineas[$codigo]['origen'] === 'CALCULADO') {
+            $lineas[$codigo]['origen'] = 'PENDIENTE';
+        }
+    }
+    $lineas['1432']['origen'] = 'CALCULADO_CON_TOPE';
+
+    $estado = ctrib_estado_recuadro($pdo, $empresa, $anio, 'R17');
+    $actual = array_map(fn($x) => $x['monto'], $lineas);
+    $desactualizado = ctrib_desactualizado($estado, $actual);
+
+    $bloqueos = [];
+    if ($homologacion['pendientes'] > 0) {
+        $bloqueos[] = "Hay {$homologacion['pendientes']} cuenta(s) de resultado sin código: asígnelas en la homologación.";
+    }
+    if ($homologacion['alertas'] > 0) {
+        $bloqueos[] = "Hay {$homologacion['alertas']} cuenta(s) con código incompatible: corríjalas en la homologación.";
+    }
+
+    return [
+        'recuadro' => 'R17', 'anio' => $anio, 'anioComercial' => ctrib_anio_comercial($anio),
+        'lineas' => array_values($lineas),
+        'totales' => ['1410' => $t1410, '1430' => $t1430, '1729' => $t1729, '1432' => $m1432, '1440' => $t1440],
+        'incentivoAhorro' => [
+            'baseReinvertida' => $baseReinvertida, 'topeMitad' => $topeMitad, 'topeUf' => $topeUf,
+            'ufUsada' => $uf, 'montoUtilizado' => $m1432, 'topeUfAplicado' => $topeUf !== null && $topeUf < $topeMitad,
+        ],
+        'estado' => $estado['estado'], 'finalizado' => $estado['finalizado'], 'usuario' => $estado['usuario'],
+        'desactualizado' => $desactualizado,
+        'pendientesDeCalculo' => array_values(CTRIB_R17_PENDIENTES),
+        'bloqueos' => $bloqueos,
+        'puedeFinalizar' => $bloqueos === [] && $estado['estado'] !== 'FINALIZADO',
+    ];
+}
+
+/** Guarda un campo manual del R17. No se edita un recuadro finalizado. */
+function ctrib_r17_guardar_manual(PDO $pdo, int $empresa, int $anio, string $codigo, mixed $monto, string $usuario): array
+{
+    if (!in_array($codigo, CTRIB_R17_MANUALES, true)) {
+        throw new CtribError("El código $codigo no se ingresa a mano.");
+    }
+    $esEntero = is_int($monto) || (is_string($monto) && preg_match('/^\d+$/', trim($monto)));
+    if (!$esEntero || (int) $monto < 0) {
+        throw new CtribError('El monto debe ser un número entero mayor o igual a cero.');
+    }
+    if (ctrib_estado_recuadro($pdo, $empresa, $anio, 'R17')['estado'] === 'FINALIZADO') {
+        throw new CtribError('El Recuadro 17 está finalizado. Reábralo para modificarlo.');
+    }
+    $valor = (int) $monto;
+    $anterior = ctrib_valores_manuales($pdo, $empresa, $anio, 'R17')[$codigo] ?? 0;
+    $pdo->prepare('DELETE FROM ctrib_valores WHERE empresa_id = ? AND anio = ? AND recuadro = ? AND codigo = ?')->execute([$empresa, $anio, 'R17', $codigo]);
+    $pdo->prepare('INSERT INTO ctrib_valores (empresa_id, anio, recuadro, codigo, monto, usuario, actualizado) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        ->execute([$empresa, $anio, 'R17', $codigo, $valor, $usuario, ctrib_ahora()]);
+    if ($anterior !== $valor) {
+        ctrib_registrar_historial($pdo, $empresa, $anio, 'recuadro', "R17 $codigo", (string) $anterior, (string) $valor, 'Valor manual', $usuario);
+    }
+    return ctrib_r17($pdo, $empresa, $anio);
+}
+
+/** Finaliza el R17: exige homologación completa y sin incompatibilidades. Guarda el snapshot de las líneas. */
+function ctrib_r17_finalizar(PDO $pdo, int $empresa, int $anio, string $usuario): array
+{
+    $r17 = ctrib_r17($pdo, $empresa, $anio);
+    if ($r17['estado'] === 'FINALIZADO') {
+        throw new CtribError('El Recuadro 17 ya está finalizado.');
+    }
+    if ($r17['bloqueos'] !== []) {
+        throw new CtribError(implode(' ', $r17['bloqueos']));
+    }
+    ctrib_recuadro_finalizar($pdo, $empresa, $anio, 'R17', $r17['lineas'], $usuario);
+    return ctrib_r17($pdo, $empresa, $anio);
+}
+
+/** Reabre el R17 finalizado para corregirlo. Queda en el historial. */
+function ctrib_r17_reabrir(PDO $pdo, int $empresa, int $anio, string $usuario, string $motivo): array
+{
+    if (ctrib_estado_recuadro($pdo, $empresa, $anio, 'R17')['estado'] !== 'FINALIZADO') {
+        throw new CtribError('El Recuadro 17 no está finalizado.');
+    }
+    ctrib_recuadro_reabrir($pdo, $empresa, $anio, 'R17', $usuario, $motivo);
+    return ctrib_r17($pdo, $empresa, $anio);
+}

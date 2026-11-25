@@ -1,0 +1,312 @@
+[
+ {
+  "codigo": "783",
+  "orden": 1,
+  "subBloque": "OPERACIONES_INTERNACIONALES",
+  "glosa": "Préstamos efectuados a propietarios, socios o accionistas en el ejercicio",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Excluye créditos por operaciones comerciales cuando ambas partes tienen calidad de comerciantes (Circular N° 133 de 1977) — criterio aplicado por el usuario antes de ingresar el monto."
+ },
+ {
+  "codigo": "976",
+  "orden": 2,
+  "subBloque": "OPERACIONES_INTERNACIONALES",
+  "glosa": "Total de cantidades adeudadas, pagadas, abonadas en cuenta o puestas a disposición de relacionados en el exterior (arts. 31 inc. 3° y 59 LIR)",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": null
+ },
+ {
+  "codigo": "978",
+  "orden": 3,
+  "subBloque": "OPERACIONES_INTERNACIONALES",
+  "glosa": "Cantidades adeudadas, pagadas, abonadas en cuenta o puestas a disposición de relacionados en el exterior, cuyo IA no ha sido enterado (arts. 31 inc. 3° y 59 LIR)",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Subconjunto de 976 — sin relación automática entre ambos campos."
+ },
+ {
+  "codigo": "1020",
+  "orden": 4,
+  "subBloque": "OPERACIONES_INTERNACIONALES",
+  "glosa": "Total pasivos contraídos en Chile",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Valor final (promedio mensual de saldos insolutos) calculado externamente por el usuario; no se modela un motor de saldos mensuales en esta fase."
+ },
+ {
+  "codigo": "1019",
+  "orden": 5,
+  "subBloque": "OPERACIONES_INTERNACIONALES",
+  "glosa": "Beneficio antes de gastos financieros (EBITDA)",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "EBITDA = Ingresos de explotación − Costos operacionales − Gastos de administración y ventas. Ingrese el monto calculado manualmente a partir de sus registros contables."
+ },
+ {
+  "codigo": "974",
+  "orden": 6,
+  "subBloque": "OPERACIONES_INTERNACIONALES",
+  "glosa": "Renta imponible extranjera (art. 41 A N° 3 LIR)",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Fuera de alcance de este PRD — requiere registro de renta extranjera no construido. Campo simple sin fórmula."
+ },
+ {
+  "codigo": "122",
+  "orden": 7,
+  "subBloque": "DATOS_BALANCE",
+  "glosa": "Total del activo",
+  "naturalezaConfiguracion": "CALCULADO",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Suma de valorActivo del Balance Importado del año — mismo cálculo para ambos regímenes, sin dependencia de homologación."
+ },
+ {
+  "codigo": "123",
+  "orden": 8,
+  "subBloque": "DATOS_BALANCE",
+  "glosa": "Total del pasivo",
+  "naturalezaConfiguracion": "CALCULADO",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Suma de valorPasivo del Balance Importado del año — mismo cálculo para ambos regímenes, sin dependencia de homologación."
+ },
+ {
+  "codigo": "101",
+  "orden": 9,
+  "subBloque": "DATOS_BALANCE",
+  "glosa": "Saldo de caja (sólo dinero en efectivo y documentos al día, según arqueo)",
+  "naturalezaConfiguracion": "CUENTA_DEPENDIENTE",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Registrar el saldo de caja según arqueo (solo dinero efectivo y documentos al día). Seleccione la(s) cuenta(s) que correspondan exclusivamente a caja, separándolas de cuentas bancarias."
+ },
+ {
+  "codigo": "102",
+  "orden": 10,
+  "subBloque": "DATOS_BALANCE",
+  "glosa": "Capital efectivo",
+  "naturalezaConfiguracion": "CUENTA_DEPENDIENTE",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Capital efectivo = Total activo menos valores que no representan inversión efectiva (intangibles, nominales, transitorios, de orden — N°5 art. 2° LIR). El total activo (código 122) ya viene preseleccionado como base — agregue las cuentas a excluir con signo negativo."
+ },
+ {
+  "codigo": "784",
+  "orden": 11,
+  "subBloque": "DATOS_BALANCE",
+  "glosa": "Saldo cuenta corriente bancaria según conciliación",
+  "naturalezaConfiguracion": "CUENTA_DEPENDIENTE",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Registrar el saldo consolidado de cuentas corrientes bancarias según conciliación (excluye cheques girados no cobrados). Seleccione la(s) cuenta(s) bancarias, separadas de caja."
+ },
+ {
+  "codigo": "129",
+  "orden": 12,
+  "subBloque": "DATOS_BALANCE",
+  "glosa": "Existencia final",
+  "naturalezaConfiguracion": "CUENTA_DEPENDIENTE",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Registrar la existencia final de mercaderías, materias primas y/o materiales según inventario físico (Registro de Existencias / Libro de Inventarios, art. 41 N°3 LIR). Nota: mercadería en tránsito (no recibida físicamente) normalmente NO corresponde a inventario físico — evalúe si aplica a su caso antes de incluir esas cuentas."
+ },
+ {
+  "codigo": "648",
+  "orden": 13,
+  "subBloque": "DATOS_BALANCE",
+  "glosa": "Bienes adquiridos contrato leasing",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": null
+ },
+ {
+  "codigo": "647",
+  "orden": 14,
+  "subBloque": "DATOS_BALANCE",
+  "glosa": "Activo inmovilizado",
+  "naturalezaConfiguracion": "CUENTA_DEPENDIENTE",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Registrar el valor neto de libro de bienes físicos del activo inmovilizado (muebles e inmuebles) destinados al uso operacional, no a la venta ni a inversión — Propiedades de Inversión (activos mantenidos para renta o plusvalía) NO califican según el instructivo; Software y Concesiones son técnicamente intangibles, evalúe si corresponde incluirlos. Seleccione las cuentas de Activos Fijos que suman, y por separado la Depreciación Acumulada que resta, para llegar al valor neto."
+ },
+ {
+  "codigo": "1003",
+  "orden": 15,
+  "subBloque": "DATOS_BALANCE",
+  "glosa": "Activo gasto diferido goodwill tributario",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": null
+ },
+ {
+  "codigo": "1004",
+  "orden": 16,
+  "subBloque": "DATOS_BALANCE",
+  "glosa": "Activo intangible goodwill tributario (Ley N° 20.780)",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Forma parte del CPT y se reajusta anualmente — si la empresa ya tiene CPT modelado en RTRE, evaluar en una iteración futura si debería alimentar el CPT automáticamente en vez de ingresarse dos veces."
+ },
+ {
+  "codigo": "843",
+  "orden": 17,
+  "subBloque": "DATOS_BALANCE",
+  "glosa": "Patrimonio financiero",
+  "naturalezaConfiguracion": "CUENTA_DEPENDIENTE",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Seleccione las cuentas de Activo y Pasivo que suman y las que restan para determinar el patrimonio financiero — no necesariamente coincide con Activo−Pasivo del balance importado."
+ },
+ {
+  "codigo": "1005",
+  "orden": 18,
+  "subBloque": "OTROS_ANTECEDENTES",
+  "glosa": "Utilidades financieras capitalizadas",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": null
+ },
+ {
+  "codigo": "975",
+  "orden": 19,
+  "subBloque": "OTROS_ANTECEDENTES",
+  "glosa": "Gastos adeudados o pagados por cuotas de bienes en leasing",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": null
+ },
+ {
+  "codigo": "1021",
+  "orden": 20,
+  "subBloque": "OTROS_ANTECEDENTES",
+  "glosa": "Monto del capital directa o indirectamente financiado por partes relacionadas",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "El formulario oficial del Recuadro 6 ubica este código bajo 'Otros Antecedentes', no bajo 'Operaciones Internacionales' (corrección respecto de la tabla del PRD, siguiendo la fuente de verdad docs/referencias-sii/r6_instruccion.pdf)."
+ },
+ {
+  "codigo": "1191",
+  "orden": 21,
+  "subBloque": "OTROS_ANTECEDENTES",
+  "glosa": "TEX",
+  "naturalezaConfiguracion": "CALCULADO",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "SAC asociado a rentas exentas art. 11 Ley 18.401 generado hasta el 31.12.2016 / saldo total de esas rentas exentas — motor RTRE (STUT_EXENTAS), factor con 6 decimales truncados."
+ },
+ {
+  "codigo": "1192",
+  "orden": 22,
+  "subBloque": "OTROS_ANTECEDENTES",
+  "glosa": "TEF",
+  "naturalezaConfiguracion": "CALCULADO",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "SAC generado al 31.12.2016 / STUT neto de IDPC a esa fecha (incluye IPE si corresponde) — motor RTRE (STUT_AFECTAS), factor con 6 decimales truncados. Limitación conocida: no se aplica todavía el tope según N° 5 letra A) art. 14 LIR (25%/27% según régimen) — se informa el factor calculado sin topar."
+ },
+ {
+  "codigo": "1193",
+  "orden": 23,
+  "subBloque": "OTROS_ANTECEDENTES",
+  "glosa": "Retiros, remesas o distribuciones afectos a IGC o IA, no imputados a los RTRE",
+  "naturalezaConfiguracion": "CALCULADO",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Suma del excedente (no imputado) de los retiros del ejercicio — motor RTRE, bloque 6.1."
+ },
+ {
+  "codigo": "1782",
+  "orden": 25,
+  "subBloque": "OTROS_ANTECEDENTES",
+  "glosa": "Depreciación acelerada vehículos eléctricos o híbridos con recarga eléctrica exterior u otros calificados como cero emisiones (art. 8 Ley N° 21.305)",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Debe cuadrar con el Recuadro 10 (códigos 940, 938, 950)."
+ },
+ {
+  "codigo": "1783",
+  "orden": 26,
+  "subBloque": "OTROS_ANTECEDENTES",
+  "glosa": "Depreciación normal vehículos eléctricos o híbridos con recarga eléctrica exterior u otros calificados como cero emisiones (art. 8 Ley N° 21.305)",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Debe cuadrar con el Recuadro 10 (código 940)."
+ },
+ {
+  "codigo": "1195",
+  "orden": 27,
+  "subBloque": "SALDOS",
+  "glosa": "Saldo total de rentas exentas de IGC (art. 11 Ley N° 18.401, rentas del capitalismo popular)",
+  "naturalezaConfiguracion": "CALCULADO",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Remanente de la columna REX_EXENTA_AFECTA_IA tras la imputación del ejercicio — motor RTRE."
+ },
+ {
+  "codigo": "1691",
+  "orden": 28,
+  "subBloque": "SALDOS",
+  "glosa": "Saldo exceso de retiros de 2014, determinados al 31 de diciembre para ejercicios siguientes",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "El RTRE registra en la fila 6.2 el monto imputado en el ejercicio, pero el sistema no modela aún un saldo acumulado año a año de este concepto — se ingresa y se arrastra manualmente hasta que se modele."
+ },
+ {
+  "codigo": "1196",
+  "orden": 29,
+  "subBloque": "SALDOS",
+  "glosa": "Saldo de crédito por IDPC no sujetos a restitución generados hasta el 31.12.2019",
+  "naturalezaConfiguracion": "CALCULADO",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Suma del remanente de las columnas SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION y SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION tras la imputación del ejercicio — motor RTRE."
+ },
+ {
+  "codigo": "1197",
+  "orden": 30,
+  "subBloque": "SALDOS",
+  "glosa": "Saldo de crédito por IDPC no sujetos a restitución generados a contar del 01.01.2020",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": "CALCULADO",
+  "soloRegimen": null,
+  "nota": "14-A: crédito transitorio arrastrado de un régimen Pro Pyme anterior — sin fuente automática en el sistema hoy, se ingresa manual. Pro Pyme D N°3: CALCULADO = IDPC del año + créditos SAC no sujetos a restitución recibidos de repartos del ejercicio − créditos de igual naturaleza asignados a retiros/remesas/dividendos del ejercicio (motor RTRE). Limitación conocida: la ley también exige restar los créditos asignados a gastos rechazados del art. 21 inciso 1° no afectos a IU 40% e inciso 2°, pero el sistema no modela hoy un registro de crédito SAC asignado a gastos rechazados — ese término queda en $0 hasta que se construya ese módulo."
+ },
+ {
+  "codigo": "238",
+  "orden": 31,
+  "subBloque": "SALDOS",
+  "glosa": "Saldo crédito Impuesto Tasa Adicional ex art. 21 LIR",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": "Solo aplica a SA y SCPA — caso nicho."
+ },
+ {
+  "codigo": "1586",
+  "orden": 32,
+  "subBloque": "SALDOS",
+  "glosa": "Saldo de excedente base imponible IDPC voluntario a imputar ejercicios siguientes",
+  "naturalezaConfiguracion": "MANUAL",
+  "naturalezaConfiguracionPropyme": null,
+  "soloRegimen": null,
+  "nota": null
+ }
+]
