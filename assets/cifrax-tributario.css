@@ -113,6 +113,19 @@ body { margin: 0; font-family: var(--cf-fuente); font-size: var(--cf-t-md); colo
 .cf-modal-cab { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
 .cf-modal-caja h3 { margin: 16px 0 8px; font-size: var(--cf-t-lg); color: var(--cf-navegacion); }
 
+/* Pestanas del visor: la hoja general del proyecto oculta <section>; solo se muestra el panel activo. */
+section.cf-panel { display: none; }
+section.cf-panel.activo { display: block; }
+
+/* Iconos de sincronizacion (mismos colores que la configuracion de Cifrax Tributario) */
+.cf-h3 { display: flex; align-items: center; gap: 10px; }
+.cf-icono { width: 34px; height: 34px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.cf-icono-verde { background: #e6f7ed; color: #16a34a; }
+.cf-icono-amarillo { background: #fff6dd; color: #ca8a04; }
+.cf-sync-columnas .cf-btn-sincronizar i, .cf-controles .cf-btn-sincronizar i { margin-right: 6px; }
+.cf-nota i { color: var(--cf-modulo); margin-right: 4px; }
+.cf-campo-etiqueta i { color: var(--cf-modulo); margin-right: 4px; }
+
 /* Sincronizacion (misma logica que la pantalla de configuracion) */
 .cf-sync-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: var(--cf-espacio-2); }
 .cf-campo-etiqueta { display: block; margin: 8px 0 4px; font-weight: 700; font-size: var(--cf-t-sm); color: var(--cf-texto-suave); text-transform: uppercase; letter-spacing: .04em; }

@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visor Cifrax Tributario</title>
+    <link rel="stylesheet" href="../assets/5ef3f133326af069-original.css">
     <link rel="stylesheet" href="../assets/cifrax-tributario.css">
 </head>
 <body>
@@ -62,23 +63,23 @@
             <p class="cf-descripcion">Envía el balance del período que elijas o define qué hacer al generar vouchers.</p>
             <div class="cf-sync-columnas">
                 <div class="cf-tarjeta">
-                    <h3>Sincronización manual</h3>
+                    <h3 class="cf-h3"><span class="cf-icono cf-icono-verde"><i class="fa fa-refresh" aria-hidden="true"></i></span> Sincronización manual</h3>
                     <p class="cf-descripcion">Envía el balance del período seleccionado a Cifrax Tributario.</p>
-                    <label class="cf-campo-etiqueta" for="cf-sync-periodo">Período comercial a sincronizar</label>
+                    <label class="cf-campo-etiqueta" for="cf-sync-periodo"><i class="fa fa-calendar" aria-hidden="true"></i> Período comercial a sincronizar</label>
                     <select id="cf-sync-periodo"></select>
                     <div class="cf-acciones">
-                        <button type="button" class="cf-btn-sincronizar" id="cf-sync-ahora">Sincronizar ahora</button>
+                        <button type="button" class="cf-btn-sincronizar" id="cf-sync-ahora"><i class="fa fa-refresh" aria-hidden="true"></i> Sincronizar ahora</button>
                     </div>
-                    <p class="cf-nota">Úsalo cuando necesites actualizar el balance de inmediato.</p>
+                    <p class="cf-nota"><i class="fa fa-info-circle" aria-hidden="true"></i> Úsalo cuando necesites actualizar el balance de inmediato.</p>
                 </div>
                 <div class="cf-tarjeta">
-                    <h3>Sincronización automática</h3>
+                    <h3 class="cf-h3"><span class="cf-icono cf-icono-amarillo"><i class="fa fa-cog" aria-hidden="true"></i></span> Sincronización automática</h3>
                     <p class="cf-descripcion">Define qué debe hacer Cifrax cuando un voucher puede enviarse a Cifrax Tributario.</p>
                     <label class="cf-opcion"><input type="radio" name="cf-pref" value="ask"> <span><strong>Preguntar siempre</strong><small>Mostrar confirmación cada vez que se genere un voucher.</small></span></label>
                     <label class="cf-opcion"><input type="radio" name="cf-pref" value="S"> <span><strong>Sincronizar siempre</strong><small>Enviar automáticamente sin solicitar confirmación.</small></span></label>
                     <label class="cf-opcion"><input type="radio" name="cf-pref" value="N"> <span><strong>No sincronizar</strong><small>No enviar datos a Cifrax Tributario al generar vouchers.</small></span></label>
                     <div class="cf-acciones">
-                        <button type="button" class="cf-btn-sincronizar" id="cf-sync-guardar">Guardar preferencia</button>
+                        <button type="button" class="cf-btn-sincronizar" id="cf-sync-guardar"><i class="fa fa-save" aria-hidden="true"></i> Guardar preferencia</button>
                     </div>
                 </div>
             </div>
