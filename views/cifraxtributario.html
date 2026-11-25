@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cifrax Tributario</title>
+    <link rel="stylesheet" href="../assets/cifrax-tributario.css">
+    <style>
+        .ct-entrada { display: flex; flex-direction: column; height: 100vh; }
+        .ct-empresa { background: #fff; border-bottom: 1px solid var(--cf-borde); padding: 12px 22px; display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; }
+        .ct-empresa select { min-width: 380px; padding: 8px 10px; border: 1px solid var(--cf-borde); border-radius: var(--cf-radio); font: inherit; background: #fff; }
+        .ct-empresa label { display: block; font-size: var(--cf-t-sm); color: var(--cf-texto-suave); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+        .ct-marco { flex: 1; border: 0; width: 100%; background: var(--cf-fondo); }
+    </style>
+</head>
+<body>
+<header class="cf-superior">
+    <span class="cf-marca">Cifrax</span>
+    <span class="cf-usuario">Usuario titular</span>
+</header>
+<div class="cf-modulo">
+    <h1>Cifrax Tributario</h1>
+    <button type="button" onclick="window.close()">Atrás</button>
+</div>
+<div class="ct-entrada">
+    <div class="ct-empresa">
+        <div>
+            <label for="ct-empresa">Empresa</label>
+            <select id="ct-empresa">
+                <option value="482">ENYEL CAPACITACIONES ANGELA SOBARZO RAMÍREZ EIRL · 78.072.579-6</option>
+            </select>
+        </div>
+        <div>
+            <label>Año tributario</label>
+            <strong>2026</strong>
+        </div>
+        <div>
+            <label>Régimen</label>
+            <strong>Pro Pyme General (Art. 14 D N°3)</strong>
+        </div>
+    </div>
+    <!-- Configuracion de sincronizacion: misma pantalla que iTributario -->
+    <iframe class="ct-marco" id="ct-marco" src="../views/itributario.html?empresa_id=482" title="Configuración de Cifrax Tributario"></iframe>
+</div>
+<script>
+    // Al cambiar de empresa se recarga la configuracion de esa empresa.
+    document.getElementById('ct-empresa').addEventListener('change', function (e) {
+        document.getElementById('ct-marco').src = '../views/itributario.html?empresa_id=' + encodeURIComponent(e.target.value);
+    });
+</script>
+</body>
+</html>
