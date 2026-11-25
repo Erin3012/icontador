@@ -116,7 +116,9 @@
   // "Ir a Cifrax Tributario" abre el visor (pasos 1 a 7) en una segunda ventana.
   var btnIr = document.getElementById('itrib-ir');
   btnIr.addEventListener('click', function () {
-    window.open('/visorcifraxtributario/', 'visorcifraxtributario', 'width=1200,height=820,resizable=yes,scrollbars=yes');
+    // Se abre en otra pestana y lleva la empresa de esta pantalla.
+    var id = empresaId();
+    window.open('/visorcifraxtributario/' + (id ? '?empresa_id=' + encodeURIComponent(id) : ''), '_blank');
   });
 
   cargarPeriodos();
