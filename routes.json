@@ -13,6 +13,7 @@
     "js_icargarModuloReportes": "reportes.html",
     "js_icargarModuloTesoreria": "tesoreria.html",
     "js_icargarModuloTributario": "tributario.html",
+    "js_icargarModuloItributario": "itributario.html",
     "js_icargarModuloRCV": "rcv.html",
     "js_icargarModuloAnalitica": "analitica.html",
     "js_icargarCotabilidadExpress": "cont-express.html",

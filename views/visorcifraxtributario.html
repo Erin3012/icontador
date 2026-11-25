@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor Cifrax Tributario</title>
+    <link rel="stylesheet" href="../assets/cifrax-tributario.css">
+</head>
+<body>
+<header class="cf-superior">
+    <span class="cf-marca">Cifrax</span>
+    <span class="cf-usuario" id="cf-empresa-cabecera">Cargando empresa…</span>
+</header>
+
+<div class="cf-modulo">
+    <h1>Tributario</h1>
+    <button type="button" id="cf-atras">Atrás</button>
+</div>
+
+<div class="cf-controles">
+    <div class="cf-campo">
+        <label for="cf-anio">Año tributario</label>
+        <select id="cf-anio"></select>
+    </div>
+    <div class="cf-campo">
+        <label>Régimen</label>
+        <strong>Pro Pyme General (Art. 14 D N°3)</strong>
+    </div>
+    <div class="cf-campo">
+        <label>Año comercial</label>
+        <strong id="cf-comercial">2025</strong>
+    </div>
+    <button type="button" class="cf-btn-sincronizar" id="cf-sincronizar">Sincronizar balance</button>
+    <span class="cf-mensaje" id="cf-mensaje" role="status"></span>
+</div>
+
+<div class="cf-cuerpo">
+    <nav class="cf-nav" role="tablist" aria-label="Pasos de Cifrax Tributario">
+        <h2>CONFIGURACIÓN</h2>
+        <button class="cf-paso" role="tab" data-panel="p-sync" aria-selected="false"><span class="cf-numero">⇅</span>Sincronización</button>
+        <h2>GENERAL</h2>
+        <button class="cf-paso" role="tab" data-panel="p-1" aria-selected="true"><span class="cf-numero">1</span>Balance</button>
+        <button class="cf-paso" role="tab" data-panel="p-2" aria-selected="false"><span class="cf-numero">2</span>Homologación</button>
+        <h2>RECUADROS F22</h2>
+        <button class="cf-paso" role="tab" data-panel="p-3" aria-selected="false"><span class="cf-numero">3</span>Base imponible R17</button>
+        <button class="cf-paso" role="tab" data-panel="p-4" aria-selected="false"><span class="cf-numero">4</span>Capital propio R19</button>
+        <button class="cf-paso" role="tab" data-panel="p-5" aria-selected="false"><span class="cf-numero">5</span>RTRE R20 / R21</button>
+        <h2>DECLARACIONES</h2>
+        <button class="cf-paso" role="tab" data-panel="p-6" aria-selected="false"><span class="cf-numero">6</span>Certificado 70 y DJ 1948</button>
+        <button class="cf-paso" role="tab" data-panel="p-7" aria-selected="false"><span class="cf-numero">7</span>Cierre anual</button>
+        <h2>CONSULTAS SII</h2>
+        <button class="cf-paso" role="tab" data-panel="p-f22" aria-selected="false"><span class="cf-numero">F</span>Formulario 22</button>
+        <button class="cf-paso" role="tab" data-panel="p-ddjj" aria-selected="false"><span class="cf-numero">D</span>DDJJ</button>
+    </nav>
+
+    <main class="cf-contenido">
+        <div class="cf-aviso">Maqueta visual con datos de ejemplo. Los botones se conectan en la siguiente fase.</div>
+
+        <!-- Sincronizacion con iTributario (misma logica que la pantalla de configuracion) -->
+        <section class="cf-panel" id="p-sync">
+            <h2 class="cf-titulo">Sincronización con Cifrax Tributario</h2>
+            <p class="cf-descripcion">Envía el balance del período que elijas o define qué hacer al generar vouchers.</p>
+            <div class="cf-sync-columnas">
+                <div class="cf-tarjeta">
+                    <h3>Sincronización manual</h3>
+                    <p class="cf-descripcion">Envía el balance del período seleccionado a Cifrax Tributario.</p>
+                    <label class="cf-campo-etiqueta" for="cf-sync-periodo">Período comercial a sincronizar</label>
+                    <select id="cf-sync-periodo"></select>
+                    <div class="cf-acciones">
+                        <button type="button" class="cf-btn-sincronizar" id="cf-sync-ahora">Sincronizar ahora</button>
+                    </div>
+                    <p class="cf-nota">Úsalo cuando necesites actualizar el balance de inmediato.</p>
+                </div>
+                <div class="cf-tarjeta">
+                    <h3>Sincronización automática</h3>
+                    <p class="cf-descripcion">Define qué debe hacer Cifrax cuando un voucher puede enviarse a Cifrax Tributario.</p>
+                    <label class="cf-opcion"><input type="radio" name="cf-pref" value="ask"> <span><strong>Preguntar siempre</strong><small>Mostrar confirmación cada vez que se genere un voucher.</small></span></label>
+                    <label class="cf-opcion"><input type="radio" name="cf-pref" value="S"> <span><strong>Sincronizar siempre</strong><small>Enviar automáticamente sin solicitar confirmación.</small></span></label>
+                    <label class="cf-opcion"><input type="radio" name="cf-pref" value="N"> <span><strong>No sincronizar</strong><small>No enviar datos a Cifrax Tributario al generar vouchers.</small></span></label>
+                    <div class="cf-acciones">
+                        <button type="button" class="cf-btn-sincronizar" id="cf-sync-guardar">Guardar preferencia</button>
+                    </div>
+                </div>
+            </div>
+            <div class="cf-tarjeta">
+                <h3>Historial de sincronizaciones</h3>
+                <table class="cf-tabla">
+                    <thead><tr><th>Fecha</th><th>Período</th><th>Origen</th><th>Estado</th><th>Mensaje</th></tr></thead>
+                    <tbody id="cf-sync-historial"><tr><td colspan="5">Cargando…</td></tr></tbody>
+                </table>
+            </div>
+            <p class="cf-mensaje" id="cf-sync-aviso" role="status"></p>
+        </section>
+
+        <!-- 1. Balance -->
+        <section class="cf-panel activo" id="p-1">
+            <h2 class="cf-titulo">1 · Balance</h2>
+            <p class="cf-descripcion">Descarga las plantillas, complétalas sin cambiar las columnas y súbelas aquí.</p>
+            <div class="cf-tarjeta">
+                <div class="cf-acciones">
+                    <button class="cf-boton" disabled>Descargar Retiros y Dividendos.xlsx</button>
+                    <button class="cf-boton" disabled>Descargar Balance General 8 Columnas.xlsx</button>
+                    <button class="cf-boton principal" disabled>Importar balance</button>
+                </div>
+            </div>
+            <div class="cf-tarjeta">
+                <table class="cf-tabla">
+                    <thead><tr><th>Código</th><th>Cuenta</th><th class="num">Débitos</th><th class="num">Créditos</th><th>Clasificación</th></tr></thead>
+                    <tbody>
+                        <tr><td>101001</td><td>Caja</td><td class="num">2.400.000</td><td class="num">0</td><td>Activo</td></tr>
+                        <tr><td>202040</td><td>Proveedores</td><td class="num">0</td><td class="num">14.265.436</td><td>Pasivo</td></tr>
+                        <tr><td>404001</td><td>Costo de ventas</td><td class="num">5.790.226</td><td class="num">0</td><td>Resultado</td></tr>
+                        <tr><td>505002</td><td>Ventas exentas</td><td class="num">0</td><td class="num">22.018.000</td><td>Resultado</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 2. Homologación -->
+        <section class="cf-panel" id="p-2">
+            <h2 class="cf-titulo">2 · Homologación de cuentas</h2>
+            <p class="cf-descripcion">Asigna cada cuenta a un código del SII. Cada cambio quedará en el historial.</p>
+            <div class="cf-cifras">
+                <div class="cf-cifra"><span>Cuentas de resultado</span><strong>22</strong></div>
+                <div class="cf-cifra"><span>Homologadas</span><strong class="cf-listo">19</strong></div>
+                <div class="cf-cifra"><span>Sin asignar</span><strong class="cf-pendiente">3</strong></div>
+                <div class="cf-cifra"><span>Excluidas de base</span><strong>2</strong></div>
+            </div>
+            <div class="cf-tarjeta">
+                <h3>Códigos dependientes de cuenta</h3>
+                <table class="cf-tabla">
+                    <thead><tr><th>Código</th><th>Glosa</th><th>Cuentas asignadas</th><th>Estado</th><th></th></tr></thead>
+                    <tbody>
+                        <tr><td>1400</td><td>Ingresos del giro percibidos</td><td>410101, 410102, 410103</td><td class="cf-listo cf-estado">Configurado</td><td><button class="cf-boton" disabled>Editar</button></td></tr>
+                        <tr><td>1409</td><td>Existencias, insumos y servicios pagados</td><td>510101</td><td class="cf-listo cf-estado">Configurado</td><td><button class="cf-boton" disabled>Editar</button></td></tr>
+                        <tr><td>1419</td><td>Intereses y reajustes pagados</td><td>406001</td><td class="cf-listo cf-estado">Configurado</td><td><button class="cf-boton" disabled>Editar</button></td></tr>
+                        <tr><td>1424</td><td>Otros gastos deducibles de los ingresos</td><td>—</td><td class="cf-pendiente cf-estado">Sin configuración</td><td><button class="cf-boton" disabled>Editar</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="cf-tarjeta">
+                <h3>Cuentas de resultado sin asignar</h3>
+                <table class="cf-tabla">
+                    <thead><tr><th>Cuenta</th><th class="num">Saldo</th><th>Acción</th></tr></thead>
+                    <tbody>
+                        <tr><td>510201 · Sueldos y salarios</td><td class="num">48.200.000</td><td><button class="cf-boton" disabled>Asignar código</button> <button class="cf-boton" disabled>Excluir de base</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 3. Base imponible R17 -->
+        <section class="cf-panel" id="p-3">
+            <h2 class="cf-titulo">3 · Base imponible (Recuadro 17)</h2>
+            <p class="cf-descripcion">Los montos se calculan solos mientras el recuadro esté en borrador.</p>
+            <div class="cf-cifras">
+                <div class="cf-cifra"><span>Total ingresos (1410)</span><strong>407.500.000</strong></div>
+                <div class="cf-cifra"><span>Total egresos (1430)</span><strong>353.700.000</strong></div>
+                <div class="cf-cifra"><span>Base imponible (1440)</span><strong>40.300.000</strong></div>
+                <div class="cf-cifra"><span>Estado</span><strong class="cf-pendiente">Borrador</strong></div>
+            </div>
+            <div class="cf-tarjeta">
+                <table class="cf-tabla">
+                    <thead><tr><th>Glosa</th><th>Código</th><th class="num">Monto</th><th>Origen</th></tr></thead>
+                    <tbody>
+                        <tr><td>Ingresos del giro percibidos</td><td>1400</td><td class="num">371.500.000</td><td>Balance</td></tr>
+                        <tr><td>Ingresos del giro devengados en ejercicios anteriores</td><td>1817</td><td class="num">36.000.000</td><td>Balance</td></tr>
+                        <tr><td>Existencias, insumos y servicios pagados</td><td>1409</td><td class="num">217.100.000</td><td>Balance</td></tr>
+                        <tr><td>Honorarios pagados</td><td>1412</td><td class="num">0</td><td>—</td></tr>
+                        <tr><td>Intereses y reajustes pagados por préstamos</td><td>1419</td><td class="num">4.200.000</td><td>Balance</td></tr>
+                    </tbody>
+                </table>
+                <div class="cf-acciones">
+                    <button class="cf-boton" disabled>Informe RLI</button>
+                    <button class="cf-boton" disabled>PDF</button>
+                    <button class="cf-boton principal" disabled>Finalizar declaración</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Capital propio R19 -->
+        <section class="cf-panel" id="p-4">
+            <h2 class="cf-titulo">4 · Capital propio tributario (Recuadro 19)</h2>
+            <p class="cf-descripcion">En Pro Pyme el aumento de capital se ingresa como monto plano, sin corrección monetaria.</p>
+            <div class="cf-cifras">
+                <div class="cf-cifra"><span>Base imponible (1705)</span><strong>40.300.000</strong></div>
+                <div class="cf-cifra"><span>Retiros (1479)</span><strong>24.000.000</strong></div>
+                <div class="cf-cifra"><span>Incentivo al ahorro (1710)</span><strong>14.900.000</strong></div>
+                <div class="cf-cifra"><span>CPTS positivo final (1545)</span><strong>51.900.000</strong></div>
+            </div>
+            <div class="cf-tarjeta">
+                <table class="cf-tabla">
+                    <thead><tr><th>Glosa</th><th>Código</th><th class="num">Monto</th><th>Origen</th></tr></thead>
+                    <tbody>
+                        <tr><td>CPT o CPTS positivo inicial</td><td>1445</td><td class="num">0</td><td>Manual</td></tr>
+                        <tr><td>Capital aportado — empresas que inician actividades</td><td>1374</td><td class="num">0</td><td>Manual</td></tr>
+                        <tr><td>Aumentos (efectivos) de capital del ejercicio</td><td>1375</td><td class="num">0</td><td>Manual</td></tr>
+                        <tr><td>Remesas, retiros o dividendos repartidos</td><td>1479</td><td class="num">24.000.000</td><td>Retiros</td></tr>
+                    </tbody>
+                </table>
+                <div class="cf-acciones">
+                    <button class="cf-boton" disabled>Registrar aumento de capital</button>
+                    <button class="cf-boton principal" disabled>Finalizar declaración</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. RTRE -->
+        <section class="cf-panel" id="p-5">
+            <h2 class="cf-titulo">5 · RTRE (Recuadros 20 y 21)</h2>
+            <p class="cf-descripcion">RAI, REX y SAC se calculan solos. Los retiros se imputan por fecha y socio.</p>
+            <div class="cf-cifras">
+                <div class="cf-cifra"><span>RAI final</span><strong>31.900.000</strong></div>
+                <div class="cf-cifra"><span>REX final</span><strong>0</strong></div>
+                <div class="cf-cifra"><span>SAC disponible</span><strong>1.608.932</strong></div>
+                <div class="cf-cifra"><span>Retiros del ejercicio</span><strong>24.000.000</strong></div>
+            </div>
+            <div class="cf-tarjeta">
+                <h3>Imputación de retiros</h3>
+                <table class="cf-tabla">
+                    <thead><tr><th>Fecha</th><th>Socio</th><th class="num">Retiro</th><th class="num">Crédito SAC</th></tr></thead>
+                    <tbody>
+                        <tr><td>10-04-2025</td><td>Socio A</td><td class="num">6.000.000</td><td class="num">857.142</td></tr>
+                        <tr><td>25-06-2025</td><td>Socio B</td><td class="num">4.000.000</td><td class="num">571.428</td></tr>
+                        <tr><td>12-09-2025</td><td>Socio A</td><td class="num">8.400.000</td><td class="num">1.199.999</td></tr>
+                        <tr><td>05-12-2025</td><td>Socio B</td><td class="num">5.600.000</td><td class="num">799.999</td></tr>
+                    </tbody>
+                </table>
+                <div class="cf-acciones">
+                    <button class="cf-boton" disabled>Recuadro R20</button>
+                    <button class="cf-boton" disabled>Recuadro R21</button>
+                    <button class="cf-boton" disabled>Informe PDF</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Certificado 70 y DJ 1948 -->
+        <section class="cf-panel" id="p-6">
+            <h2 class="cf-titulo">6 · Certificado 70 y DJ 1948</h2>
+            <p class="cf-descripcion">Primero el certificado 70 de cada socio; después la declaración jurada 1948.</p>
+            <div class="cf-tarjeta">
+                <table class="cf-tabla">
+                    <thead><tr><th>Socio</th><th>RUT</th><th class="num">Movimientos</th><th>Certificado 70</th><th></th></tr></thead>
+                    <tbody>
+                        <tr><td>Socio A</td><td>13.456.789-9</td><td class="num">3</td><td class="cf-pendiente cf-estado">Pendiente</td><td><button class="cf-boton" disabled>Emitir</button></td></tr>
+                        <tr><td>Socio B</td><td>14.567.890-0</td><td class="num">2</td><td class="cf-listo cf-estado">Emitido N° 2</td><td><button class="cf-boton" disabled>Re-emitir</button></td></tr>
+                    </tbody>
+                </table>
+                <div class="cf-acciones">
+                    <button class="cf-boton" disabled>Emitir todos los pendientes</button>
+                    <button class="cf-boton principal" disabled>Generar DJ 1948</button>
+                    <button class="cf-boton" disabled>Descargar PDF</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Cierre anual -->
+        <section class="cf-panel" id="p-7">
+            <h2 class="cf-titulo">7 · Cierre anual definitivo</h2>
+            <p class="cf-descripcion">El cierre se habilita cuando todos los recuadros están finalizados.</p>
+            <div class="cf-tarjeta">
+                <p class="cf-pendiente"><strong>Faltan recuadros:</strong> R4, R6, R17, R19 y RTRE (R20 y R21).</p>
+                <div class="cf-acciones">
+                    <button class="cf-boton principal" disabled>Cierre anual definitivo</button>
+                    <button class="cf-boton" disabled>Reabrir</button>
+                    <button class="cf-boton" disabled>Informes PDF</button>
+                </div>
+            </div>
+        </section>
+        <!-- Consultas SII: Formulario 22 (maqueta, mismos campos que iTributario) -->
+        <section class="cf-panel" id="p-f22">
+            <h2 class="cf-titulo">Formulario 22</h2>
+            <p class="cf-descripcion">Estado de la renta de tus empresas activas en el SII, para el año tributario elegido.</p>
+            <div class="cf-barra">
+                <div class="cf-campo">
+                    <label for="f22-anio">Año tributario</label>
+                    <select id="f22-anio"><option>2026</option><option>2025</option><option>2024</option><option>2023</option><option>2022</option><option>2021</option><option>2020</option></select>
+                </div>
+                <button class="cf-boton" disabled>Exportar a Excel</button>
+            </div>
+            <div class="cf-chips">
+                <div class="cf-chip"><strong>0</strong><span>Con inconsistencia</span></div>
+                <div class="cf-chip"><strong>0</strong><span>Devolución retenida</span></div>
+                <div class="cf-chip"><strong>0</strong><span>Pago diferido</span></div>
+                <div class="cf-chip"><strong>1</strong><span>Con cambios</span></div>
+                <div class="cf-chip"><strong>0</strong><span>Error de acceso</span></div>
+            </div>
+            <div class="cf-barra">
+                <input class="cf-buscar" type="search" placeholder="Buscar por razón social o RUT" aria-label="Buscar">
+                <select class="cf-filtro" aria-label="Filtrar por estado">
+                    <option>Todos los estados</option><option>Aceptada</option><option>Con inconsistencia</option><option>Devolución retenida</option><option>En proceso</option><option>Sin declaración</option><option>Error de acceso</option><option>Sin consultar</option><option>Sin clave</option><option>Clave rechazada</option><option>Con cambios</option><option>Pago diferido</option>
+                </select>
+            </div>
+            <div class="cf-tarjeta">
+                <table class="cf-tabla">
+                    <thead><tr><th>Razón social</th><th>RUT</th><th>Estado del F22</th><th>Última consulta</th><th></th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>Empresa de ejemplo</td><td>76.000.000-0</td>
+                            <td><span class="cf-listo cf-estado">Aceptada</span> con devolución $3.621.300<br><small class="cf-pendiente">Cambió el 20-11-2026: antes En proceso</small></td>
+                            <td>23-11-2026 07:34</td>
+                            <td class="cf-acciones-celda"><button class="cf-boton" data-historial="f22">Ver historial</button> <button class="cf-boton" disabled>Reconsultar</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="cf-nota">1 empresa · Mostrando 1–1 de 1</p>
+            </div>
+        </section>
+
+        <!-- Consultas SII: DDJJ (maqueta) -->
+        <section class="cf-panel" id="p-ddjj">
+            <h2 class="cf-titulo">Declaraciones Juradas</h2>
+            <p class="cf-descripcion">Declaraciones juradas presentadas por tus empresas activas en el SII, para el año tributario elegido. Se consulta una empresa a la vez y de ella todas sus DJ.</p>
+            <div class="cf-barra">
+                <div class="cf-campo">
+                    <label for="ddjj-anio">Año tributario</label>
+                    <select id="ddjj-anio"><option>2026</option><option>2025</option><option>2024</option><option>2023</option><option>2022</option><option>2021</option><option>2020</option></select>
+                </div>
+                <button class="cf-boton" disabled>Exportar a Excel</button>
+            </div>
+            <div class="cf-chips">
+                <div class="cf-chip"><strong>1</strong><span>Con observadas</span></div>
+                <div class="cf-chip"><strong>1</strong><span>Con cambios</span></div>
+                <div class="cf-chip"><strong>0</strong><span>Error de acceso</span></div>
+                <div class="cf-chip"><strong>0</strong><span>Sin consultar</span></div>
+                <div class="cf-chip"><strong>0</strong><span>Todas aceptadas</span></div>
+            </div>
+            <div class="cf-barra">
+                <input class="cf-buscar" type="search" placeholder="Buscar por razón social o RUT" aria-label="Buscar">
+                <select class="cf-filtro" aria-label="Filtrar por estado">
+                    <option>Todos los estados</option><option>Todas aceptadas</option><option>Con observadas</option><option>Sin DJ presentadas</option><option>Error de acceso</option><option>Sin consultar</option><option>Sin clave</option><option>Clave rechazada</option><option>Con cambios</option>
+                </select>
+            </div>
+            <div class="cf-tarjeta">
+                <table class="cf-tabla">
+                    <thead><tr><th></th><th>Razón social</th><th>RUT</th><th>Declaraciones juradas</th><th>Última consulta</th><th></th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><button class="cf-boton cf-expandir" aria-expanded="false" aria-controls="ddjj-detalle">▸</button></td>
+                            <td>Empresa de ejemplo</td><td>76.000.000-0</td>
+                            <td><span class="cf-pendiente cf-estado">Con observadas</span><br><small>4 presentadas · 1 observada</small><br><small class="cf-pendiente">Cambió el 21-11-2026: antes Todas aceptadas</small></td>
+                            <td>23-11-2026 07:34</td>
+                            <td><button class="cf-boton" disabled>Reconsultar</button></td>
+                        </tr>
+                        <tr id="ddjj-detalle" hidden>
+                            <td colspan="6">
+                                <table class="cf-tabla cf-tabla-interna">
+                                    <thead><tr><th>Formulario</th><th>Estado</th><th>Folio</th><th>Presentada</th><th>Tipo</th><th></th></tr></thead>
+                                    <tbody>
+                                        <tr><td><strong>DJ 1948</strong><br><small>Retiros, remesas o distribuciones y créditos (Certificado 70)</small></td><td class="cf-listo cf-estado">Aceptada</td><td>7100234561</td><td>26-03-2026 12:00</td><td>Original</td><td></td></tr>
+                                        <tr><td><strong>DJ 1879</strong><br><small>Retenciones de impuestos por honorarios</small></td><td class="cf-listo cf-estado">Aceptada</td><td>7100234102</td><td>18-03-2026 12:00</td><td>Original</td><td></td></tr>
+                                        <tr><td><strong>DJ 1887</strong><br><small>Rentas del trabajo (sueldos)</small></td><td class="cf-listo cf-estado">Aceptada</td><td>7100233874</td><td>12-03-2026 12:00</td><td>Original</td><td></td></tr>
+                                        <tr><td><strong>DJ 1847</strong><br><small>Balance 8 columnas y antecedentes del ejercicio</small></td><td class="cf-pendiente cf-estado">Observada</td><td>7100235019</td><td>30-03-2026 12:00</td><td>Original</td><td><button class="cf-boton" data-observaciones="1">Ver observaciones</button></td></tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="cf-nota">1 empresa · Mostrando 1–1 de 1</p>
+            </div>
+        </section>
+
+        <!-- Ventana de historial del SII (maqueta) -->
+        <div class="cf-modal" id="cf-modal-historial" hidden role="dialog" aria-modal="true" aria-labelledby="cf-modal-titulo">
+            <div class="cf-modal-caja">
+                <div class="cf-modal-cab">
+                    <div>
+                        <strong id="cf-modal-titulo">Empresa de ejemplo</strong>
+                        <div class="cf-nota">76.000.000-0 · Año tributario 2026</div>
+                    </div>
+                    <button class="cf-boton" data-cerrar="1" aria-label="Cerrar">×</button>
+                </div>
+                <p><span class="cf-listo cf-estado">Aceptada</span> con devolución $3.621.300</p>
+                <div class="cf-cifras cf-cifras-2">
+                    <div class="cf-cifra"><span>Folio</span><strong>9300125587</strong></div>
+                    <div class="cf-cifra"><span>Último evento</span><strong>20-11-2026</strong></div>
+                    <div class="cf-cifra"><span>Consultado</span><strong>23-11-2026 07:34</strong></div>
+                </div>
+                <h3>Historial del SII</h3>
+                <table class="cf-tabla">
+                    <thead><tr><th>Fecha</th><th>Evento</th></tr></thead>
+                    <tbody>
+                        <tr><td>17-04-2026</td><td>Declaración recibida por el SII</td></tr>
+                        <tr><td>17-04-2026</td><td>En proceso de revisión</td></tr>
+                        <tr><td>20-11-2026</td><td>Declaración aceptada</td></tr>
+                    </tbody>
+                </table>
+                <div class="cf-acciones">
+                    <button class="cf-boton principal" disabled>Ver F22</button>
+                    <button class="cf-boton" data-cerrar="1">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    (function () {
+        // Pasos del menu
+        var pasos = document.querySelectorAll('.cf-paso');
+        var paneles = document.querySelectorAll('.cf-panel');
+        pasos.forEach(function (b) {
+            b.addEventListener('click', function () {
+                pasos.forEach(function (x) { x.setAttribute('aria-selected', 'false'); });
+                paneles.forEach(function (p) { p.classList.remove('activo'); });
+                b.setAttribute('aria-selected', 'true');
+                document.getElementById(b.getAttribute('data-panel')).classList.add('activo');
+            });
+        });
+
+        // Ano tributario: el actual y los tres anteriores
+        var sel = document.getElementById('cf-anio');
+        var anio = new Date().getFullYear();
+        for (var a = anio; a >= anio - 3; a--) {
+            var op = document.createElement('option');
+            op.value = a;
+            op.textContent = String(a);
+            sel.appendChild(op);
+        }
+        sel.addEventListener('change', function () {
+            document.getElementById('cf-comercial').textContent = String(Number(sel.value) - 1);
+        });
+        document.getElementById('cf-comercial').textContent = String(anio - 1);
+
+        // Sincronizacion del balance (la API responde pendiente hasta conectar iTributario)
+        var btn = document.getElementById('cf-sincronizar');
+        var mensaje = document.getElementById('cf-mensaje');
+        btn.addEventListener('click', function () {
+            if (!window.confirm('¿Enviar el balance del año tributario ' + sel.value + ' a Cifrax Tributario?')) return;
+            btn.disabled = true;
+            mensaje.textContent = 'Enviando solicitud…';
+            fetch('../api/itributario.php?accion=sincronizar', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ periodo: sel.value + '-12', origen: 'manual' })
+            }).then(function (r) {
+                return r.json().catch(function () { return {}; }).then(function (d) {
+                    if (!r.ok) throw new Error(d.error || ('Error ' + r.status));
+                    return d;
+                });
+            }).then(function (d) {
+                mensaje.textContent = d.mensaje || 'Solicitud registrada.';
+            }).catch(function (e) {
+                mensaje.textContent = e.message;
+            }).finally(function () { btn.disabled = false; });
+        });
+
+        // Sincronizacion: preferencia, envio manual e historial (API api/itributario.php)
+        // Empresa de trabajo: la activa en la aplicación, o la indicada en la URL al abrir el visor.
+        var empresaActiva = null;
+        try { empresaActiva = JSON.parse(localStorage.getItem('icontador.empresaSeleccionada') || 'null'); } catch (e) { empresaActiva = null; }
+        var empresaId = new URLSearchParams(window.location.search).get('empresa_id') || (empresaActiva && empresaActiva.id) || '';
+        var cabeceraEmpresa = document.getElementById('cf-empresa-cabecera');
+        if (empresaActiva && String(empresaActiva.id) === String(empresaId)) {
+            cabeceraEmpresa.textContent = (empresaActiva.razon_social || 'Empresa ' + empresaId) + (empresaActiva.rut ? ' · RUT ' + empresaActiva.rut : '');
+        } else {
+            cabeceraEmpresa.textContent = empresaId ? 'Empresa ' + empresaId : 'Sin empresa seleccionada';
+        }
+        var API = '../api/itributario.php' + (empresaId ? '?empresa_id=' + encodeURIComponent(empresaId) : '');
+        var selSync = document.getElementById('cf-sync-periodo');
+        for (var s = anio; s >= anio - 3; s--) {
+            var o = document.createElement('option');
+            o.value = s + '-12';
+            o.textContent = String(s);
+            selSync.appendChild(o);
+        }
+        var aviso = document.getElementById('cf-sync-aviso');
+        var historial = document.getElementById('cf-sync-historial');
+        function pedir(accion, cuerpo) {
+            var opts = { method: cuerpo ? 'POST' : 'GET', credentials: 'same-origin', headers: {} };
+            if (cuerpo) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(cuerpo); }
+            var url = API + (accion ? (API.indexOf('?') >= 0 ? '&' : '?') + 'accion=' + accion : '');
+            return fetch(url, opts).then(function (r) {
+                return r.json().catch(function () { return {}; }).then(function (d) {
+                    if (!r.ok) throw new Error(d.error || ('Error ' + r.status));
+                    return d;
+                });
+            });
+        }
+        function pintarHistorial(filas) {
+            historial.textContent = '';
+            if (!filas || !filas.length) {
+                var vacio = document.createElement('tr');
+                var td = document.createElement('td');
+                td.colSpan = 5;
+                td.textContent = 'Aún no hay sincronizaciones.';
+                vacio.appendChild(td);
+                historial.appendChild(vacio);
+                return;
+            }
+            filas.forEach(function (f) {
+                var tr = document.createElement('tr');
+                [f.creado_en, f.periodo, f.origen, f.estado, f.mensaje].forEach(function (t) {
+                    var c = document.createElement('td');
+                    c.textContent = t || '';
+                    tr.appendChild(c);
+                });
+                historial.appendChild(tr);
+            });
+        }
+        function marcarPreferencia(v) {
+            var r = document.querySelector('input[name="cf-pref"][value="' + v + '"]');
+            if (r) r.checked = true;
+        }
+        function cargarSync() {
+            pedir('', null).then(function (d) {
+                marcarPreferencia(d.auto_sync || 'ask');
+                pintarHistorial(d.historial);
+            }).catch(function (e) { aviso.textContent = e.message; });
+        }
+        document.getElementById('cf-sync-guardar').addEventListener('click', function () {
+            var elegida = document.querySelector('input[name="cf-pref"]:checked');
+            if (!elegida) { aviso.textContent = 'Elige una opción de sincronización automática.'; return; }
+            pedir('preferencia', { auto_sync: elegida.value }).then(function () {
+                aviso.textContent = 'Preferencia guardada.';
+            }).catch(function (e) { aviso.textContent = e.message; });
+        });
+        document.getElementById('cf-sync-ahora').addEventListener('click', function () {
+            if (!window.confirm('¿Enviar el balance del período ' + selSync.value.slice(0, 4) + ' a Cifrax Tributario?')) return;
+            pedir('sincronizar', { periodo: selSync.value, origen: 'manual' }).then(function (d) {
+                aviso.textContent = d.mensaje || 'Solicitud registrada.';
+                return pedir('', null);
+            }).then(function (d) {
+                pintarHistorial(d.historial);
+            }).catch(function (e) { aviso.textContent = e.message; });
+        });
+        cargarSync();
+
+        // Consultas SII (maqueta): historial en ventana, filas desplegables de DJ
+        var modal = document.getElementById('cf-modal-historial');
+        document.querySelectorAll('[data-historial]').forEach(function (b) {
+            b.addEventListener('click', function () { modal.hidden = false; });
+        });
+        document.querySelectorAll('[data-cerrar]').forEach(function (b) {
+            b.addEventListener('click', function () { modal.hidden = true; });
+        });
+        modal.addEventListener('click', function (e) { if (e.target === modal) modal.hidden = true; });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') modal.hidden = true; });
+        document.querySelectorAll('.cf-expandir').forEach(function (b) {
+            b.addEventListener('click', function () {
+                var fila = document.getElementById(b.getAttribute('aria-controls'));
+                var abierta = b.getAttribute('aria-expanded') === 'true';
+                b.setAttribute('aria-expanded', abierta ? 'false' : 'true');
+                b.textContent = abierta ? '▸' : '▾';
+                fila.hidden = abierta;
+            });
+        });
+
+        // Atras: cierra la ventana emergente
+        document.getElementById('cf-atras').addEventListener('click', function () { window.close(); });
+    })();
+</script>
+</body>
+</html>

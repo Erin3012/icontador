@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cifrax Tributario</title>
+    <link rel="stylesheet" href="../assets/cifrax-tributario.css">
+    <style>
+        .ct-entrada { display: flex; flex-direction: column; height: 100vh; }
+        .ct-empresa { background: #fff; border-bottom: 1px solid var(--cf-borde); padding: 12px 22px; display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; }
+        .ct-empresa select { min-width: 380px; padding: 8px 10px; border: 1px solid var(--cf-borde); border-radius: var(--cf-radio); font: inherit; background: #fff; }
+        .ct-empresa label { display: block; font-size: var(--cf-t-sm); color: var(--cf-texto-suave); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+        .ct-marco { flex: 1; border: 0; width: 100%; background: var(--cf-fondo); }
+    </style>
+</head>
+<body>
+<header class="cf-superior">
+    <span class="cf-marca">Cifrax</span>
+    <span class="cf-usuario">Usuario titular</span>
+</header>
+<div class="cf-modulo">
+    <h1>Cifrax Tributario</h1>
+    <button type="button" onclick="window.close()">Atrás</button>
+</div>
+<div class="ct-entrada">
+    <div class="ct-empresa">
+        <div>
+            <label>Empresa en trabajo</label>
+            <strong id="ct-empresa-nombre">Cargando…</strong>
+            <span class="cf-nota" id="ct-empresa-rut"></span>
+        </div>
+        <div>
+            <label>Año tributario</label>
+            <strong>2026</strong>
+        </div>
+        <div>
+            <label>Régimen</label>
+            <strong>Pro Pyme General (Art. 14 D N°3)</strong>
+        </div>
+    </div>
+    <!-- Configuracion de sincronizacion: misma pantalla que iTributario -->
+    <iframe class="ct-marco" id="ct-marco" title="Configuración de Cifrax Tributario"></iframe>
+</div>
+<script>
+    // Empresa activa en la aplicación (la misma que usa "Cambiar Empresa").
+    (function () {
+        var empresa = null;
+        try { empresa = JSON.parse(localStorage.getItem('icontador.empresaSeleccionada') || 'null'); } catch (e) { empresa = null; }
+        var nombre = document.getElementById('ct-empresa-nombre');
+        var rut = document.getElementById('ct-empresa-rut');
+        if (!empresa || !empresa.id) {
+            nombre.textContent = 'Sin empresa seleccionada';
+            rut.textContent = 'Elige una empresa en la aplicación con «Cambiar Empresa».';
+            document.getElementById('ct-marco').hidden = true;
+            return;
+        }
+        nombre.textContent = empresa.razon_social || ('Empresa ' + empresa.id);
+        rut.textContent = empresa.rut ? 'RUT ' + empresa.rut : '';
+        document.getElementById('ct-marco').src = '../views/itributario.html?empresa_id=' + encodeURIComponent(empresa.id);
+    })();
+</script>
+</body>
+</html>

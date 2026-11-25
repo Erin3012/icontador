@@ -1,0 +1,131 @@
+/* Cifrax Tributario: tokens y componentes tomados del frontend del proyecto (assets/5ef3f133326af069-original.css).
+   Paleta: #26303c barra superior, #27aae1 barra de modulo, #1e3c72 navegacion, #f26c00 acento, #8fc400 exito,
+   #71747e texto secundario, #e2e8f0 bordes, #f8fafc fondo. Tipografia: la misma familia del proyecto. */
+
+:root {
+    /* Color */
+    --cf-superior: #26303c;
+    --cf-modulo: #27aae1;
+    --cf-navegacion: #1e3c72;
+    --cf-acento: #f26c00;
+    --cf-acento-claro: #ffa435;
+    --cf-exito: #8fc400;
+    --cf-advertencia: #b45309;
+    --cf-texto: #26303c;
+    --cf-texto-suave: #71747e;
+    --cf-borde: #e2e8f0;
+    --cf-fondo: #f8fafc;
+    --cf-tarjeta: #ffffff;
+    --cf-azul-claro: #eaf6fd;
+
+    /* Tipografia */
+    --cf-fuente: "Lucida Grande", Tahoma, Verdana, Arial, sans-serif;
+    --cf-t-sm: 12px;
+    --cf-t-md: 14px;
+    --cf-t-lg: 18px;
+    --cf-t-xl: 22px;
+
+    /* Espaciado y radios */
+    --cf-espacio: 8px;
+    --cf-espacio-2: 16px;
+    --cf-espacio-3: 24px;
+    --cf-radio: 4px;
+    --cf-radio-tarjeta: 10px;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--cf-fuente); font-size: var(--cf-t-md); color: var(--cf-texto); background: var(--cf-fondo); }
+
+/* Barra superior (igual a la de Cifrax) */
+.cf-superior { background: var(--cf-superior); color: #fff; display: flex; align-items: center; gap: var(--cf-espacio-2); padding: 0 var(--cf-espacio-3); min-height: 52px; }
+.cf-superior .cf-marca { font-weight: 700; font-size: var(--cf-t-lg); letter-spacing: .02em; }
+.cf-superior .cf-usuario { font-size: var(--cf-t-sm); opacity: .9; text-transform: uppercase; }
+
+/* Barra de modulo */
+.cf-modulo { background: var(--cf-modulo); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 10px var(--cf-espacio-3); }
+.cf-modulo h1 { margin: 0; font-size: var(--cf-t-lg); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.cf-modulo button { background: var(--cf-acento); color: #fff; border: 0; border-radius: var(--cf-radio); padding: 6px 14px; font: inherit; font-size: var(--cf-t-sm); font-weight: 700; cursor: pointer; }
+
+/* Barra de controles: año y sincronizacion */
+.cf-controles { background: #fff; border-bottom: 1px solid var(--cf-borde); display: flex; flex-wrap: wrap; gap: var(--cf-espacio-3); align-items: flex-end; padding: var(--cf-espacio-2) var(--cf-espacio-3); }
+.cf-campo label { display: block; font-size: var(--cf-t-sm); color: var(--cf-texto-suave); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+.cf-campo select { padding: 8px 10px; border: 1px solid var(--cf-borde); border-radius: var(--cf-radio); font: inherit; min-width: 130px; background: #fff; }
+.cf-campo strong { font-size: var(--cf-t-md); }
+.cf-btn-sincronizar { background: var(--cf-navegacion); color: #fff; border: 0; border-radius: var(--cf-radio); padding: 9px 16px; font: inherit; font-weight: 700; cursor: pointer; }
+.cf-btn-sincronizar:disabled { opacity: .6; cursor: default; }
+.cf-mensaje { font-size: var(--cf-t-sm); color: var(--cf-texto-suave); }
+
+/* Estructura: navegacion de pasos + contenido */
+.cf-cuerpo { display: grid; grid-template-columns: 230px 1fr; min-height: calc(100vh - 150px); }
+.cf-nav { background: var(--cf-navegacion); color: #fff; padding: var(--cf-espacio-2) 0; }
+.cf-nav h2 { font-size: 11px; letter-spacing: .08em; opacity: .7; margin: var(--cf-espacio-2) var(--cf-espacio-3) 6px; font-weight: 700; }
+.cf-paso { display: flex; align-items: center; gap: 10px; width: 100%; background: transparent; border: 0; color: #fff; text-align: left; padding: 9px var(--cf-espacio-3); font: inherit; font-size: var(--cf-t-md); cursor: pointer; }
+.cf-paso:hover { background: rgba(255, 255, 255, .1); }
+.cf-paso[aria-selected="true"] { background: #fff; color: var(--cf-navegacion); font-weight: 700; }
+.cf-numero { width: 22px; height: 22px; border-radius: 50%; background: rgba(255, 255, 255, .2); display: inline-flex; align-items: center; justify-content: center; font-size: var(--cf-t-sm); flex-shrink: 0; }
+.cf-paso[aria-selected="true"] .cf-numero { background: var(--cf-acento); color: #fff; }
+
+.cf-contenido { padding: var(--cf-espacio-3); min-width: 0; }
+.cf-panel { display: none; }
+.cf-panel.activo { display: block; }
+.cf-titulo { margin: 0 0 4px; font-size: var(--cf-t-xl); color: var(--cf-navegacion); }
+.cf-descripcion { margin: 0 0 var(--cf-espacio-3); color: var(--cf-texto-suave); }
+.cf-aviso { background: #fff8e1; border: 1px dashed #e0b84d; border-radius: var(--cf-radio); padding: 8px 12px; margin-bottom: var(--cf-espacio-2); font-size: var(--cf-t-sm); color: #6b4a00; }
+
+/* Tarjetas, tarjetas de cifras, tablas, botones */
+.cf-tarjeta { background: var(--cf-tarjeta); border: 1px solid var(--cf-borde); border-radius: var(--cf-radio-tarjeta); padding: var(--cf-espacio-2); margin-bottom: var(--cf-espacio-2); }
+.cf-tarjeta h3 { margin: 0 0 10px; font-size: var(--cf-t-lg); color: var(--cf-navegacion); }
+.cf-cifras { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: var(--cf-espacio-2); }
+.cf-cifra { background: #fff; border: 1px solid var(--cf-borde); border-left: 4px solid var(--cf-modulo); border-radius: var(--cf-radio-tarjeta); padding: 12px 14px; }
+.cf-cifra span { display: block; font-size: var(--cf-t-sm); color: var(--cf-texto-suave); }
+.cf-cifra strong { font-size: var(--cf-t-lg); font-variant-numeric: tabular-nums; }
+
+.cf-tabla { width: 100%; border-collapse: collapse; font-size: var(--cf-t-md); }
+.cf-tabla th, .cf-tabla td { padding: 9px 8px; border-bottom: 1px solid var(--cf-borde); text-align: left; }
+.cf-tabla th { color: var(--cf-texto-suave); font-size: var(--cf-t-sm); text-transform: uppercase; letter-spacing: .03em; font-weight: 700; }
+.cf-tabla td.num, .cf-tabla th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.cf-estado { font-size: var(--cf-t-sm); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.cf-pendiente { color: var(--cf-advertencia); }
+.cf-listo { color: #3f7a00; }
+
+.cf-acciones { display: flex; gap: var(--cf-espacio); flex-wrap: wrap; margin-top: 12px; }
+.cf-boton { padding: 8px 14px; border-radius: var(--cf-radio); border: 1px solid var(--cf-navegacion); background: #fff; color: var(--cf-navegacion); font: inherit; font-size: var(--cf-t-sm); font-weight: 700; cursor: not-allowed; opacity: .6; }
+.cf-boton.principal { background: var(--cf-navegacion); color: #fff; }
+.cf-boton:disabled { cursor: not-allowed; }
+
+/* Consultas SII: barra de filtros, contadores por estado, filas desplegables y ventana de historial */
+.cf-barra { display: flex; flex-wrap: wrap; gap: var(--cf-espacio-2); align-items: flex-end; margin-bottom: var(--cf-espacio-2); }
+.cf-buscar { flex: 1 1 280px; padding: 8px 10px; border: 1px solid var(--cf-borde); border-radius: var(--cf-radio); font: inherit; }
+.cf-filtro { padding: 8px 10px; border: 1px solid var(--cf-borde); border-radius: var(--cf-radio); font: inherit; min-width: 200px; background: #fff; }
+.cf-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: var(--cf-espacio-2); }
+.cf-chip { background: #fff; border: 1px solid var(--cf-borde); border-radius: var(--cf-radio-tarjeta); padding: 10px 14px; min-width: 150px; }
+.cf-chip strong { display: block; font-size: var(--cf-t-lg); font-variant-numeric: tabular-nums; }
+.cf-chip span { font-size: var(--cf-t-sm); color: var(--cf-texto-suave); }
+.cf-expandir { padding: 2px 8px; min-width: 30px; }
+.cf-tabla-interna { margin: 6px 0 4px; background: var(--cf-fondo); }
+.cf-tabla-interna th, .cf-tabla-interna td { font-size: var(--cf-t-sm); }
+.cf-acciones-celda { white-space: nowrap; }
+.cf-cifras-2 { grid-template-columns: repeat(3, 1fr); }
+.cf-modal { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
+.cf-modal[hidden] { display: none; }
+.cf-modal-caja { background: #fff; border-radius: var(--cf-radio-tarjeta); width: min(760px, 100%); max-height: 90vh; overflow: auto; padding: var(--cf-espacio-3); box-shadow: 0 10px 30px rgba(0, 0, 0, .2); }
+.cf-modal-cab { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.cf-modal-caja h3 { margin: 16px 0 8px; font-size: var(--cf-t-lg); color: var(--cf-navegacion); }
+
+/* Sincronizacion (misma logica que la pantalla de configuracion) */
+.cf-sync-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: var(--cf-espacio-2); }
+.cf-campo-etiqueta { display: block; margin: 8px 0 4px; font-weight: 700; font-size: var(--cf-t-sm); color: var(--cf-texto-suave); text-transform: uppercase; letter-spacing: .04em; }
+.cf-sync-columnas select { width: 100%; padding: 8px 10px; border: 1px solid var(--cf-borde); border-radius: var(--cf-radio); font: inherit; background: #fff; }
+.cf-opcion { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--cf-borde); border-radius: var(--cf-radio-tarjeta); padding: 10px; margin-bottom: 8px; cursor: pointer; }
+.cf-opcion span { display: flex; flex-direction: column; }
+.cf-opcion small { color: var(--cf-texto-suave); }
+.cf-nota { font-size: var(--cf-t-sm); color: var(--cf-texto-suave); }
+.cf-mensaje { font-size: var(--cf-t-sm); color: var(--cf-texto-suave); min-height: 1em; }
+
+@media (max-width: 860px) {
+    .cf-sync-columnas { grid-template-columns: 1fr; }
+    .cf-cuerpo { grid-template-columns: 1fr; }
+    .cf-cifras { grid-template-columns: 1fr 1fr; }
+    .cf-controles { padding: var(--cf-espacio-2); }
+}
