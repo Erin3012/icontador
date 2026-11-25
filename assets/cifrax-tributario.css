@@ -94,7 +94,18 @@ body { margin: 0; font-family: var(--cf-fuente); font-size: var(--cf-t-md); colo
 .cf-boton.principal { background: var(--cf-navegacion); color: #fff; }
 .cf-boton:disabled { cursor: not-allowed; }
 
+/* Sincronizacion (misma logica que la pantalla de configuracion) */
+.cf-sync-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: var(--cf-espacio-2); }
+.cf-campo-etiqueta { display: block; margin: 8px 0 4px; font-weight: 700; font-size: var(--cf-t-sm); color: var(--cf-texto-suave); text-transform: uppercase; letter-spacing: .04em; }
+.cf-sync-columnas select { width: 100%; padding: 8px 10px; border: 1px solid var(--cf-borde); border-radius: var(--cf-radio); font: inherit; background: #fff; }
+.cf-opcion { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--cf-borde); border-radius: var(--cf-radio-tarjeta); padding: 10px; margin-bottom: 8px; cursor: pointer; }
+.cf-opcion span { display: flex; flex-direction: column; }
+.cf-opcion small { color: var(--cf-texto-suave); }
+.cf-nota { font-size: var(--cf-t-sm); color: var(--cf-texto-suave); }
+.cf-mensaje { font-size: var(--cf-t-sm); color: var(--cf-texto-suave); min-height: 1em; }
+
 @media (max-width: 860px) {
+    .cf-sync-columnas { grid-template-columns: 1fr; }
     .cf-cuerpo { grid-template-columns: 1fr; }
     .cf-cifras { grid-template-columns: 1fr 1fr; }
     .cf-controles { padding: var(--cf-espacio-2); }
