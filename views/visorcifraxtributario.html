@@ -6,7 +6,7 @@
     <title>Visor Cifrax Tributario</title>
     <link rel="stylesheet" href="../assets/5ef3f133326af069-original.css">
     <link rel="stylesheet" href="../assets/cifrax-tributario.css">
-    <link rel="stylesheet" href="../assets/cifrax-visor.css?v=5">
+    <link rel="stylesheet" href="../assets/cifrax-visor.css?v=6">
 </head>
 <body>
 <div class="cv-app">
@@ -110,7 +110,7 @@
 
                     <div class="cv-card">
                         <h2>Gestión General <span class="cv-count">4</span></h2>
-                        <div class="cv-rep"><span class="cv-cod cv-cod-gris">Balance</span><span class="cv-rep-nombre">Balance General importado</span><span class="cv-pill cv-disp">Disponible</span><span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" data-abrir="balance"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>
+                        <div class="cv-rep"><span class="cv-cod cv-cod-gris">Balance</span><span class="cv-rep-nombre">Balance General importado</span><span class="cv-pill cv-disp">Disponible</span><span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" data-pdf="BALANCE"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>
                         <div class="cv-rep"><span class="cv-cod cv-cod-gris">Homol.</span><span class="cv-rep-nombre">Homologación de cuentas (cuenta → código SII)</span><span class="cv-pill cv-disp">Disponible</span><span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" disabled><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>
                         <div class="cv-rep"><span class="cv-cod cv-cod-gris">Retiros</span><span class="cv-rep-nombre">Retiros y Dividendos por socio y mes</span><span class="cv-pill cv-sin">Sin datos</span><span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" disabled><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>
                         <div class="cv-rep"><span class="cv-cod cv-cod-gris">RTRE</span><span class="cv-rep-nombre">Informe RTRE — hoja de trabajo con detalle de retiros y créditos</span><span class="cv-pill cv-borr">Borrador</span><span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" disabled><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button> <button type="button" class="cv-btn-pdf" disabled><i class="fa fa-file-text-o" aria-hidden="true"></i> Informe SII</button></span></div>
@@ -623,16 +623,16 @@
         abrirRecuadro(clave);
     });
 
-    // Botones "Ver PDF" de la pestana Reportes: abren la ventana del recuadro correspondiente.
-    var mapa = { 'R4': 'R4', 'R6': 'R6', 'R17': 'R17', 'RLI': 'R17', 'R18': 'R18', 'R19': 'R19', 'CPT': 'R19', 'R20': 'R20', 'R21': 'R21', 'RTRE': 'R20', 'DJ 1948': 'DJ1948' };
+    // Botones "Ver PDF" de la pestaña Reportes: abren el documento imprimible (api/cifrax-tributario-pdf.php).
+    var mapa = { 'Balance': 'BALANCE', 'R4': 'R4', 'R6': 'R6', 'R17': 'R17', 'RLI': 'RLI', 'R18': 'R18', 'R19': 'R19', 'CPT': 'CPT', 'R20': 'R20', 'R21': 'R21', 'RTRE': 'RTRE', 'DJ 1948': 'DJ1948' };
     document.querySelectorAll('.cv-rep').forEach(function (fila) {
         var cod = fila.querySelector('.cv-cod');
         var btn = fila.querySelector('.cv-btn-pdf');
         if (!cod || !btn) return;
-        var clave = mapa[cod.textContent.trim()];
-        if (!clave) return;
+        var doc = mapa[cod.textContent.trim()];
+        if (!doc) return;
         btn.disabled = false;
-        btn.setAttribute('data-abrir', clave);
+        btn.setAttribute('data-pdf', doc);
     });
 })();
 </script>
@@ -716,7 +716,8 @@
     function cargarBalance() {
         recuadroActual = null;
         acc.innerHTML = '<button type="button" class="cv-btn-fin" data-generar>Generar desde vouchers</button> ' +
-            '<label class="cv-importar">Importar Excel o CSV<input type="file" accept=".xlsx,.csv" data-importar="balance"></label>';
+            '<label class="cv-importar">Importar Excel o CSV<input type="file" accept=".xlsx,.csv" data-importar="balance"></label>' +
+            ' <button type="button" class="cv-btn-pdf" data-pdf="BALANCE" style="cursor:pointer">Ver PDF</button>';
         return pedir('balance').then(function (b) {
             if (!b) {
                 sub.textContent = 'AT ' + anio;
@@ -754,7 +755,8 @@
         acc.innerHTML = estadoHtml + ' ' +
             (r.estado === 'FINALIZADO'
                 ? '<button type="button" class="cv-btn-pdf" data-reabrir>Reabrir</button>'
-                : '<button type="button" class="cv-btn-fin" data-fin' + (r.puedeFinalizar ? '' : ' disabled') + '>Finalizar declaración</button>');
+                : '<button type="button" class="cv-btn-fin" data-fin' + (r.puedeFinalizar ? '' : ' disabled') + '>Finalizar declaración</button>') +
+            ' <button type="button" class="cv-btn-pdf" data-pdf="' + clave + '" style="cursor:pointer">Ver PDF</button>';
 
         var html = '';
         (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
@@ -809,14 +811,15 @@
         sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
         acc.innerHTML = estadoPill(r) + ' ' + (r.estado === 'FINALIZADO'
             ? '<button type="button" class="cv-btn-pdf" data-reabrir>Reabrir</button>'
-            : '<button type="button" class="cv-btn-fin" data-fin' + (r.puedeFinalizar ? '' : ' disabled') + '>Finalizar declaración</button>');
+            : '<button type="button" class="cv-btn-fin" data-fin' + (r.puedeFinalizar ? '' : ' disabled') + '>Finalizar declaración</button>') +
+            ' <button type="button" class="cv-btn-pdf" data-pdf="R20" style="cursor:pointer">Ver PDF</button>';
         var html = '';
         (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
         if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: finalícelo nuevamente.</div>';
         var f = r.formulaRai;
         html += '<h3 style="margin:6px 0 6px;font-size:13px">Fórmula del RAI (4.2)</h3><table class="cv-modal-tabla"><tbody>' +
             [['CPTS positivo (código 1545)', f.cptPositivo], ['CPTS negativo (código 1546)', f.cptNegativo], ['Retiros del ejercicio', f.retirosEjercicio],
-                ['Subtotal determinado', f.subtotalRai], ['RAI del ejercicio', f.rai], ['IDPC del ejercicio (' + r.formulaSac.tasaIdpc + '% sobre el 1440 del R17)', r.idpc]]
+                ['Subtotal determinado', f.subtotalRai], ['RAI del ejercicio', f.rai], ['IDPC del ejercicio (' + String(r.formulaSac.tasaIdpc).replace('.', ',') + '% sobre el 1440 del R17)', r.idpc]]
                 .map(function (x) { return '<tr><td>' + esc(x[0]) + '</td><td class="num">$' + fmt(x[1]) + '</td></tr>'; }).join('') +
             '</tbody></table>';
         html += '<h3 style="margin:14px 0 6px;font-size:13px">Celdas con valor</h3><table class="cv-modal-tabla"><thead><tr><th>Fila</th><th>Concepto</th><th>Columna</th><th class="num">Valor</th><th>Origen</th></tr></thead><tbody>';
@@ -836,7 +839,7 @@
         recuadroActual = null;
         titulo.textContent = titulosRecuadro.R21;
         sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
-        acc.innerHTML = '<span class="cv-chip">Se vacía desde el RTRE (R20)</span>';
+        acc.innerHTML = '<span class="cv-chip">Se vacía desde el RTRE (R20)</span> <button type="button" class="cv-btn-pdf" data-pdf="R21" style="cursor:pointer">Ver PDF</button>';
         var html = '<table class="cv-modal-tabla"><thead><tr><th>Concepto</th><th class="num">Código</th><th class="num">Valor</th></tr></thead><tbody>' +
             r.lineas.map(function (l) { return '<tr><td>' + esc(l.glosa) + '</td><td class="num">' + esc(l.codigo) + '</td><td class="num">$' + fmt(l.monto) + '</td></tr>'; }).join('') +
             '</tbody></table>';
@@ -930,7 +933,8 @@
         recuadroActual = null;
         titulo.textContent = titulosRecuadro.DJ1948;
         sub.textContent = 'AT ' + r.anio + ' · año comercial ' + r.anioComercial;
-        acc.innerHTML = '<label class="cv-importar">Importar retiros (Excel o CSV)<input type="file" accept=".xlsx,.csv" data-importar="retiros"></label>';
+        acc.innerHTML = '<label class="cv-importar">Importar retiros (Excel o CSV)<input type="file" accept=".xlsx,.csv" data-importar="retiros"></label>' +
+            ' <button type="button" class="cv-btn-pdf" data-pdf="DJ1948" style="cursor:pointer">Ver PDF</button>';
         var html = '<p class="cv-texto cv-mensaje-ventana">' + esc(r.paso1.mensaje) + '</p>';
         html += seccionComposicion(r.composicion);
         if (!r.socios.length) {
@@ -941,7 +945,10 @@
         } else {
             html += '<table class="cv-modal-tabla"><thead><tr><th>RUT</th><th>Nombre</th><th class="num">Retiros</th><th class="num">N°</th><th class="num">Certificado</th><th></th></tr></thead><tbody>' +
                 r.socios.map(function (s) {
-                    var accion = s.certificado ? '' : '<button type="button" class="cv-btn-pdf" data-emitir="' + esc(s.rut) + '"' + (r.paso1.listo ? '' : ' disabled') + '>Emitir</button>';
+                    var accion = s.certificado ? ''
+                        : (!s.rut
+                            ? '<button type="button" class="cv-btn-pdf" disabled title="Ingrese el RUT en Composición y retiros del año y guarde">Falta RUT</button>'
+                            : '<button type="button" class="cv-btn-pdf" data-emitir="' + esc(s.rut) + '"' + (r.paso1.listo ? '' : ' disabled') + '>Emitir</button>');
                     return '<tr><td>' + esc(s.rut) + '</td><td>' + esc(s.nombre) + '</td><td class="num">$' + fmt(s.total) + '</td><td class="num">' + s.cantidad +
                         '</td><td class="num">' + (s.certificado ? 'N° ' + s.certificado : '—') + '</td><td>' + accion + '</td></tr>';
                 }).join('') + '</tbody></table>';
@@ -1103,8 +1110,17 @@
     function actualizarInicio() {
         Promise.all([
             pedir('r17').catch(nada), pedir('r19').catch(nada), pedir('homologacion').catch(nada), pedir('r20').catch(nada),
-            pedir('balance').catch(nada), pedir('retiros').catch(nada), pedir('cierre').catch(nada), pedir('r4').catch(nada), pedir('r6').catch(nada)
+            pedir('balance').catch(nada), pedir('retiros').catch(nada), pedir('cierre').catch(nada), pedir('r4').catch(nada), pedir('r6').catch(nada),
+            pedir('dj1948').catch(nada)
         ]).then(function (res) {
+            // DJ 1948: completada con el RTRE finalizado y todos los socios con certificado (o sin retiros en el año).
+            var dj = res[9];
+            if (dj) {
+                var conCertificado = dj.socios.length > 0 && dj.socios.every(function (s) { return !!s.certificado; });
+                var djLista = dj.paso1.listo && (conCertificado || dj.modo === 'sin_retiros');
+                ponerEstado('#cv-card-dj .cv-fila[data-abrir="DJ1948"] .cv-estado', djLista ? 'COMPLETADO' : (dj.paso1.listo ? 'EN PROCESO' : 'PENDIENTE'),
+                    djLista ? 'ok' : (dj.paso1.listo ? 'proceso' : 'pend'));
+            }
             estadoRecuadro('R17', res[0]);
             estadoRecuadro('R19', res[1]);
             estadoRecuadro('R20', res[3]);
@@ -1133,6 +1149,18 @@
     }
     actualizarInicio();
     new MutationObserver(function () { if (modal.hidden) actualizarInicio(); }).observe(modal, { attributes: true, attributeFilter: ['hidden'] });
+
+    // Documentos imprimibles (Ver PDF): se abren en otra pestaña, desde donde se imprimen o guardan como PDF.
+    function urlPdf(doc) {
+        var p = ['doc=' + encodeURIComponent(doc), 'anio=' + anio];
+        if (empresaId) p.push('empresa_id=' + encodeURIComponent(empresaId));
+        return '../api/cifrax-tributario-pdf.php?' + p.join('&');
+    }
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('[data-pdf]') : null;
+        if (!b || b.disabled) return;
+        window.open(urlPdf(b.getAttribute('data-pdf')), '_blank');
+    });
 
     // Accesos de la columna derecha: llevan a la tarjeta correspondiente del Inicio.
     document.querySelectorAll('[data-ver]').forEach(function (b) {

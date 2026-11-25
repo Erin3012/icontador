@@ -96,6 +96,8 @@ a.cv-archivo:hover { text-decoration: underline; }
 .cv-rep-acc { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .cv-btn-pdf { background: #fff; border: 1px solid #111827; border-radius: 6px; padding: 5px 10px; font: inherit; font-size: 12.5px; color: #111827; cursor: not-allowed; }
 .cv-btn-pdf:disabled { opacity: .45; }
+.cv-btn-pdf:not(:disabled) { cursor: pointer; }
+.cv-btn-pdf:not(:disabled):hover { border-color: var(--cv-azul); color: var(--cv-azul-texto); }
 @media (max-width: 760px) { .cv-rep { grid-template-columns: 1fr; } .cv-rep-acc { justify-content: flex-start; } }
 
 /* Pantallas de detalle: en la columna principal, sin la columna derecha */

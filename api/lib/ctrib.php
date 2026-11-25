@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/vouchers.php';
+require_once __DIR__ . '/empresa-paquete.php'; // normalizarRut(): RUT chileno con dígito verificador
 
 const CTRIB_TIPOS_CUENTA = ['ACTIVO', 'PASIVO', 'CAPITAL', 'PERDIDA', 'GANANCIA'];
 // Cuentas de balance (van a inventario) y de resultado (van a pérdidas o ganancias).

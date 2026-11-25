@@ -352,7 +352,7 @@ function ctrib_certificado_emitir(PDO $pdo, int $empresa, int $anio, string $rut
 {
     $rut = trim($rut);
     if ($rut === '') {
-        throw new CtribError('Indique el RUT del socio.');
+        throw new CtribError('Falta el RUT del socio o titular: ingréselo en "Composición y retiros del año" y guarde antes de emitir el certificado.');
     }
     if (ctrib_estado_recuadro($pdo, $empresa, $anio, 'R20')['estado'] !== 'FINALIZADO') {
         throw new CtribError('El RTRE (R20) debe estar finalizado antes de emitir certificados.');

@@ -317,6 +317,13 @@ function ctrib_composicion_guardar(PDO $pdo, int $empresa, int $anio, string $ti
         if ($nombre === '') {
             throw new CtribError("Socio $n: falta el nombre.");
         }
+        if ($rut !== '') {
+            $normalizado = normalizarRut($rut);
+            if ($normalizado === null) {
+                throw new CtribError("Socio $n ($nombre): el RUT $rut no es válido; revise el dígito verificador.");
+            }
+            $rut = $normalizado;
+        }
         if (!is_numeric($p) || (float) $p <= 0 || (float) $p > 100) {
             throw new CtribError("Socio $n ($nombre): la participación debe ser mayor que 0 y hasta 100.");
         }

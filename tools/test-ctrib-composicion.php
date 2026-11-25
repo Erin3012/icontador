@@ -34,6 +34,9 @@ falla(fn() => ctrib_composicion_guardar($pdo, 1, $anio, 'EIRL', '14D3', [['rut' 
 falla(fn() => ctrib_composicion_guardar($pdo, 1, $anio, 'SPA', '14D3', [['rut' => '1-9', 'nombre' => 'A', 'participacion' => 70]], false, 'prueba'), 'sumar 100', 'participación incompleta');
 falla(fn() => ctrib_composicion_guardar($pdo, 1, $anio, 'SPA', '14D3', [['rut' => '', 'nombre' => 'A', 'participacion' => 50], ['rut' => '', 'nombre' => 'B', 'participacion' => 50]], false, 'prueba'), 'sin RUT', 'dos socios sin RUT');
 falla(fn() => ctrib_composicion_guardar($pdo, 1, $anio, 'EIRL', '14D3', [$angela + ['monto' => -5]], false, 'prueba'), 'monto retirado', 'monto negativo');
+falla(fn() => ctrib_composicion_guardar($pdo, 1, $anio, 'EIRL', '14D3', [['rut' => '12.345.678-9', 'nombre' => 'X', 'participacion' => 100]], false, 'prueba'), 'dígito verificador', 'RUT con dígito verificador incorrecto');
+$conRut = ctrib_composicion_guardar($pdo, 1, $anio, 'EIRL', '14D3', [['rut' => '12.345.678-5', 'nombre' => 'X', 'participacion' => 100]], false, 'prueba');
+check($conRut['socios'][0]['rut'] === '12345678-5' && $conRut['avisos'] === [], 'RUT válido se guarda normalizado y sin aviso');
 
 // --- ENYEL: EIRL, 14 D N°3, titular Angela con el 100%, sin RUT todavía ---
 $c = ctrib_composicion_guardar($pdo, 1, $anio, 'EIRL', '14D3', [$angela + ['monto' => 0]], false, 'prueba');
@@ -72,11 +75,11 @@ check($c['modo'] === 'totalidad' && $c['socios'][0]['retirado'] === 6905357, '14
 
 // --- Sociedad con dos socios (montos distintos por socio) ---
 $c = ctrib_composicion_guardar($pdo, 1, $anio, 'SPA', '14D3', [
-    ['rut' => '12345678-9', 'nombre' => 'Socio Uno', 'participacion' => 60, 'monto' => 600000],
-    ['rut' => '98765432-1', 'nombre' => 'Socio Dos', 'participacion' => 40, 'monto' => 0],
+    ['rut' => '12345678-5', 'nombre' => 'Socio Uno', 'participacion' => 60, 'monto' => 600000],
+    ['rut' => '98765432-5', 'nombre' => 'Socio Dos', 'participacion' => 40, 'monto' => 0],
 ], false, 'prueba');
 $porRut = array_column($c['socios'], null, 'rut');
-check($porRut['12345678-9']['utilidad'] === 4143214 && $porRut['98765432-1']['utilidad'] === 2762143, 'utilidad repartida 60/40');
-check($porRut['12345678-9']['retirado'] === 600000 && $porRut['98765432-1']['retirado'] === 0 && $c['modo'] === 'importados', 'retiros por socio');
+check($porRut['12345678-5']['utilidad'] === 4143214 && $porRut['98765432-5']['utilidad'] === 2762143, 'utilidad repartida 60/40');
+check($porRut['12345678-5']['retirado'] === 600000 && $porRut['98765432-5']['retirado'] === 0 && $c['modo'] === 'importados', 'retiros por socio');
 
 echo "Cifrax Tributario composición y retiros: EIRL con titular única, sociedades, sin retiros y 14 D N°8 verificados\n";
