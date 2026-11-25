@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iTributario – Cifrax</title>
+    <link rel="stylesheet" href="../assets/itributario.css">
+</head>
+<body>
+<main class="itrib">
+    <header class="itrib-cabecera">
+        <h1>iTributario</h1>
+        <p>Acceso y configuración de la integración tributaria de esta empresa.</p>
+        <p class="itrib-aviso" id="itrib-aviso" hidden></p>
+    </header>
+
+    <section class="itrib-tarjeta">
+        <div class="itrib-columnas">
+
+            <!-- Columna 1: acceso a iTributario -->
+            <article class="itrib-bloque">
+                <h2>Acceder a iTributario</h2>
+                <p class="itrib-sub">Nueva plataforma tributaria</p>
+                <p>Continúa tu gestión tributaria en iTributario. La plataforma se abrirá en una nueva pestaña del navegador.</p>
+                <div class="itrib-estado">
+                    <strong>iTributario</strong>
+                    <span>Plataforma conectada con Cifrax</span>
+                </div>
+                <a class="itrib-boton itrib-boton-primario" href="https://www.itributario.cl/declaraciones.html" target="_blank" rel="noopener">Ir a iTributario</a>
+                <a class="itrib-boton itrib-boton-peligro" href="tributario.html">Ir al módulo tributario anterior</a>
+            </article>
+
+            <!-- Columna 2: sincronización manual -->
+            <article class="itrib-bloque">
+                <h2>Sincronización manual</h2>
+                <p class="itrib-sub">Actualización inmediata</p>
+                <p>Envía manualmente el balance del período seleccionado a iTributario.</p>
+                <label class="itrib-campo" for="itrib-periodo">Período comercial a sincronizar</label>
+                <select id="itrib-periodo"></select>
+                <button type="button" class="itrib-boton" id="itrib-sincronizar">Sincronizar ahora</button>
+                <p class="itrib-nota">Utiliza esta opción cuando necesites actualizar el balance inmediatamente.</p>
+            </article>
+
+            <!-- Columna 3: sincronización automática -->
+            <article class="itrib-bloque">
+                <h2>Sincronización automática</h2>
+                <p class="itrib-sub">Comportamiento al generar vouchers</p>
+                <p>Define qué debe hacer Cifrax cuando un voucher puede enviarse a iTributario.</p>
+                <fieldset class="itrib-opciones">
+                    <label class="itrib-opcion">
+                        <input type="radio" name="itrib-pref" value="ask">
+                        <span><strong>Preguntar siempre</strong><small>Mostrar confirmación cada vez que se genere un voucher.</small></span>
+                    </label>
+                    <label class="itrib-opcion">
+                        <input type="radio" name="itrib-pref" value="S">
+                        <span><strong>Sincronizar siempre</strong><small>Enviar automáticamente sin solicitar confirmación.</small></span>
+                    </label>
+                    <label class="itrib-opcion">
+                        <input type="radio" name="itrib-pref" value="N">
+                        <span><strong>No sincronizar</strong><small>No enviar datos a iTributario al generar vouchers.</small></span>
+                    </label>
+                </fieldset>
+                <button type="button" class="itrib-boton itrib-boton-primario" id="itrib-guardar">Guardar preferencia</button>
+            </article>
+        </div>
+    </section>
+
+    <section class="itrib-tarjeta">
+        <h2>Historial de sincronizaciones</h2>
+        <table class="itrib-tabla">
+            <thead>
+            <tr><th>Fecha</th><th>Período</th><th>Origen</th><th>Estado</th><th>Mensaje</th></tr>
+            </thead>
+            <tbody id="itrib-historial"></tbody>
+        </table>
+    </section>
+</main>
+<script src="../assets/itributario.js"></script>
+</body>
+</html>

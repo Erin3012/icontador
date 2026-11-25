@@ -1,0 +1,199 @@
+/* Pantalla iTributario (views/itributario.html). Colores y disposición tomados de la pantalla de referencia. */
+:root {
+  --itrib-azul: #2b7be0;
+  --itrib-azul-oscuro: #1f3b63;
+  --itrib-rojo: #d9423b;
+  --itrib-naranja: #f08c00;
+  --itrib-texto: #2d3748;
+  --itrib-suave: #6b7280;
+  --itrib-borde: #dfe3ea;
+  --itrib-fondo: #f5f7fb;
+}
+
+body {
+  margin: 0;
+  background: var(--itrib-fondo);
+  color: var(--itrib-texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.itrib {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.itrib-cabecera h1 {
+  color: var(--itrib-naranja);
+  margin: 0 0 4px;
+}
+
+.itrib-cabecera p {
+  margin: 0;
+  color: var(--itrib-suave);
+}
+
+.itrib-tarjeta {
+  background: #fff;
+  border: 1px solid var(--itrib-borde);
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.itrib-columnas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.itrib-bloque h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.itrib-sub {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: var(--itrib-suave);
+}
+
+.itrib-estado {
+  display: flex;
+  flex-direction: column;
+  background: #eef5ff;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0;
+}
+
+.itrib-estado span {
+  font-size: 0.85rem;
+  color: var(--itrib-suave);
+}
+
+.itrib-campo {
+  display: block;
+  margin: 12px 0 4px;
+  font-weight: 600;
+}
+
+select,
+.itrib-opciones {
+  width: 100%;
+}
+
+select {
+  padding: 8px;
+  border: 1px solid var(--itrib-borde);
+  border-radius: 6px;
+}
+
+.itrib-opciones {
+  border: 0;
+  padding: 0;
+  margin: 12px 0;
+  display: grid;
+  gap: 8px;
+}
+
+.itrib-opcion {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid var(--itrib-borde);
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.itrib-opcion span {
+  display: flex;
+  flex-direction: column;
+}
+
+.itrib-opcion small {
+  color: var(--itrib-suave);
+}
+
+.itrib-boton {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--itrib-azul-oscuro);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--itrib-azul-oscuro);
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.itrib-boton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.itrib-boton-primario {
+  background: var(--itrib-azul-oscuro);
+  color: #fff;
+}
+
+.itrib-boton-peligro {
+  background: var(--itrib-rojo);
+  border-color: var(--itrib-rojo);
+  color: #fff;
+}
+
+.itrib-nota {
+  font-size: 0.85rem;
+  color: var(--itrib-suave);
+}
+
+.itrib-aviso {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #eef5ff;
+}
+
+.itrib-aviso.exito {
+  background: #e6f7ec;
+}
+
+.itrib-aviso.pendiente {
+  background: #fff7e0;
+}
+
+.itrib-aviso.error {
+  background: #fdecec;
+  color: #8a1f1f;
+}
+
+.itrib-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.itrib-tabla th,
+.itrib-tabla td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid var(--itrib-borde);
+  font-size: 0.9rem;
+}
+
+/* Teléfono: 16px de margen lateral y una sola columna */
+@media (max-width: 800px) {
+  .itrib {
+    padding: 16px;
+  }
+
+  .itrib-columnas {
+    grid-template-columns: 1fr;
+  }
+}
