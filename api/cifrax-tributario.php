@@ -35,7 +35,7 @@ ejecutar(function (PDO $pdo, int $empresa) {
                 'r4' => ctrib_r4($pdo, $empresa, $anio),
                 'r6' => ctrib_r6($pdo, $empresa, $anio),
                 'cierre' => ctrib_cierre($pdo, $empresa, $anio),
-                'retiros' => ['retiros' => ctrib_retiros_listar($pdo, $empresa, $anio), 'total' => ctrib_retiros_total($pdo, $empresa, $anio)],
+                'retiros' => ctrib_retiros_del_anio($pdo, $empresa, $anio) + ['socios' => ctrib_socios($pdo, $empresa, $anio)],
                 default => responder(['errores' => ['Acción no válida.']], 404),
             };
         }
@@ -134,6 +134,12 @@ ejecutar(function (PDO $pdo, int $empresa) {
         if ($metodo === 'POST' && $accion === 'certificado_emitir') {
             $datos = cuerpoJson();
             return ctrib_certificado_emitir($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), (string) ($datos['rut'] ?? ''), $usuario);
+        }
+        if ($metodo === 'POST' && $accion === 'retiros_modo') {
+            $datos = cuerpoJson();
+            $anio = ctrib_anio_desde($datos['anio'] ?? null);
+            ctrib_retiros_modo_guardar($pdo, $empresa, $anio, (string) ($datos['modo'] ?? ''), is_array($datos['socios'] ?? null) ? $datos['socios'] : [], $usuario);
+            return ctrib_dj1948($pdo, $empresa, $anio);
         }
         if ($metodo === 'POST' && $accion === 'r19_guardar_manual') {
             $datos = cuerpoJson();

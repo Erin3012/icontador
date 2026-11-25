@@ -95,6 +95,22 @@ function ctrib_schema(PDO $pdo): void
         usuario VARCHAR(120) NOT NULL DEFAULT '',
         UNIQUE (empresa_id, anio, rut)
     )$motor");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_retiros_config (
+        empresa_id INT NOT NULL DEFAULT 0,
+        anio INT NOT NULL,
+        modo VARCHAR(12) NOT NULL DEFAULT 'importados',
+        usuario VARCHAR(120) NOT NULL DEFAULT '',
+        actualizado VARCHAR(25) NOT NULL,
+        PRIMARY KEY (empresa_id, anio)
+    )$motor");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_socios (
+        empresa_id INT NOT NULL DEFAULT 0,
+        anio INT NOT NULL,
+        rut VARCHAR(20) NOT NULL,
+        nombre VARCHAR(120) NOT NULL DEFAULT '',
+        participacion DECIMAL(7,4) NOT NULL,
+        PRIMARY KEY (empresa_id, anio, rut)
+    )$motor");
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_retiros (
         id $id,
         empresa_id INT NOT NULL DEFAULT 0,
@@ -531,6 +547,120 @@ function ctrib_cuentas_desde_archivo(string $ruta, string $extension): array
 
 // ---------- Retiros y dividendos (base del 1479 del R19 y del tope del incentivo 1432) ----------
 
+// Modo de retiros del año: 'importados' (archivo de retiros), 'sin_retiros' (se declara que no hubo) o
+// 'totalidad' (retiro de todo: se atribuye completa la base imponible a los socios según su participación; sirve para 14 D N°8).
+const CTRIB_MODOS_RETIROS = ['importados', 'sin_retiros', 'totalidad'];
+
+function ctrib_retiros_modo(PDO $pdo, int $empresa, int $anio): string
+{
+    $st = $pdo->prepare('SELECT modo FROM ctrib_retiros_config WHERE empresa_id = ? AND anio = ?');
+    $st->execute([$empresa, $anio]);
+    $modo = $st->fetchColumn();
+    return in_array($modo, CTRIB_MODOS_RETIROS, true) ? $modo : 'importados';
+}
+
+/** Socios con su participación (%), usados en el modo 'totalidad'. */
+function ctrib_socios(PDO $pdo, int $empresa, int $anio): array
+{
+    $st = $pdo->prepare('SELECT rut, nombre, participacion FROM ctrib_socios WHERE empresa_id = ? AND anio = ? ORDER BY rut');
+    $st->execute([$empresa, $anio]);
+    return array_map(fn($f) => ['rut' => $f['rut'], 'nombre' => $f['nombre'], 'participacion' => (float) $f['participacion']], $st->fetchAll());
+}
+
+function ctrib_retiros_modo_fijar(PDO $pdo, int $empresa, int $anio, string $modo, string $usuario): void
+{
+    $anterior = ctrib_retiros_modo($pdo, $empresa, $anio);
+    $pdo->prepare('DELETE FROM ctrib_retiros_config WHERE empresa_id = ? AND anio = ?')->execute([$empresa, $anio]);
+    $pdo->prepare('INSERT INTO ctrib_retiros_config (empresa_id, anio, modo, usuario, actualizado) VALUES (?, ?, ?, ?, ?)')
+        ->execute([$empresa, $anio, $modo, $usuario, ctrib_ahora()]);
+    if ($anterior !== $modo) {
+        ctrib_registrar_historial($pdo, $empresa, $anio, 'retiros', 'modo', $anterior, $modo, 'Modo de retiros del año', $usuario);
+    }
+}
+
+/**
+ * Guarda el modo de retiros del año. 'sin_retiros' borra los retiros importados del año.
+ * 'totalidad' exige socios con RUT y participación que sume 100%.
+ */
+function ctrib_retiros_modo_guardar(PDO $pdo, int $empresa, int $anio, string $modo, array $socios, string $usuario): void
+{
+    if (!in_array($modo, CTRIB_MODOS_RETIROS, true)) {
+        throw new CtribError('Modo de retiros no válido.');
+    }
+    $limpios = [];
+    if ($modo === 'totalidad') {
+        $suma = 0.0;
+        foreach ($socios as $i => $s) {
+            $rut = trim((string) ($s['rut'] ?? ''));
+            $p = $s['participacion'] ?? null;
+            if ($rut === '' && trim((string) ($s['nombre'] ?? '')) === '' && ($p === null || $p === '')) {
+                continue; // fila vacía del formulario
+            }
+            if ($rut === '') {
+                throw new CtribError('Socio ' . ($i + 1) . ': falta el RUT.');
+            }
+            if (!is_numeric($p) || (float) $p <= 0 || (float) $p > 100) {
+                throw new CtribError("Socio $rut: la participación debe ser mayor que 0 y hasta 100.");
+            }
+            if (isset($limpios[$rut])) {
+                throw new CtribError("El socio $rut aparece más de una vez.");
+            }
+            $limpios[$rut] = ['rut' => $rut, 'nombre' => mb_substr(trim((string) ($s['nombre'] ?? '')), 0, 120), 'participacion' => round((float) $p, 4)];
+            $suma += (float) $p;
+        }
+        if (!$limpios) {
+            throw new CtribError('Para el retiro de la totalidad indique los socios y su participación.');
+        }
+        if (abs($suma - 100) > 0.01) {
+            throw new CtribError('La participación de los socios debe sumar 100% (suma ' . rtrim(rtrim(number_format($suma, 4, ',', ''), '0'), ',') . '%).');
+        }
+    }
+    $pdo->beginTransaction();
+    try {
+        if ($modo === 'totalidad') {
+            $pdo->prepare('DELETE FROM ctrib_socios WHERE empresa_id = ? AND anio = ?')->execute([$empresa, $anio]);
+            $insertar = $pdo->prepare('INSERT INTO ctrib_socios (empresa_id, anio, rut, nombre, participacion) VALUES (?, ?, ?, ?, ?)');
+            foreach ($limpios as $s) {
+                $insertar->execute([$empresa, $anio, $s['rut'], $s['nombre'], $s['participacion']]);
+            }
+        }
+        if ($modo === 'sin_retiros') {
+            $borrados = $pdo->prepare('DELETE FROM ctrib_retiros WHERE empresa_id = ? AND anio = ?');
+            $borrados->execute([$empresa, $anio]);
+            if ($borrados->rowCount() > 0) {
+                ctrib_registrar_historial($pdo, $empresa, $anio, 'retiros', 'retiros', $borrados->rowCount() . ' retiros', '0', 'Se declara que no hubo retiros', $usuario);
+            }
+        }
+        ctrib_retiros_modo_fijar($pdo, $empresa, $anio, $modo, $usuario);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
+}
+
+/** Reparte un monto según porcentajes con el método del mayor resto: la suma de las partes es exacta. */
+function ctrib_repartir(int $monto, array $porcentajes): array
+{
+    $partes = [];
+    $restos = [];
+    foreach ($porcentajes as $k => $p) {
+        $exacto = $monto * $p / 100;
+        $partes[$k] = (int) floor($exacto);
+        $restos[$k] = $exacto - $partes[$k];
+    }
+    $faltan = $monto - array_sum($partes);
+    arsort($restos);
+    foreach (array_keys($restos) as $k) {
+        if ($faltan <= 0) {
+            break;
+        }
+        $partes[$k]++;
+        $faltan--;
+    }
+    return $partes;
+}
+
 function ctrib_retiros_total(PDO $pdo, int $empresa, int $anio): int
 {
     $st = $pdo->prepare('SELECT COALESCE(SUM(monto), 0) FROM ctrib_retiros WHERE empresa_id = ? AND anio = ?');
@@ -639,6 +769,7 @@ function ctrib_retiros_importar(PDO $pdo, int $empresa, int $anio, array $retiro
             $insertar->execute([$empresa, $anio, $r['rut'], $r['nombre'], $r['fecha'], $r['monto'], $r['tipo']]);
         }
         ctrib_registrar_historial($pdo, $empresa, $anio, 'retiros', $archivo !== '' ? $archivo : 'retiros', (string) $anterior, (string) ctrib_retiros_total($pdo, $empresa, $anio), 'Importación de retiros', $usuario);
+        ctrib_retiros_modo_fijar($pdo, $empresa, $anio, 'importados', $usuario); // importar vuelve al modo de retiros importados
         $pdo->commit();
     } catch (Throwable $e) {
         $pdo->rollBack();

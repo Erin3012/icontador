@@ -78,6 +78,10 @@
 .cv-enlace strong { font-size: 14px; color: #111827; }
 .cv-enlace small { color: var(--cv-suave); font-size: 12px; }
 .cv-archivo { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 6px 0; font: inherit; color: var(--cv-azul-texto); cursor: not-allowed; }
+a.cv-archivo { cursor: pointer; text-decoration: none; }
+a.cv-archivo:hover { text-decoration: underline; }
+.cv-importar { display: inline-block; background: #fff; border: 1px solid #111827; border-radius: 6px; padding: 5px 10px; font-size: 12.5px; color: #111827; cursor: pointer; }
+.cv-importar input { display: none; }
 .cv-aviso-ok { background: #fff8e1; border: 1px solid #f5d36b; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #6b4a00; }
 
 /* Pestana Reportes */

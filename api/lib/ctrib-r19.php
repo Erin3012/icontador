@@ -35,7 +35,7 @@ function ctrib_r19(PDO $pdo, int $empresa, int $anio): array
     }
     $anterior = ctrib_r19_snapshot_anterior($pdo, $empresa, $anio - 1);
     $manuales = ctrib_valores_manuales($pdo, $empresa, $anio, 'R19');
-    $retiros = ctrib_retiros_total($pdo, $empresa, $anio);
+    $retiros = ctrib_retiros_del_anio($pdo, $empresa, $anio)['total'];
     $m1440 = $m17['1440'] ?? 0;
 
     $auto = [

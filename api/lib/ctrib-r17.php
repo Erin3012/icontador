@@ -130,8 +130,12 @@ function ctrib_r17(PDO $pdo, int $empresa, int $anio): array
     $t1729 = $t1410 - $t1430;
 
     // Incentivo al ahorro (art. 14 E): tope del 50% de la base reinvertida y 5.000 UF.
-    $retiros = ctrib_retiros_total($pdo, $empresa, $anio);
+    $modoRetiros = ctrib_retiros_modo($pdo, $empresa, $anio);
+    $retiros = $modoRetiros === 'importados' ? ctrib_retiros_total($pdo, $empresa, $anio) : 0;
     $baseReinvertida = $t1729 - $m1422 - $retiros;
+    if ($modoRetiros === 'totalidad') {
+        $baseReinvertida = 0; // se retira todo: no queda base reinvertida ni incentivo al ahorro
+    }
     $topeMitad = $baseReinvertida * 0.5;
     $uf = ctrib_uf($anio - 1);
     $topeUf = $uf !== null ? CTRIB_R17_TOPE_UF * $uf : null;
@@ -169,7 +173,7 @@ function ctrib_r17(PDO $pdo, int $empresa, int $anio): array
     }
 
     return [
-        'recuadro' => 'R17', 'anio' => $anio, 'anioComercial' => ctrib_anio_comercial($anio),
+        'recuadro' => 'R17', 'anio' => $anio, 'anioComercial' => ctrib_anio_comercial($anio), 'modoRetiros' => $modoRetiros,
         'lineas' => array_values($lineas),
         'totales' => ['1410' => $t1410, '1430' => $t1430, '1729' => $t1729, '1432' => $m1432, '1440' => $t1440],
         'incentivoAhorro' => [
@@ -230,4 +234,33 @@ function ctrib_r17_reabrir(PDO $pdo, int $empresa, int $anio, string $usuario, s
     }
     ctrib_recuadro_reabrir($pdo, $empresa, $anio, 'R17', $usuario, $motivo);
     return ctrib_r17($pdo, $empresa, $anio);
+}
+
+/**
+ * Retiros del año según el modo: los importados, ninguno ('sin_retiros'), o en 'totalidad' la base imponible
+ * completa (1440 del R17) atribuida a los socios según su participación, al 31-12 del año comercial.
+ * La usan R19 (1479), RTRE, R6 (1193) y la DJ 1948.
+ */
+function ctrib_retiros_del_anio(PDO $pdo, int $empresa, int $anio): array
+{
+    $modo = ctrib_retiros_modo($pdo, $empresa, $anio);
+    if ($modo === 'sin_retiros') {
+        return ['modo' => $modo, 'total' => 0, 'retiros' => []];
+    }
+    if ($modo === 'importados') {
+        $lista = ctrib_retiros_listar($pdo, $empresa, $anio);
+        return ['modo' => $modo, 'total' => array_sum(array_column($lista, 'monto')), 'retiros' => $lista];
+    }
+    $base = max(0, (int) ctrib_r17($pdo, $empresa, $anio)['totales']['1440']);
+    $socios = ctrib_socios($pdo, $empresa, $anio);
+    $partes = ctrib_repartir($base, array_column($socios, 'participacion'));
+    $fecha = ctrib_anio_comercial($anio) . '-12-31';
+    $retiros = [];
+    foreach ($socios as $i => $s) {
+        if ($partes[$i] > 0) {
+            $retiros[] = ['rut' => $s['rut'], 'nombre' => $s['nombre'], 'fecha' => $fecha, 'monto' => $partes[$i],
+                'tipo' => 'Atribución total', 'participacion' => $s['participacion']];
+        }
+    }
+    return ['modo' => $modo, 'total' => array_sum(array_column($retiros, 'monto')), 'retiros' => $retiros];
 }

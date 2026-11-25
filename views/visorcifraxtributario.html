@@ -6,7 +6,7 @@
     <title>Visor Cifrax Tributario</title>
     <link rel="stylesheet" href="../assets/5ef3f133326af069-original.css">
     <link rel="stylesheet" href="../assets/cifrax-tributario.css">
-    <link rel="stylesheet" href="../assets/cifrax-visor.css?v=4">
+    <link rel="stylesheet" href="../assets/cifrax-visor.css?v=5">
 </head>
 <body>
 <div class="cv-app">
@@ -148,9 +148,9 @@
                     </div>
                     <div class="cv-card">
                         <h3><i class="fa fa-download" aria-hidden="true"></i> Descarga de archivos para importar</h3>
-                        <button type="button" class="cv-archivo" disabled><i class="fa fa-file-excel-o" aria-hidden="true"></i> Retiros y Dividendos.xlsx</button>
-                        <button type="button" class="cv-archivo" disabled><i class="fa fa-file-excel-o" aria-hidden="true"></i> Balance General 8 Columnas.xlsx</button>
-                        <button type="button" class="cv-archivo" disabled><i class="fa fa-file-excel-o" aria-hidden="true"></i> Empresas.xlsx</button>
+                        <a class="cv-archivo" href="../assets/plantillas/retiros-y-dividendos.xlsx" download="Retiros y Dividendos.xlsx"><i class="fa fa-file-excel-o" aria-hidden="true"></i> Retiros y Dividendos.xlsx</a>
+                        <a class="cv-archivo" href="../assets/plantillas/balance-general-8-columnas.xlsx" download="Balance General 8 Columnas.xlsx"><i class="fa fa-file-excel-o" aria-hidden="true"></i> Balance General 8 Columnas.xlsx</a>
+                        <a class="cv-archivo" href="../assets/plantillas/empresas.xlsx" download="Empresas.xlsx"><i class="fa fa-file-excel-o" aria-hidden="true"></i> Empresas.xlsx</a>
                     </div>
                     <div class="cv-card">
                         <h3><i class="fa fa-play-circle" aria-hidden="true"></i> Videos tutoriales</h3>
@@ -715,7 +715,8 @@
 
     function cargarBalance() {
         recuadroActual = null;
-        acc.innerHTML = '<button type="button" class="cv-btn-fin" data-generar>Generar desde vouchers</button>';
+        acc.innerHTML = '<button type="button" class="cv-btn-fin" data-generar>Generar desde vouchers</button> ' +
+            '<label class="cv-importar">Importar Excel o CSV<input type="file" accept=".xlsx,.csv" data-importar="balance"></label>';
         return pedir('balance').then(function (b) {
             if (!b) {
                 sub.textContent = 'AT ' + anio;
@@ -843,14 +844,76 @@
         cuerpo.innerHTML = html;
     }
 
+    // Retiros del año: importados, sin retiros o retiro de la totalidad (atribución completa de la base imponible).
+    function filaSocio(s) {
+        var estilo = 'style="width:100%;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font:inherit"';
+        return '<tr><td><input data-campo="rut" ' + estilo + ' value="' + esc(s.rut || '') + '"></td>' +
+            '<td><input data-campo="nombre" ' + estilo + ' value="' + esc(s.nombre || '') + '"></td>' +
+            '<td class="num"><input data-campo="participacion" type="number" min="0" max="100" step="0.01" ' + estilo + ' value="' + esc(s.participacion === undefined || s.participacion === null ? '' : s.participacion) + '"></td></tr>';
+    }
+
+    function seccionModoRetiros(r) {
+        var modos = [
+            ['importados', 'Usar los retiros importados'],
+            ['sin_retiros', 'No hubo retiros en el año (borra los retiros importados)'],
+            ['totalidad', 'Retiro de la totalidad: se atribuye completa la base imponible a los socios (sirve para 14 D N°8)']
+        ];
+        // Socios para la totalidad: los guardados; si no hay, los de los retiros importados (sin %); si no, una fila vacía.
+        var socios = (r.sociosParticipacion && r.sociosParticipacion.length) ? r.sociosParticipacion
+            : (r.socios.length && r.modo === 'importados' ? r.socios.map(function (s) { return { rut: s.rut, nombre: s.nombre, participacion: '' }; }) : [{}]);
+        return '<div class="cv-card" style="margin:6px 0 12px;padding:10px 12px"><strong style="display:block;margin-bottom:6px">Retiros del año</strong>' +
+            modos.map(function (m) {
+                return '<label style="display:block;margin:3px 0;cursor:pointer"><input type="radio" name="cv-modo-retiros" value="' + m[0] + '"' + (r.modo === m[0] ? ' checked' : '') + '> ' + esc(m[1]) + '</label>';
+            }).join('') +
+            '<div data-socios' + (r.modo === 'totalidad' ? '' : ' hidden') + ' style="margin-top:8px">' +
+            '<table class="cv-modal-tabla"><thead><tr><th>RUT socio</th><th>Nombre</th><th class="num">% participación</th></tr></thead><tbody data-socios-filas>' +
+            socios.map(filaSocio).join('') + '</tbody></table>' +
+            '<button type="button" class="cv-btn-pdf" data-agregar-socio style="margin-top:6px;cursor:pointer">Agregar socio</button></div>' +
+            '<div style="margin-top:8px"><button type="button" class="cv-btn-fin" data-guardar-modo style="cursor:pointer;opacity:1">Guardar</button>' +
+            (r.modo === 'totalidad' ? ' <span class="cv-texto" style="font-size:12px">Atribuido: $' + fmt(r.total) + '</span>' : '') + '</div></div>';
+    }
+
+    cuerpo.addEventListener('change', function (e) {
+        var radio = e.target;
+        if (!radio.matches || !radio.matches('input[name="cv-modo-retiros"]')) return;
+        var caja = cuerpo.querySelector('[data-socios]');
+        if (caja) caja.hidden = radio.value !== 'totalidad';
+    });
+
+    cuerpo.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('button[data-agregar-socio], button[data-guardar-modo]') : null;
+        if (!b) return;
+        if (b.hasAttribute('data-agregar-socio')) {
+            cuerpo.querySelector('[data-socios-filas]').insertAdjacentHTML('beforeend', filaSocio({}));
+            return;
+        }
+        var elegido = cuerpo.querySelector('input[name="cv-modo-retiros"]:checked');
+        if (!elegido) { mostrarError('Elija una opción de retiros.'); return; }
+        var socios = [];
+        if (elegido.value === 'totalidad') {
+            cuerpo.querySelectorAll('[data-socios-filas] tr').forEach(function (tr) {
+                var v = function (c) { return tr.querySelector('[data-campo="' + c + '"]').value.trim(); };
+                socios.push({ rut: v('rut'), nombre: v('nombre'), participacion: v('participacion') });
+            });
+        }
+        b.disabled = true;
+        enviar('retiros_modo', { modo: elegido.value, socios: socios })
+            .then(function (r) { pintarDJ(r); mostrarError('Retiros del año guardados.'); })
+            .catch(function (err) { b.disabled = false; mostrarError(err.message); });
+    });
+
     function pintarDJ(r) {
         recuadroActual = null;
         titulo.textContent = titulosRecuadro.DJ1948;
         sub.textContent = 'AT ' + r.anio + ' · año comercial ' + r.anioComercial;
-        acc.innerHTML = '';
+        acc.innerHTML = '<label class="cv-importar">Importar retiros (Excel o CSV)<input type="file" accept=".xlsx,.csv" data-importar="retiros"></label>';
         var html = '<p class="cv-texto cv-mensaje-ventana">' + esc(r.paso1.mensaje) + '</p>';
+        html += seccionModoRetiros(r);
         if (!r.socios.length) {
-            html += '<p class="cv-texto">No hay retiros importados para este año.</p>';
+            html += '<p class="cv-texto">' + ({
+                sin_retiros: 'Se declaró que no hubo retiros en el año.',
+                totalidad: 'La base imponible es cero: no hay monto que atribuir a los socios.'
+            }[r.modo] || 'No hay retiros importados para este año.') + '</p>';
         } else {
             html += '<table class="cv-modal-tabla"><thead><tr><th>RUT</th><th>Nombre</th><th class="num">Retiros</th><th class="num">N°</th><th class="num">Certificado</th><th></th></tr></thead><tbody>' +
                 r.socios.map(function (s) {
@@ -1029,7 +1092,7 @@
             }
             var hayBalance = !!(res[4] && res[4].cuentas && res[4].cuentas.length);
             ponerEstado('.cv-fila[data-estado="balance"] .cv-estado', hayBalance ? 'COMPLETADO' : 'PENDIENTE', hayBalance ? 'ok' : 'pend');
-            var hayRetiros = !!(res[5] && res[5].retiros && res[5].retiros.length);
+            var hayRetiros = !!(res[5] && (res[5].modo === 'sin_retiros' || (res[5].retiros && res[5].retiros.length)));
             ponerEstado('.cv-fila[data-estado="retiros"] .cv-estado', hayRetiros ? 'COMPLETADO' : 'PENDIENTE', hayRetiros ? 'ok' : 'pend');
             var c = res[6];
             if (c) {
@@ -1064,6 +1127,28 @@
         enviar('certificado_emitir', { rut: b.getAttribute('data-emitir') })
             .then(function () { return cargarRecuadro('DJ1948'); })
             .catch(function (err) { cargarRecuadro('DJ1948').then(function () { mostrarError(err.message); }); });
+    });
+
+    // Importar balance o retiros desde las plantillas (Excel .xlsx o CSV)
+    acc.addEventListener('change', function (e) {
+        var campo = e.target;
+        if (!campo.matches || !campo.matches('input[data-importar]') || !campo.files || !campo.files.length) return;
+        var tipo = campo.getAttribute('data-importar');
+        var datos = new FormData();
+        datos.append('archivo', campo.files[0]);
+        datos.append('anio', String(anio));
+        var recargar = tipo === 'balance' ? cargarBalance : function () { return cargarRecuadro('DJ1948'); };
+        fetch(url(tipo === 'balance' ? 'balance_importar' : 'retiros_importar'), { method: 'POST', credentials: 'same-origin', body: datos })
+            .then(leer)
+            .then(function (r) {
+                return recargar().then(function () {
+                    var msg = tipo === 'balance'
+                        ? 'Balance importado desde ' + campo.files[0].name + ': ' + r.cuentas.length + ' cuentas.'
+                        : 'Retiros importados desde ' + campo.files[0].name + ': ' + r.cantidad + ' por $' + fmt(r.total) + '.';
+                    mostrarError(msg);
+                });
+            })
+            .catch(function (err) { recargar().then(function () { mostrarError(err.message); }); });
     });
 
     // Botones de la cabecera de la ventana

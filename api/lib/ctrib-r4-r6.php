@@ -152,7 +152,7 @@ function ctrib_r6(PDO $pdo, int $empresa, int $anio): array
     $pasivo = (int) ($balance['totales']['pasivo'] ?? 0);
     $manuales = ctrib_valores_manuales($pdo, $empresa, $anio, 'R6');
     $r20 = ctrib_r20($pdo, $empresa, $anio);
-    $retirosExcedentes = max(0, ctrib_retiros_total($pdo, $empresa, $anio) - (int) $r20['retirosImputadosRai']);
+    $retirosExcedentes = max(0, ctrib_retiros_del_anio($pdo, $empresa, $anio)['total'] - (int) $r20['retirosImputadosRai']);
 
     $montos = [];
     $origen = [];

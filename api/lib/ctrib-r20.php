@@ -76,7 +76,7 @@ function ctrib_r20(PDO $pdo, int $empresa, int $anio): array
     $r19 = ctrib_r19($pdo, $empresa, $anio);
     $manuales = ctrib_rtre_celdas_manuales($pdo, $empresa, $anio);
     $anterior = ctrib_rtre_anterior($pdo, $empresa, $anio - 1);
-    $retiros = ctrib_retiros_total($pdo, $empresa, $anio);
+    $retiros = ctrib_retiros_del_anio($pdo, $empresa, $anio)['total'];
 
     // Fórmula del RAI (4.2): capital propio tributario simplificado + retiros del ejercicio + saldo negativo REX, menos lo que corresponda.
     $cptPositivo = (int) $r19['totales']['1545'];
@@ -309,9 +309,19 @@ function ctrib_r21(PDO $pdo, int $empresa, int $anio): array
 function ctrib_dj1948(PDO $pdo, int $empresa, int $anio): array
 {
     $rtre = ctrib_estado_recuadro($pdo, $empresa, $anio, 'R20');
-    $socios = $pdo->prepare('SELECT rut, MAX(nombre) AS nombre, COUNT(*) AS cantidad, SUM(monto) AS total, MIN(fecha) AS primera, MAX(fecha) AS ultima
-        FROM ctrib_retiros WHERE empresa_id = ? AND anio = ? GROUP BY rut ORDER BY rut');
-    $socios->execute([$empresa, $anio]);
+    $efectivos = ctrib_retiros_del_anio($pdo, $empresa, $anio);
+    $agrupados = [];
+    foreach ($efectivos['retiros'] as $r) {
+        $s = $agrupados[$r['rut']] ?? ['rut' => $r['rut'], 'nombre' => $r['nombre'], 'cantidad' => 0, 'total' => 0, 'primera' => $r['fecha'], 'ultima' => $r['fecha']];
+        $s['cantidad']++;
+        $s['total'] += (int) $r['monto'];
+        $s['primera'] = min($s['primera'], $r['fecha']);
+        $s['ultima'] = max($s['ultima'], $r['fecha']);
+        $s['nombre'] = $s['nombre'] !== '' ? $s['nombre'] : $r['nombre'];
+        $agrupados[$r['rut']] = $s;
+    }
+    ksort($agrupados);
+    $socios = array_values($agrupados);
     $certificados = $pdo->prepare('SELECT rut, numero, emitido FROM ctrib_certificados WHERE empresa_id = ? AND anio = ?');
     $certificados->execute([$empresa, $anio]);
     $porRut = [];
@@ -329,6 +339,9 @@ function ctrib_dj1948(PDO $pdo, int $empresa, int $anio): array
         'anio' => $anio, 'anioComercial' => ctrib_anio_comercial($anio),
         'paso1' => ['listo' => $paso1, 'mensaje' => $paso1 ? 'RTRE finalizado: puede emitir certificados.' : 'Paso 1 · Certificado 70: el RTRE (R20) debe estar finalizado antes de emitir certificados o la DJ 1948.'],
         'socios' => $filas,
+        'modo' => $efectivos['modo'],
+        'total' => $efectivos['total'],
+        'sociosParticipacion' => ctrib_socios($pdo, $empresa, $anio),
         'pendientesDeCalculo' => ['Crédito por retiro y montos del Certificado 70 (imputación por socio): pendiente de cálculo en esta versión.'],
     ];
 }
@@ -348,9 +361,8 @@ function ctrib_certificado_emitir(PDO $pdo, int $empresa, int $anio, string $rut
     if ($f = $existe->fetch()) {
         return ['rut' => $rut, 'numero' => (int) $f['numero'], 'emitido' => $f['emitido'], 'nuevo' => false];
     }
-    $socio = $pdo->prepare('SELECT COUNT(*) FROM ctrib_retiros WHERE empresa_id = ? AND anio = ? AND rut = ?');
-    $socio->execute([$empresa, $anio, $rut]);
-    if ((int) $socio->fetchColumn() === 0) {
+    $ruts = array_column(ctrib_retiros_del_anio($pdo, $empresa, $anio)['retiros'], 'rut');
+    if (!in_array($rut, $ruts, true)) {
         throw new CtribError("El RUT $rut no tiene retiros en el año.");
     }
     $max = $pdo->prepare('SELECT COALESCE(MAX(numero), 0) FROM ctrib_certificados WHERE empresa_id = ? AND anio = ?');
