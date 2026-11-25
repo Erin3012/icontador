@@ -6,7 +6,7 @@
     <title>Visor Cifrax Tributario</title>
     <link rel="stylesheet" href="../assets/5ef3f133326af069-original.css">
     <link rel="stylesheet" href="../assets/cifrax-tributario.css">
-    <link rel="stylesheet" href="../assets/cifrax-visor.css?v=7">
+    <link rel="stylesheet" href="../assets/cifrax-visor.css?v=8">
 </head>
 <body>
 <div class="cv-app">
@@ -86,9 +86,9 @@
                         <div class="cv-fila" data-abrir="HOM"><span><span class="cv-cod">HOM</span>Homologación de cuentas <span class="cv-chip">Balance → R17</span></span><span class="cv-calc">Cálculos</span><span class="cv-estado proceso">EN PROCESO</span></div>
                         <div class="cv-fila" data-abrir="R4"><span><span class="cv-cod">R4</span>Enajenación de acciones y derechos sociales</span><span class="cv-calc">Cálculos</span><span class="cv-estado proceso">EN PROCESO</span></div>
                         <div class="cv-fila" data-abrir="R6"><span><span class="cv-cod">R6</span>Datos Informativos</span><span class="cv-calc">Cálculos</span><span class="cv-estado proceso">EN PROCESO</span></div>
-                        <div class="cv-fila" data-abrir="R17"><span><span class="cv-cod">R17</span>Base Imponible <span class="cv-chip">RLI</span></span><span class="cv-calc">Cálculos</span><span class="cv-estado proceso">EN PROCESO</span></div>
-                        <div class="cv-fila" data-abrir="R19"><span><span class="cv-cod">R19</span>CPTS régimen Pro Pyme <span class="cv-chip">CPT Activo</span></span><span class="cv-calc">Cálculos</span><span class="cv-estado proceso">EN PROCESO</span></div>
-                        <div class="cv-fila" data-abrir="R20"><span><span class="cv-cod">RTRE</span>Registro Tributario de Rentas Empresariales <span class="cv-chip">R20</span><span class="cv-chip">R21</span></span><span class="cv-calc">Cálculos</span><span class="cv-estado proceso">EN PROCESO</span></div>
+                        <div class="cv-fila" data-abrir="R17"><span><span class="cv-cod">R17</span>Base Imponible <span class="cv-chip" data-abrir="RLI" title="Informe de Renta Líquida Imponible">RLI</span></span><span class="cv-calc">Cálculos</span><span class="cv-estado proceso">EN PROCESO</span></div>
+                        <div class="cv-fila" data-abrir="R19"><span><span class="cv-cod">R19</span>CPTS régimen Pro Pyme <span class="cv-chip" data-abrir="CPT" title="Capital Propio Tributario a partir del Activo">CPT Activo</span></span><span class="cv-calc">Cálculos</span><span class="cv-estado proceso">EN PROCESO</span></div>
+                        <div class="cv-fila" data-abrir="R20"><span><span class="cv-cod">RTRE</span>Registro Tributario de Rentas Empresariales <span class="cv-chip" data-abrir="R20" data-dialogo="R20">R20</span><span class="cv-chip" data-abrir="R20" data-dialogo="R21">R21</span></span><span class="cv-calc">Cálculos</span><span class="cv-estado proceso">EN PROCESO</span></div>
                     </div>
 
                     <div class="cv-card" id="cv-card-dj">
@@ -619,12 +619,12 @@
         var b = e.target.closest('[data-abrir]');
         if (!b || b.disabled) return;
         var clave = b.getAttribute('data-abrir');
-        if (['balance', 'R4', 'R6', 'R17', 'R19', 'R20', 'R21', 'DJ1948', 'CIERRE'].indexOf(clave) >= 0) return; // estos se cargan desde la API (ver el script final)
+        if (['balance', 'R4', 'R6', 'R17', 'R19', 'R20', 'R21', 'DJ1948', 'CIERRE', 'CPT', 'RLI', 'HOM'].indexOf(clave) >= 0) return; // estos se cargan desde la API (ver el script final)
         abrirRecuadro(clave);
     });
 
     // Botones "Ver PDF" de la pestaña Reportes: abren el documento imprimible (api/cifrax-tributario-pdf.php).
-    var mapa = { 'Balance': 'BALANCE', 'R4': 'R4', 'R6': 'R6', 'R17': 'R17', 'RLI': 'RLI', 'R18': 'R18', 'R19': 'R19', 'CPT': 'CPT', 'R20': 'R20', 'R21': 'R21', 'RTRE': 'RTRE', 'DJ 1948': 'DJ1948' };
+    var mapa = { 'Balance': 'BALANCE', 'Homol.': 'HOMOLOGACION', 'Retiros': 'RETIROS','R4': 'R4', 'R6': 'R6', 'R17': 'R17', 'RLI': 'RLI', 'R18': 'R18', 'R19': 'R19', 'CPT': 'CPT', 'R20': 'R20', 'R21': 'R21', 'RTRE': 'RTRE', 'DJ 1948': 'DJ1948' };
     document.querySelectorAll('.cv-rep').forEach(function (fila) {
         var cod = fila.querySelector('.cv-cod');
         var btn = fila.querySelector('.cv-btn-pdf');
@@ -824,12 +824,13 @@
         });
     });
 
-    // Esc cierra solo la ventana del incentivo (no la del R17); el clic fuera no la cierra.
+    // Esc cierra solo la ventana de encima (incentivo, R20 o R21), no la de debajo; el clic fuera no la cierra.
     window.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && document.querySelector('[data-sub-incentivo]')) {
+        if (e.key === 'Escape' && document.querySelector('.cv-sub')) {
             e.stopPropagation();
             e.preventDefault();
-            cerrarIncentivo();
+            var abiertas = document.querySelectorAll('.cv-sub');
+            abiertas[abiertas.length - 1].remove();
         }
     }, true);
 
@@ -897,47 +898,270 @@
             : (r.desactualizado ? '<span class="cv-pill cv-borr">Desactualizado</span>' : '<span class="cv-pill cv-borr">Borrador</span>');
     }
 
+    // RTRE como en iTributario: tarjetas (RAI final, REX final, SAC disponible, retiros), botones R20 y R21 que abren
+    // los formularios del F22 y la tabla de movimientos por secciones con columnas RAI, REX, SAC y STUT.
+    var r20Actual = null;
+    var seccionesCerradas = {};
+    var GRUPOS_RTRE = ['RAI', 'REX', 'SAC', 'STUT'];
+
+    function celdaRtre(r, fila, g, fin) {
+        if (!g.presente) return '<td class="num">—</td>';
+        if (g.columnaEditable && !fin) {
+            var propia = r.celdas.filter(function (c) { return c.fila === fila && c.columna === g.columnaEditable; })[0];
+            var manual = propia && propia.origen === 'MANUAL';
+            return '<td class="num"><input type="number" step="1" class="cv-celda' + (manual ? ' cv-manual' : '') + '" data-celda-fila="' + esc(fila) +
+                '" data-celda-columna="' + esc(g.columnaEditable) + '" value="' + esc(propia ? propia.monto : 0) + '" title="Columna ' + esc(g.columnaEditable) + '"></td>';
+        }
+        return '<td class="num">$' + fmt(g.monto) + '</td>';
+    }
+
     function pintarR20(r) {
         recuadroActual = 'R20';
-        titulo.textContent = titulosRecuadro.R20;
+        r20Actual = r;
+        var fin = r.estado === 'FINALIZADO';
+        titulo.textContent = 'Registro Tributario de Rentas Empresariales — Régimen Pro Pyme';
         sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
-        acc.innerHTML = estadoPill(r) + ' ' + (r.estado === 'FINALIZADO'
-            ? '<button type="button" class="cv-btn-pdf" data-reabrir>Reabrir</button>'
-            : '<button type="button" class="cv-btn-fin" data-fin' + (r.puedeFinalizar ? '' : ' disabled') + '>Finalizar declaración</button>') +
-            ' <button type="button" class="cv-btn-pdf" data-pdf="R20" style="cursor:pointer">Ver PDF</button>';
+        var res = r.resumen;
+        var tarjeta = function (t, v) { return '<div class="cv-rtre-tarjeta"><small>' + t + '</small><strong>$' + fmt(v) + '</strong></div>'; };
+        acc.innerHTML = '<div class="cv-rtre-tarjetas" style="flex-basis:100%">' + tarjeta('RAI final', res.raiFinal) + tarjeta('REX final', res.rexFinal) +
+            tarjeta('SAC disponible', res.sacDisponible) + tarjeta('Retiros del ejercicio', r.retirosEjercicio) + '</div>' +
+            '<div class="cv-rtre-barra" style="flex-basis:100%"><span class="cv-etq">RECUADROS</span>' +
+            '<button type="button" class="cv-btn-pdf" data-dialogo="R20">R20</button><button type="button" class="cv-btn-pdf" data-dialogo="R21">R21</button>' +
+            '<span style="flex:1"></span><button type="button" class="cv-btn-pdf" data-pdf="RTRE">Informe PDF</button> ' + estadoPill(r) + ' ' +
+            (fin ? '<button type="button" class="cv-btn-pdf" data-reabrir>Reabrir</button>'
+                : '<button type="button" class="cv-btn-fin" data-fin' + (r.puedeFinalizar ? ' style="cursor:pointer;opacity:1"' : ' disabled') + '>Finalizar declaración</button>') + '</div>';
+
         var html = '';
         (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
         if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: finalícelo nuevamente.</div>';
-        var f = r.formulaRai;
-        html += '<h3 style="margin:6px 0 6px;font-size:13px">Fórmula del RAI (4.2)</h3><table class="cv-modal-tabla"><tbody>' +
-            [['CPTS positivo (código 1545)', f.cptPositivo], ['CPTS negativo (código 1546)', f.cptNegativo], ['Retiros del ejercicio', f.retirosEjercicio],
-                ['Subtotal determinado', f.subtotalRai], ['RAI del ejercicio', f.rai], ['IDPC del ejercicio (' + String(r.formulaSac.tasaIdpc).replace('.', ',') + '% sobre el 1440 del R17)', r.idpc]]
-                .map(function (x) { return '<tr><td>' + esc(x[0]) + '</td><td class="num">$' + fmt(x[1]) + '</td></tr>'; }).join('') +
-            '</tbody></table>';
-        html += '<h3 style="margin:14px 0 6px;font-size:13px">Celdas con valor</h3><table class="cv-modal-tabla"><thead><tr><th>Fila</th><th>Concepto</th><th>Columna</th><th class="num">Valor</th><th>Origen</th></tr></thead><tbody>';
-        if (!r.celdas.length) html += '<tr><td colspan="5">Sin valores en este año.</td></tr>';
-        r.celdas.forEach(function (c) {
-            html += '<tr><td>' + esc(c.fila) + '</td><td>' + esc(c.glosa) + '</td><td>' + esc(c.columna) + '</td><td class="num">' + fmt(c.monto) +
-                '</td><td><span class="cv-chip">' + esc(origenEtiqueta(c.origen)) + '</span></td></tr>';
+        html += '<table class="cv-modal-tabla cv-rtre-tabla"><thead><tr><th>Movimiento</th>' + GRUPOS_RTRE.map(function (g) { return '<th class="num">' + g + '</th>'; }).join('') + '</tr></thead><tbody>';
+        r.secciones.secciones.forEach(function (s) {
+            var cerrada = !!seccionesCerradas[s.bloque];
+            html += '<tr class="cv-seccion" data-bloque="' + s.bloque + '"><td>' + (cerrada ? '▸ ' : '▾ ') + s.bloque + '. ' + esc(s.titulo) + '</td>' +
+                GRUPOS_RTRE.map(function (g) { return '<td class="num">' + (s.bloque === 4 ? '' : '$' + fmt(s.total[g])) + '</td>'; }).join('') + '</tr>';
+            s.filas.forEach(function (f) {
+                html += '<tr data-bloque-fila="' + s.bloque + '"' + (cerrada ? ' hidden' : '') + '><td>' + esc(f.fila + ' ' + f.glosa) + '</td>' +
+                    GRUPOS_RTRE.map(function (g) { return celdaRtre(r, f.fila, f.grupos[g], fin); }).join('') + '</tr>';
+            });
+            if (s.bloque === 5) {
+                html += '<tr class="cv-disponible"><td>Rentas o cantidades disponibles para ser retiradas, remesadas o distribuidas</td>' +
+                    GRUPOS_RTRE.map(function (g) { return '<td class="num">$' + fmt(r.secciones.disponibles[g]) + '</td>'; }).join('') + '</tr>';
+            }
         });
-        html += '</tbody></table>';
+        html += '<tr class="cv-saldo"><td>Saldo final — remanente para el ejercicio siguiente</td>' +
+            GRUPOS_RTRE.map(function (g) { return '<td class="num">$' + fmt(r.secciones.saldoFinal[g]) + '</td>'; }).join('') + '</tr></tbody></table>';
+        if (!fin) html += '<p class="cv-texto" style="font-size:12px;margin:6px 0">Las celdas con recuadro se escriben a mano y se guardan al salir del campo. Déjelas vacías para volver al cálculo automático.</p>';
+
+        var f = r.formulaRai, s2 = r.formulaSac;
+        html += '<details style="margin-top:10px"><summary style="cursor:pointer;font-weight:600;font-size:13px">Detalle del cálculo (RAI, IDPC y crédito SAC)</summary><table class="cv-modal-tabla" style="margin-top:6px"><tbody>' +
+            [['CPTS positivo (código 1545)', f.cptPositivo], ['CPTS negativo (código 1546)', f.cptNegativo], ['Retiros del ejercicio', f.retirosEjercicio],
+                ['RAI del ejercicio (4.2)', f.rai], ['Base imponible (1440 del R17)', s2.rli],
+                ['IDPC del ejercicio (' + String(s2.tasaIdpc).replace('.', ',') + '%) — crédito SAC 4.5', r.idpc],
+                ['Crédito SAC asignado a los retiros (factor ' + String(s2.factorSac).replace('.', ',') + ')', s2.creditoRetiros]]
+                .map(function (x) { return '<tr><td>' + esc(x[0]) + '</td><td class="num">$' + fmt(x[1]) + '</td></tr>'; }).join('') + '</tbody></table>';
         if (r.pendientesDeCalculo && r.pendientesDeCalculo.length) {
-            html += '<p class="cv-texto" style="margin-top:10px;font-size:12px">Pendiente de cálculo en esta versión: ' + esc(r.pendientesDeCalculo.join(' ')) + '</p>';
+            html += '<p class="cv-texto" style="margin-top:8px;font-size:12px">Pendiente de cálculo en esta versión: ' + esc(r.pendientesDeCalculo.join(' ')) + '</p>';
         }
+        html += '</details>';
         cuerpo.innerHTML = html;
     }
 
+    // Formularios R20 y R21 (códigos del F22) en una ventana sobre el RTRE, con los encabezados de iTributario.
+    var CABECERAS_GRILLA = {
+        R20: '<tr><th rowspan="3" style="text-align:left">Concepto</th><th rowspan="3">RAI</th><th colspan="5">REX</th><th rowspan="3">STUT</th></tr>' +
+            '<tr><th colspan="3">Rentas con tributación cumplida</th><th rowspan="2">Rentas exentas</th><th rowspan="2">INR</th></tr>' +
+            '<tr><th>RAP y diferencia inicial ex art. 14 ter A) LIR</th><th>ISFUT/ISIF</th><th>Otras</th></tr>',
+        R21: '<tr><th rowspan="3" style="text-align:left">Concepto</th><th colspan="5">Acumulados a contar desde el 01.01.2017</th><th colspan="3">Acumulados hasta el 31.12.2016</th></tr>' +
+            '<tr><th colspan="2">No sujeto a restitución</th><th colspan="2">Sujeto a restitución</th><th rowspan="2">IPE</th><th rowspan="2">Sin dº devolución</th><th rowspan="2">Con dº devolución</th><th rowspan="2">IPE</th></tr>' +
+            '<tr><th>Sin dº devolución</th><th>Con dº devolución</th><th>Sin dº devolución</th><th>Con dº devolución</th></tr>'
+    };
+    var TITULOS_GRILLA = {
+        R20: 'Recuadro N° 20 — Registro Tributario de Rentas Empresariales y movimiento STUT (Pro Pyme)',
+        R21: 'Recuadro N° 21 — Registro SAC (Pro Pyme)'
+    };
+
+    function tablaGrilla(tipo, formulario) {
+        return '<table class="cv-grilla"><thead>' + CABECERAS_GRILLA[tipo] + '</thead><tbody>' + formulario.filas.map(function (fila) {
+            return '<tr><td>' + esc(fila.glosa) + '</td>' + fila.celdas.map(function (c) {
+                if (!c) return '<td class="cv-nulo"></td>';
+                return '<td class="num' + (c.monto ? ' cv-con-valor' : '') + '"><small>' + esc(c.codigo) + '</small>$' + fmt(c.monto) + '</td>';
+            }).join('') + '</tr>';
+        }).join('') + '</tbody></table>';
+    }
+
+    function cerrarSub() {
+        var abiertas = document.querySelectorAll('.cv-sub');
+        if (abiertas.length) abiertas[abiertas.length - 1].remove();
+    }
+
+    function abrirGrilla(tipo) {
+        if (!r20Actual) return;
+        document.querySelectorAll('[data-sub-grilla]').forEach(function (s) { s.remove(); });
+        var formulario = tipo === 'R20' ? r20Actual.formularioR20 : r20Actual.formularioR21;
+        var html = '<div class="cv-sub" data-sub-grilla role="dialog" aria-modal="true" aria-label="' + esc(TITULOS_GRILLA[tipo]) + '"><div class="cv-sub-caja cv-sub-ancha">' +
+            '<div class="cv-sub-cab"><div><strong style="font-size:16px">' + esc(TITULOS_GRILLA[tipo]) + '</strong><div class="cv-modal-sub">Año comercial ' + r20Actual.anioComercial + ' · AT ' + r20Actual.anio + '</div></div>' +
+            '<button type="button" class="cv-modal-x" data-sub-cerrar aria-label="Cerrar">×</button></div>' +
+            '<div class="cv-rtre-barra"><span style="flex:1"></span><button type="button" class="cv-btn-pdf" data-pdf="' + tipo + '">PDF</button> ' + estadoPill(r20Actual) + '</div>' +
+            tablaGrilla(tipo, formulario) +
+            '<p class="cv-texto" style="font-size:12px;margin:8px 0 0">Se vacía desde el RTRE: para cambiar un valor, edite la celda correspondiente del RTRE y finalícelo.</p>' +
+            '</div></div>';
+        document.body.insertAdjacentHTML('beforeend', html);
+        document.querySelector('[data-sub-grilla] [data-sub-cerrar]').focus();
+    }
+
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('[data-dialogo], [data-sub-cerrar]') : null;
+        if (!b) return;
+        if (b.hasAttribute('data-sub-cerrar')) { cerrarSub(); return; }
+        if (b.closest('#cv-modal')) abrirGrilla(b.getAttribute('data-dialogo'));
+    });
+
+    // Secciones del RTRE: se pliegan y despliegan con un clic en su título.
+    cuerpo.addEventListener('click', function (e) {
+        var tr = e.target.closest ? e.target.closest('.cv-rtre-tabla tr.cv-seccion') : null;
+        if (!tr) return;
+        var bloque = tr.getAttribute('data-bloque');
+        seccionesCerradas[bloque] = !seccionesCerradas[bloque];
+        if (r20Actual) pintarR20(r20Actual);
+    });
+
+    // Celdas manuales del RTRE: se guardan al salir del campo (vacía = vuelve al cálculo automático).
+    cuerpo.addEventListener('change', function (e) {
+        var campo = e.target;
+        if (!campo.matches || !campo.matches('input[data-celda-fila]')) return;
+        var texto = campo.value.trim();
+        var monto = texto === '' ? null : Number(texto);
+        if (monto !== null && !Number.isInteger(monto)) { mostrarError('El monto debe ser un número entero.'); return; }
+        enviar('r20_guardar_celda', { fila: campo.getAttribute('data-celda-fila'), columna: campo.getAttribute('data-celda-columna'), monto: monto })
+            .then(pintarR20)
+            .catch(function (err) { cargarRecuadro('R20').then(function () { mostrarError(err.message); }); });
+    });
+
+    // Recuadro 21 abierto directamente: la grilla del Registro SAC en la ventana principal.
     function pintarR21(r) {
         recuadroActual = null;
-        titulo.textContent = titulosRecuadro.R21;
+        titulo.textContent = TITULOS_GRILLA.R21;
         sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
-        acc.innerHTML = '<span class="cv-chip">Se vacía desde el RTRE (R20)</span> <button type="button" class="cv-btn-pdf" data-pdf="R21" style="cursor:pointer">Ver PDF</button>';
-        var html = '<table class="cv-modal-tabla"><thead><tr><th>Concepto</th><th class="num">Código</th><th class="num">Valor</th></tr></thead><tbody>' +
-            r.lineas.map(function (l) { return '<tr><td>' + esc(l.glosa) + '</td><td class="num">' + esc(l.codigo) + '</td><td class="num">$' + fmt(l.monto) + '</td></tr>'; }).join('') +
-            '</tbody></table>';
+        acc.innerHTML = '<span class="cv-chip">Se vacía desde el RTRE (R20)</span> <button type="button" class="cv-btn-pdf" data-pdf="R21">PDF</button> ' + estadoPill(r);
+        var html = tablaGrilla('R21', r.formulario);
         (r.pendientesDeCalculo || []).forEach(function (p) { html += '<p class="cv-texto" style="margin-top:10px;font-size:12px">' + esc(p) + '</p>'; });
         cuerpo.innerHTML = html;
     }
+
+    // ---------- CPT Activo: Determinación y Configuración de cuentas (como iTributario) ----------
+    var cptActual = null;
+    var cptPestana = 'det';
+    var cptBorrador = {};
+    var CONCEPTOS_CPT = [['INTO', 'Valor INTO'], ['AJUSTE', 'Ajuste Tributario'], ['PASIVO', 'Pasivo Exigible']];
+
+    function pintarCpt(c) {
+        recuadroActual = null;
+        cptActual = c;
+        titulo.textContent = 'Capital Propio Tributario a partir del Activo';
+        sub.textContent = 'Año comercial ' + c.anioComercial + ' · AT ' + c.anio;
+        acc.innerHTML = '<div class="cv-tabs cv-cpt-tabs" style="flex-basis:100%">' +
+            '<button type="button" class="cv-tab" data-cpt-tab="det" aria-selected="' + (cptPestana === 'det') + '">Determinación</button>' +
+            '<button type="button" class="cv-tab" data-cpt-tab="conf" aria-selected="' + (cptPestana === 'conf') + '">Configuración de cuentas</button></div>';
+        var html = '';
+        (c.avisos || []).forEach(function (a) { html += '<div class="cv-aviso-ok">' + esc(a) + '</div>'; });
+        html += cptPestana === 'det' ? cptDeterminacion(c) : cptConfiguracion(c);
+        cuerpo.innerHTML = html;
+    }
+
+    function cptDeterminacion(c) {
+        var grupo = function (titulo, cuentas, subtitulo, subtotal) {
+            var h = '<tr class="cv-cpt-grupo"><td colspan="2">' + titulo + '</td></tr>';
+            h += cuentas.length ? cuentas.map(function (x) { return '<tr><td style="padding-left:20px">' + esc(x.cuenta + ' ' + x.nombre) + '</td><td class="num">$' + fmt(x.monto) + '</td></tr>'; }).join('')
+                : '<tr class="cv-cpt-vacio"><td colspan="2">Sin cuentas configuradas.</td></tr>';
+            return h + '<tr class="cv-cpt-sub"><td>' + subtitulo + '</td><td class="num">$' + fmt(subtotal) + '</td></tr>';
+        };
+        var dif = c.diferencia;
+        return '<div class="cv-rtre-barra"><strong style="font-size:13.5px">DETERMINACIÓN DE CAPITAL PROPIO TRIBUTARIO a partir del ACTIVO</strong><span style="flex:1"></span>' +
+            '<button type="button" class="cv-btn-fin" data-pdf="CPT" style="cursor:pointer;opacity:1">Ver PDF</button></div>' +
+            '<table class="cv-modal-tabla cv-cpt-tabla"><tbody>' +
+            '<tr class="cv-cpt-sub"><td>TOTAL ACTIVO SEGÚN BALANCE</td><td class="num">$' + fmt(c.totalActivo) + '</td></tr>' +
+            grupo('(-) Valores INTO', c.valoresInto, 'Subtotal Valores INTO', c.subtotalInto) +
+            grupo('(-) Ajustes tributarios', c.ajustesTributarios, 'Subtotal Ajustes Tributarios', c.subtotalAjustes) +
+            '<tr class="cv-cpt-sub" style="background:#f8fafc"><td>= TOTAL ACTIVO DEPURADO</td><td class="num">$' + fmt(c.totalActivoDepurado) + '</td></tr>' +
+            grupo('Pasivos exigibles', c.pasivosExigibles, 'TOTAL PASIVOS EXIGIBLE', c.subtotalPasivos) +
+            '<tr class="cv-cpt-final"><td>CAPITAL PROPIO DETERMINADO</td><td class="num">$' + fmt(c.capitalPropioDeterminado) + '</td></tr>' +
+            '</tbody></table>' +
+            '<div class="cv-cpt-nota"><strong>Nota:</strong> comparando con el Capital Propio Tributario del régimen (R19, 1545 − 1546 = $' + fmt(c.cptsRegimen) + '): ' +
+            (dif === 0 ? 'coinciden.' : 'diferencia de $' + fmt(dif) + '.') + '</div>';
+    }
+
+    function cptConfiguracion(c) {
+        var configuradas = 0;
+        var filas = c.cuentas.map(function (x) {
+            var concepto = Object.prototype.hasOwnProperty.call(cptBorrador, x.cuenta) ? cptBorrador[x.cuenta] : (x.concepto || '');
+            if (concepto) configuradas++;
+            return '<tr data-cpt-fila data-texto="' + esc((x.cuenta + ' ' + x.nombre).toLowerCase()) + '"' + (concepto ? ' class="cv-cpt-config"' : '') + '><td>' + esc(x.cuenta) + '</td><td>' + esc(x.nombre) +
+                '</td><td>' + esc(x.tipo) + '</td><td class="num">$' + fmt(x.saldo) + '</td><td><select data-cpt-cuenta="' + esc(x.cuenta) + '" style="padding:3px 6px;font:inherit;border:1px solid #d1d5db;border-radius:4px;min-width:150px">' +
+                '<option value="">—</option>' + CONCEPTOS_CPT.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === concepto ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') +
+                '</select></td></tr>';
+        }).join('');
+        return '<div class="cv-cpt-filtros"><input type="search" data-cpt-buscar placeholder="Buscar cuenta por código o nombre">' +
+            '<label style="font-size:12.5px;cursor:pointer"><input type="checkbox" data-cpt-solo> Mostrar solo las configuradas</label></div>' +
+            '<p class="cv-texto" style="font-size:12px;margin:4px 0 8px"><strong data-cpt-cuenta-config>' + configuradas + '</strong> de ' + c.cuentas.length +
+            ' cuentas configuradas (resaltadas). Asigne cada cuenta a un concepto; las que no use déjelas en "—".</p>' +
+            '<table class="cv-modal-tabla cv-cpt-tabla"><thead><tr><th>Código</th><th>Cuenta</th><th>Tipo</th><th class="num">Saldo</th><th>Concepto</th></tr></thead><tbody>' +
+            (filas || '<tr><td colspan="5">No hay cuentas de balance para este año.</td></tr>') + '</tbody></table>' +
+            '<div class="cv-cpt-pie"><label style="font-size:12.5px;cursor:pointer"><input type="checkbox" data-cpt-maestro> Actualizar también el maestro (se sugerirá en los demás años)</label>' +
+            '<button type="button" class="cv-btn-fin" data-cpt-guardar style="cursor:pointer;opacity:1">Guardar configuración</button></div>';
+    }
+
+    function filtrarCpt() {
+        var buscar = cuerpo.querySelector('[data-cpt-buscar]');
+        var solo = cuerpo.querySelector('[data-cpt-solo]');
+        if (!buscar) return;
+        var q = buscar.value.trim().toLowerCase();
+        cuerpo.querySelectorAll('tr[data-cpt-fila]').forEach(function (tr) {
+            var sel = tr.querySelector('select');
+            tr.hidden = (q && tr.getAttribute('data-texto').indexOf(q) < 0) || (solo.checked && !sel.value);
+        });
+    }
+
+    function abrirCpt() {
+        cptPestana = 'det';
+        cptBorrador = {};
+        titulo.textContent = 'Capital Propio Tributario a partir del Activo';
+        cuerpo.innerHTML = '<p class="cv-texto cv-mensaje-ventana">Cargando CPT Activo…</p>';
+        acc.innerHTML = '';
+        modal.hidden = false;
+        modal.querySelector('.cv-modal-x').focus();
+        pedir('cpt').then(pintarCpt).catch(function (e) { cuerpo.innerHTML = ''; mostrarError(e.message); });
+    }
+
+    acc.addEventListener('click', function (e) {
+        var t = e.target.closest ? e.target.closest('[data-cpt-tab]') : null;
+        if (!t || !cptActual) return;
+        cptPestana = t.getAttribute('data-cpt-tab');
+        pintarCpt(cptActual);
+    });
+    cuerpo.addEventListener('input', function (e) { if (e.target.matches && e.target.matches('[data-cpt-buscar]')) filtrarCpt(); });
+    cuerpo.addEventListener('change', function (e) {
+        var el = e.target;
+        if (!el.matches) return;
+        if (el.matches('[data-cpt-solo]')) { filtrarCpt(); return; }
+        if (!el.matches('select[data-cpt-cuenta]')) return;
+        cptBorrador[el.getAttribute('data-cpt-cuenta')] = el.value;
+        el.closest('tr').classList.toggle('cv-cpt-config', !!el.value);
+        var n = 0;
+        cuerpo.querySelectorAll('select[data-cpt-cuenta]').forEach(function (s) { if (s.value) n++; });
+        var contador = cuerpo.querySelector('[data-cpt-cuenta-config]');
+        if (contador) contador.textContent = String(n);
+    });
+    cuerpo.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('button[data-cpt-guardar]') : null;
+        if (!b) return;
+        var asignaciones = {};
+        cuerpo.querySelectorAll('select[data-cpt-cuenta]').forEach(function (s) { asignaciones[s.getAttribute('data-cpt-cuenta')] = s.value; });
+        var maestro = !!(cuerpo.querySelector('[data-cpt-maestro]') || {}).checked;
+        b.disabled = true;
+        enviar('cpt_guardar', { asignaciones: asignaciones, maestro: maestro })
+            .then(function (c) { cptBorrador = {}; pintarCpt(c); mostrarError('Configuración guardada' + (maestro ? ' (también como maestra).' : '.')); })
+            .catch(function (err) { b.disabled = false; mostrarError(err.message); });
+    });
 
     // Composición y retiros del año: titular, socios o accionistas con su participación, la utilidad que les
     // corresponde y lo retirado en el año. EIRL: un solo titular con el 100%. 14 D N°8: se retira la totalidad.
@@ -1084,15 +1308,20 @@
         cuerpo.innerHTML = '<p class="cv-texto cv-mensaje-ventana">Cargando recuadro…</p>';
         modal.hidden = false;
         modal.querySelector('.cv-modal-x').focus();
-        cargarRecuadro(clave).catch(function (e) { cuerpo.innerHTML = ''; mostrarError(e.message); });
+        return cargarRecuadro(clave).then(function () { return true; }).catch(function (e) { cuerpo.innerHTML = ''; mostrarError(e.message); return false; });
     }
 
-    // Abrir desde Inicio, Reportes y los botones de la ventana
+    // Abrir desde Inicio, Reportes y los botones de la ventana. Los chips de una fila (RLI, CPT Activo, R20, R21)
+    // abren su propia vista en lugar de la de la fila.
     document.addEventListener('click', function (e) {
         var b = e.target.closest('[data-abrir]');
         if (!b || b.disabled) return;
         var clave = b.getAttribute('data-abrir');
+        var dialogo = b.getAttribute('data-dialogo');
         if (clave === 'balance') abrirBalance();
+        else if (clave === 'CPT') abrirCpt();
+        else if (clave === 'RLI') window.open(urlPdf('RLI'), '_blank');
+        else if (clave === 'R20' && dialogo) abrirRecuadro('R20').then(function (ok) { if (ok) abrirGrilla(dialogo); });
         else if (['R4', 'R6', 'R17', 'R19', 'R20', 'R21', 'DJ1948', 'CIERRE'].indexOf(clave) >= 0) abrirRecuadro(clave);
         else if (clave === 'HOM') abrirHomologacion();
     });

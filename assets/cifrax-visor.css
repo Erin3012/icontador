@@ -152,3 +152,39 @@ a.cv-archivo:hover { text-decoration: underline; }
 .cv-btn-fin { background: #111827; color: #fff; border: 0; border-radius: 6px; padding: 7px 12px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: not-allowed; opacity: .6; }
 .cv-modal-tabla tr.cv-seccion td { background: #f3f4f6; font-weight: 700; color: #111827; }
 .cv-mensaje-ventana { font-size: 13.5px; padding: 8px 2px; }
+/* RTRE como en iTributario: tarjetas, botones R20/R21 y tabla de movimientos RAI/REX/SAC/STUT */
+.cv-chip[data-abrir] { cursor: pointer; background: #fff; }
+.cv-chip[data-abrir]:hover { border-color: var(--cv-azul); color: var(--cv-azul-texto); }
+.cv-rtre-tarjetas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 6px 0 12px; }
+.cv-rtre-tarjeta { border: 1px solid var(--cv-borde); border-radius: 8px; padding: 10px 12px; }
+.cv-rtre-tarjeta small { display: block; font-size: 11px; font-weight: 700; letter-spacing: .03em; color: var(--cv-suave); text-transform: uppercase; }
+.cv-rtre-tarjeta strong { display: block; font-size: 18px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.cv-rtre-barra { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.cv-rtre-barra .cv-etq { font-size: 11px; font-weight: 700; color: var(--cv-suave); letter-spacing: .03em; }
+.cv-rtre-tabla td { white-space: normal; }
+.cv-rtre-tabla tr.cv-seccion td { cursor: pointer; }
+.cv-rtre-tabla tr.cv-disponible td, .cv-rtre-tabla tr.cv-saldo td { font-weight: 700; background: #eef2ff; }
+.cv-rtre-tabla input.cv-celda { width: 110px; text-align: right; padding: 2px 5px; border: 1px solid #d1d5db; border-radius: 4px; font: inherit; }
+.cv-rtre-tabla .cv-manual { color: #1d4ed8; }
+.cv-sub-ancha { width: min(1320px, 100%); }
+.cv-grilla { width: 100%; border-collapse: collapse; font-size: 12px; }
+.cv-grilla th, .cv-grilla td { border: 1px solid var(--cv-borde); padding: 4px 8px; vertical-align: middle; }
+.cv-grilla th { background: #f8fafc; color: #374151; font-size: 11px; font-weight: 600; text-transform: uppercase; text-align: center; }
+.cv-grilla td.num { text-align: right; font-variant-numeric: tabular-nums; min-width: 92px; }
+.cv-grilla td.num small { display: block; color: var(--cv-suave); font-size: 10.5px; }
+.cv-grilla td.cv-nulo { background: repeating-linear-gradient(135deg, #f8fafc 0 6px, #eef2f7 6px 12px); }
+.cv-grilla td.cv-con-valor { background: #fffbeb; font-weight: 700; }
+/* CPT Activo: pestañas Determinación y Configuración de cuentas */
+.cv-cpt-tabs { margin-bottom: 10px; }
+.cv-cpt-tabs .cv-tab { cursor: pointer; }
+.cv-cpt-tabla td { white-space: normal; }
+.cv-cpt-tabla tr.cv-cpt-grupo td { font-size: 11px; font-weight: 700; color: var(--cv-suave); background: #f8fafc; text-transform: uppercase; }
+.cv-cpt-tabla tr.cv-cpt-vacio td { font-style: italic; color: var(--cv-suave); padding-left: 20px; }
+.cv-cpt-tabla tr.cv-cpt-sub td { font-weight: 600; }
+.cv-cpt-tabla tr.cv-cpt-final td { font-weight: 800; font-size: 13.5px; background: #eef2ff; }
+.cv-cpt-tabla tr.cv-cpt-config td { background: #fffbeb; }
+.cv-cpt-nota { border: 1px solid var(--cv-borde); border-radius: 8px; padding: 8px 12px; margin-top: 10px; font-size: 12.5px; }
+.cv-cpt-filtros { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+.cv-cpt-filtros input[type="search"] { padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font: inherit; min-width: 260px; }
+.cv-cpt-pie { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+@media (max-width: 760px) { .cv-rtre-tarjetas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

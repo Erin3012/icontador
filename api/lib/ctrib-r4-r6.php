@@ -61,7 +61,7 @@ function ctrib_lineas_recuadro(array $catalogo, array $montos, array $origen): a
     $lineas = [];
     foreach ($catalogo as $codigo => $c) {
         $lineas[] = ['codigo' => (string) $codigo, 'glosa' => $c['glosa'], 'naturaleza' => $c['naturalezaConfiguracion'],
-            'subBloque' => $c['subBloque'] ?? null, 'monto' => (int) ($montos[(string) $codigo] ?? 0), 'origen' => $origen[(string) $codigo] ?? 'MANUAL'];
+            'subBloque' => $c['subBloque'] ?? null, 'signo' => $c['signo'] ?? null, 'monto' => (int) ($montos[(string) $codigo] ?? 0), 'origen' => $origen[(string) $codigo] ?? 'MANUAL'];
     }
     return $lineas;
 }
