@@ -113,6 +113,17 @@
     }).finally(function () { btnSincronizar.disabled = false; });
   });
 
+  // "Ir a iTributario" abre Cifrax Tributario en una ventana emergente (qlc.cl/cifraxtributario).
+  // Dentro de esa ventana el botón se oculta para no abrir ventanas en cadena.
+  var btnIr = document.getElementById('itrib-ir');
+  if (window.opener) {
+    btnIr.hidden = true;
+  } else {
+    btnIr.addEventListener('click', function () {
+      window.open('/visorcifraxtributario/', 'visorcifraxtributario', 'width=1200,height=820,resizable=yes,scrollbars=yes');
+    });
+  }
+
   cargarPeriodos();
   cargar();
 })();
