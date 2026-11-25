@@ -4,48 +4,69 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cifrax Tributario</title>
+    <link rel="stylesheet" href="../assets/5ef3f133326af069-original.css">
     <link rel="stylesheet" href="../assets/itributario.css">
 </head>
 <body>
 <main class="itrib">
-    <header class="itrib-cabecera">
-        <h1>Cifrax Tributario</h1>
-        <p>Acceso y configuración de la integración tributaria de esta empresa.</p>
-        <p class="itrib-aviso" id="itrib-aviso" hidden></p>
-    </header>
+    <section class="itrib-tarjeta itrib-panel">
+        <header class="itrib-cabecera">
+            <h1>Cifrax Tributario</h1>
+            <p>Acceso y configuración de la integración tributaria de esta empresa.</p>
+            <p class="itrib-aviso" id="itrib-aviso" hidden></p>
+        </header>
 
-    <section class="itrib-tarjeta">
         <div class="itrib-columnas">
 
-            <!-- Columna 1: acceso a iTributario -->
+            <!-- Columna 1: acceso -->
             <article class="itrib-bloque">
-                <h2>Acceder a iTributario</h2>
-                <p class="itrib-sub">Nueva plataforma tributaria</p>
-                <p>Continúa tu gestión tributaria en iTributario. La plataforma se abrirá en una nueva pestaña del navegador.</p>
-                <div class="itrib-estado">
-                    <strong>iTributario</strong>
-                    <span>Plataforma conectada con Cifrax</span>
+                <div class="itrib-encabezado">
+                    <span class="itrib-icono itrib-icono-azul"><i class="fa fa-external-link" aria-hidden="true"></i></span>
+                    <div>
+                        <h2>Acceder a Cifrax Tributario</h2>
+                        <p class="itrib-sub">Nueva plataforma tributaria</p>
+                    </div>
                 </div>
-                <button type="button" class="itrib-boton itrib-boton-primario" id="itrib-ir">Ir a Cifrax Tributario</button>
+                <p class="itrib-texto">Continúa tu gestión tributaria en Cifrax Tributario. Se abrirá en una nueva pestaña del navegador.</p>
+                <div class="itrib-estado">
+                    <i class="fa fa-cloud" aria-hidden="true"></i>
+                    <div>
+                        <strong>Cifrax Tributario</strong>
+                        <span>Plataforma conectada con Cifrax</span>
+                    </div>
+                </div>
+                <button type="button" class="itrib-boton" id="itrib-ir"><i class="fa fa-external-link" aria-hidden="true"></i> Ir a Cifrax Tributario</button>
             </article>
 
-            <!-- Columna 2: sincronización manual -->
+            <!-- Columna 2: sincronizacion manual -->
             <article class="itrib-bloque">
-                <h2>Sincronización manual</h2>
-                <p class="itrib-sub">Actualización inmediata</p>
-                <p>Envía manualmente el balance del período seleccionado a iTributario.</p>
-                <label class="itrib-campo" for="itrib-periodo">Período comercial a sincronizar</label>
-                <select id="itrib-periodo"></select>
-                <button type="button" class="itrib-boton" id="itrib-sincronizar">Sincronizar ahora</button>
-                <p class="itrib-nota">Utiliza esta opción cuando necesites actualizar el balance inmediatamente.</p>
+                <div class="itrib-encabezado">
+                    <span class="itrib-icono itrib-icono-verde"><i class="fa fa-refresh" aria-hidden="true"></i></span>
+                    <div>
+                        <h2>Sincronización manual</h2>
+                        <p class="itrib-sub">Actualización inmediata</p>
+                    </div>
+                </div>
+                <p class="itrib-texto">Envía manualmente el balance del período seleccionado a Cifrax Tributario.</p>
+                <div class="itrib-caja">
+                    <label class="itrib-campo" for="itrib-periodo"><i class="fa fa-calendar" aria-hidden="true"></i> Período comercial a sincronizar</label>
+                    <select id="itrib-periodo"></select>
+                    <button type="button" class="itrib-boton itrib-boton-secundario" id="itrib-sincronizar"><i class="fa fa-refresh" aria-hidden="true"></i> Sincronizar ahora</button>
+                </div>
+                <p class="itrib-nota"><i class="fa fa-info-circle" aria-hidden="true"></i> Utiliza esta opción cuando necesites actualizar el balance inmediatamente.</p>
             </article>
 
-            <!-- Columna 3: sincronización automática -->
+            <!-- Columna 3: sincronizacion automatica -->
             <article class="itrib-bloque">
-                <h2>Sincronización automática</h2>
-                <p class="itrib-sub">Comportamiento al generar vouchers</p>
-                <p>Define qué debe hacer Cifrax cuando un voucher puede enviarse a iTributario.</p>
-                <fieldset class="itrib-opciones">
+                <div class="itrib-encabezado">
+                    <span class="itrib-icono itrib-icono-amarillo"><i class="fa fa-cog" aria-hidden="true"></i></span>
+                    <div>
+                        <h2>Sincronización automática</h2>
+                        <p class="itrib-sub">Comportamiento al generar vouchers</p>
+                    </div>
+                </div>
+                <p class="itrib-texto">Define qué debe hacer Cifrax cuando un voucher puede enviarse a Cifrax Tributario.</p>
+                <div class="itrib-opciones">
                     <label class="itrib-opcion">
                         <input type="radio" name="itrib-pref" value="ask">
                         <span><strong>Preguntar siempre</strong><small>Mostrar confirmación cada vez que se genere un voucher.</small></span>
@@ -56,16 +77,23 @@
                     </label>
                     <label class="itrib-opcion">
                         <input type="radio" name="itrib-pref" value="N">
-                        <span><strong>No sincronizar</strong><small>No enviar datos a iTributario al generar vouchers.</small></span>
+                        <span><strong>No sincronizar</strong><small>No enviar datos a Cifrax Tributario al generar vouchers.</small></span>
                     </label>
-                </fieldset>
-                <button type="button" class="itrib-boton itrib-boton-primario" id="itrib-guardar">Guardar preferencia</button>
+                </div>
+                <button type="button" class="itrib-boton" id="itrib-guardar"><i class="fa fa-save" aria-hidden="true"></i> Guardar preferencia</button>
             </article>
+        </div>
+
+        <!-- Herramientas de desarrollo: solo visibles con ?dev en la URL (maqueta) -->
+        <div class="itrib-dev">
+            <p class="itrib-dev-titulo"><i class="fa fa-bolt" aria-hidden="true"></i> Herramientas de desarrollo <small>En producción solo visible con ?dev en la URL.</small></p>
+            <button type="button" class="itrib-boton itrib-boton-secundario" disabled><i class="fa fa-refresh" aria-hidden="true"></i> Ver vista principal (wizard)</button>
+            <button type="button" class="itrib-boton itrib-boton-peligro" disabled><i class="fa fa-trash" aria-hidden="true"></i> Resetear sincronización</button>
         </div>
     </section>
 
     <section class="itrib-tarjeta">
-        <h2>Historial de sincronizaciones</h2>
+        <h2 class="itrib-historial-titulo">Historial de sincronizaciones</h2>
         <table class="itrib-tabla">
             <thead>
             <tr><th>Fecha</th><th>Período</th><th>Origen</th><th>Estado</th><th>Mensaje</th></tr>

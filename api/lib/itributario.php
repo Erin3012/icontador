@@ -7,7 +7,7 @@ require_once __DIR__ . '/empresas.php';
 
 const ITRIB_PREFERENCIAS = ['ask', 'S', 'N'];
 const ITRIB_ORIGENES = ['manual', 'automatico'];
-const ITRIB_MENSAJE_PENDIENTE = 'Solicitud guardada. El envío del balance a iTributario todavía no está conectado.';
+const ITRIB_MENSAJE_PENDIENTE = 'Solicitud guardada. El envío del balance a Cifrax Tributario todavía no está conectado.';
 
 final class ItribError extends RuntimeException {}
 

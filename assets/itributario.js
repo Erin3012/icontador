@@ -101,7 +101,7 @@
 
   btnSincronizar.addEventListener('click', function () {
     var periodo = selPeriodo.value;
-    if (!window.confirm('¿Enviar el balance del período ' + periodo.slice(0, 4) + ' a iTributario?')) return;
+    if (!window.confirm('¿Enviar el balance del período ' + periodo.slice(0, 4) + ' a Cifrax Tributario?')) return;
     btnSincronizar.disabled = true;
     pedir('POST', 'sincronizar', { periodo: periodo, origen: 'manual' }).then(function (datos) {
       mostrarAviso(datos.mensaje || 'Solicitud registrada.', datos.exito === 1 ? 'exito' : 'pendiente');

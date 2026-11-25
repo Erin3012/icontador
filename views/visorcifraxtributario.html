@@ -58,12 +58,12 @@
 
         <!-- Sincronizacion con iTributario (misma logica que la pantalla de configuracion) -->
         <section class="cf-panel" id="p-sync">
-            <h2 class="cf-titulo">Sincronización con iTributario</h2>
+            <h2 class="cf-titulo">Sincronización con Cifrax Tributario</h2>
             <p class="cf-descripcion">Envía el balance del período que elijas o define qué hacer al generar vouchers.</p>
             <div class="cf-sync-columnas">
                 <div class="cf-tarjeta">
                     <h3>Sincronización manual</h3>
-                    <p class="cf-descripcion">Envía el balance del período seleccionado a iTributario.</p>
+                    <p class="cf-descripcion">Envía el balance del período seleccionado a Cifrax Tributario.</p>
                     <label class="cf-campo-etiqueta" for="cf-sync-periodo">Período comercial a sincronizar</label>
                     <select id="cf-sync-periodo"></select>
                     <div class="cf-acciones">
@@ -73,10 +73,10 @@
                 </div>
                 <div class="cf-tarjeta">
                     <h3>Sincronización automática</h3>
-                    <p class="cf-descripcion">Define qué debe hacer Cifrax cuando un voucher puede enviarse a iTributario.</p>
+                    <p class="cf-descripcion">Define qué debe hacer Cifrax cuando un voucher puede enviarse a Cifrax Tributario.</p>
                     <label class="cf-opcion"><input type="radio" name="cf-pref" value="ask"> <span><strong>Preguntar siempre</strong><small>Mostrar confirmación cada vez que se genere un voucher.</small></span></label>
                     <label class="cf-opcion"><input type="radio" name="cf-pref" value="S"> <span><strong>Sincronizar siempre</strong><small>Enviar automáticamente sin solicitar confirmación.</small></span></label>
-                    <label class="cf-opcion"><input type="radio" name="cf-pref" value="N"> <span><strong>No sincronizar</strong><small>No enviar datos a iTributario al generar vouchers.</small></span></label>
+                    <label class="cf-opcion"><input type="radio" name="cf-pref" value="N"> <span><strong>No sincronizar</strong><small>No enviar datos a Cifrax Tributario al generar vouchers.</small></span></label>
                     <div class="cf-acciones">
                         <button type="button" class="cf-btn-sincronizar" id="cf-sync-guardar">Guardar preferencia</button>
                     </div>
@@ -427,7 +427,7 @@
         var btn = document.getElementById('cf-sincronizar');
         var mensaje = document.getElementById('cf-mensaje');
         btn.addEventListener('click', function () {
-            if (!window.confirm('¿Enviar el balance del año tributario ' + sel.value + ' a iTributario?')) return;
+            if (!window.confirm('¿Enviar el balance del año tributario ' + sel.value + ' a Cifrax Tributario?')) return;
             btn.disabled = true;
             mensaje.textContent = 'Enviando solicitud…';
             fetch('../api/itributario.php?accion=sincronizar', {
@@ -518,7 +518,7 @@
             }).catch(function (e) { aviso.textContent = e.message; });
         });
         document.getElementById('cf-sync-ahora').addEventListener('click', function () {
-            if (!window.confirm('¿Enviar el balance del período ' + selSync.value.slice(0, 4) + ' a iTributario?')) return;
+            if (!window.confirm('¿Enviar el balance del período ' + selSync.value.slice(0, 4) + ' a Cifrax Tributario?')) return;
             pedir('sincronizar', { periodo: selSync.value, origen: 'manual' }).then(function (d) {
                 aviso.textContent = d.mensaje || 'Solicitud registrada.';
                 return pedir('', null);
