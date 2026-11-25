@@ -135,6 +135,13 @@ ejecutar(function (PDO $pdo, int $empresa) {
             $datos = cuerpoJson();
             return ctrib_certificado_emitir($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), (string) ($datos['rut'] ?? ''), $usuario);
         }
+        if ($metodo === 'POST' && $accion === 'composicion_guardar') {
+            $datos = cuerpoJson();
+            $anio = ctrib_anio_desde($datos['anio'] ?? null);
+            ctrib_composicion_guardar($pdo, $empresa, $anio, (string) ($datos['tipo'] ?? ''), (string) ($datos['regimen'] ?? ''),
+                is_array($datos['socios'] ?? null) ? $datos['socios'] : [], !empty($datos['sinRetiros']), $usuario);
+            return ctrib_dj1948($pdo, $empresa, $anio);
+        }
         if ($metodo === 'POST' && $accion === 'retiros_modo') {
             $datos = cuerpoJson();
             $anio = ctrib_anio_desde($datos['anio'] ?? null);

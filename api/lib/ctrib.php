@@ -95,6 +95,13 @@ function ctrib_schema(PDO $pdo): void
         usuario VARCHAR(120) NOT NULL DEFAULT '',
         UNIQUE (empresa_id, anio, rut)
     )$motor");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_empresa_config (
+        empresa_id INT NOT NULL PRIMARY KEY,
+        tipo VARCHAR(12) NOT NULL DEFAULT '',
+        regimen VARCHAR(12) NOT NULL DEFAULT '',
+        usuario VARCHAR(120) NOT NULL DEFAULT '',
+        actualizado VARCHAR(25) NOT NULL
+    )$motor");
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_retiros_config (
         empresa_id INT NOT NULL DEFAULT 0,
         anio INT NOT NULL,
@@ -547,6 +554,36 @@ function ctrib_cuentas_desde_archivo(string $ruta, string $extension): array
 
 // ---------- Retiros y dividendos (base del 1479 del R19 y del tope del incentivo 1432) ----------
 
+// Tipo de contribuyente y régimen de la empresa: definen las reglas del cuadro de retiros
+// (EIRL: un solo titular con el 100%; 14 D N°8: se atribuye y retira la totalidad).
+const CTRIB_TIPOS_CONTRIBUYENTE = ['EIRL', 'SPA', 'LTDA', 'SA', 'OTRO'];
+const CTRIB_REGIMENES = ['14D3', '14D8', '14A'];
+
+function ctrib_empresa_config(PDO $pdo, int $empresa): array
+{
+    $st = $pdo->prepare('SELECT tipo, regimen FROM ctrib_empresa_config WHERE empresa_id = ?');
+    $st->execute([$empresa]);
+    $f = $st->fetch();
+    return ['tipo' => $f['tipo'] ?? '', 'regimen' => $f['regimen'] ?? ''];
+}
+
+function ctrib_empresa_config_guardar(PDO $pdo, int $empresa, string $tipo, string $regimen, string $usuario): void
+{
+    if (!in_array($tipo, CTRIB_TIPOS_CONTRIBUYENTE, true)) {
+        throw new CtribError('Seleccione el tipo de contribuyente.');
+    }
+    if (!in_array($regimen, CTRIB_REGIMENES, true)) {
+        throw new CtribError('Seleccione el régimen tributario.');
+    }
+    $antes = ctrib_empresa_config($pdo, $empresa);
+    $pdo->prepare('DELETE FROM ctrib_empresa_config WHERE empresa_id = ?')->execute([$empresa]);
+    $pdo->prepare('INSERT INTO ctrib_empresa_config (empresa_id, tipo, regimen, usuario, actualizado) VALUES (?, ?, ?, ?, ?)')
+        ->execute([$empresa, $tipo, $regimen, $usuario, ctrib_ahora()]);
+    if ($antes['tipo'] !== $tipo || $antes['regimen'] !== $regimen) {
+        ctrib_registrar_historial($pdo, $empresa, 0, 'empresa', 'tipo y régimen', trim($antes['tipo'] . ' ' . $antes['regimen']), "$tipo $regimen", 'Configuración tributaria de la empresa', $usuario);
+    }
+}
+
 // Modo de retiros del año: 'importados' (archivo de retiros), 'sin_retiros' (se declara que no hubo) o
 // 'totalidad' (retiro de todo: se atribuye completa la base imponible a los socios según su participación; sirve para 14 D N°8).
 const CTRIB_MODOS_RETIROS = ['importados', 'sin_retiros', 'totalidad'];
@@ -672,7 +709,7 @@ function ctrib_retiros_listar(PDO $pdo, int $empresa, int $anio): array
 {
     $st = $pdo->prepare('SELECT rut, nombre, fecha, monto, tipo FROM ctrib_retiros WHERE empresa_id = ? AND anio = ? ORDER BY fecha, id');
     $st->execute([$empresa, $anio]);
-    return array_map(fn($f) => $f + ['monto' => (int) $f['monto']], $st->fetchAll());
+    return array_map(fn($f) => ['monto' => (int) $f['monto']] + $f, $st->fetchAll());
 }
 
 /** Fecha en formato AAAA-MM-DD desde texto (AAAA-MM-DD, DD/MM/AAAA, DD-MM-AAAA) o número de serie de Excel. */

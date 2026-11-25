@@ -342,6 +342,7 @@ function ctrib_dj1948(PDO $pdo, int $empresa, int $anio): array
         'modo' => $efectivos['modo'],
         'total' => $efectivos['total'],
         'sociosParticipacion' => ctrib_socios($pdo, $empresa, $anio),
+        'composicion' => ctrib_composicion_retiros($pdo, $empresa, $anio),
         'pendientesDeCalculo' => ['Crédito por retiro y montos del Certificado 70 (imputación por socio): pendiente de cálculo en esta versión.'],
     ];
 }

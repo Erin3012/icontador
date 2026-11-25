@@ -844,61 +844,85 @@
         cuerpo.innerHTML = html;
     }
 
-    // Retiros del año: importados, sin retiros o retiro de la totalidad (atribución completa de la base imponible).
-    function filaSocio(s) {
-        var estilo = 'style="width:100%;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font:inherit"';
-        return '<tr><td><input data-campo="rut" ' + estilo + ' value="' + esc(s.rut || '') + '"></td>' +
-            '<td><input data-campo="nombre" ' + estilo + ' value="' + esc(s.nombre || '') + '"></td>' +
-            '<td class="num"><input data-campo="participacion" type="number" min="0" max="100" step="0.01" ' + estilo + ' value="' + esc(s.participacion === undefined || s.participacion === null ? '' : s.participacion) + '"></td></tr>';
+    // Composición y retiros del año: titular, socios o accionistas con su participación, la utilidad que les
+    // corresponde y lo retirado en el año. EIRL: un solo titular con el 100%. 14 D N°8: se retira la totalidad.
+    var TIPOS_CONTRIBUYENTE = [['EIRL', 'EIRL (un solo titular)'], ['SPA', 'SpA'], ['LTDA', 'Sociedad de responsabilidad limitada'], ['SA', 'Sociedad anónima'], ['OTRO', 'Otro']];
+    var REGIMENES = [['14D3', 'Pro Pyme General (14 D N°3)'], ['14D8', 'Pro Pyme Transparente (14 D N°8)'], ['14A', 'Régimen general (14 A)']];
+    var ESTILO_CAMPO = 'style="width:100%;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font:inherit"';
+
+    function opcionesSelect(lista, actual) {
+        return '<option value="">Seleccione</option>' + lista.map(function (o) {
+            return '<option value="' + o[0] + '"' + (o[0] === actual ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
+        }).join('');
     }
 
-    function seccionModoRetiros(r) {
-        var modos = [
-            ['importados', 'Usar los retiros importados'],
-            ['sin_retiros', 'No hubo retiros en el año (borra los retiros importados)'],
-            ['totalidad', 'Retiro de la totalidad: se atribuye completa la base imponible a los socios (sirve para 14 D N°8)']
-        ];
-        // Socios para la totalidad: los guardados; si no hay, los de los retiros importados (sin %); si no, una fila vacía.
-        var socios = (r.sociosParticipacion && r.sociosParticipacion.length) ? r.sociosParticipacion
-            : (r.socios.length && r.modo === 'importados' ? r.socios.map(function (s) { return { rut: s.rut, nombre: s.nombre, participacion: '' }; }) : [{}]);
-        return '<div class="cv-card" style="margin:6px 0 12px;padding:10px 12px"><strong style="display:block;margin-bottom:6px">Retiros del año</strong>' +
-            modos.map(function (m) {
-                return '<label style="display:block;margin:3px 0;cursor:pointer"><input type="radio" name="cv-modo-retiros" value="' + m[0] + '"' + (r.modo === m[0] ? ' checked' : '') + '> ' + esc(m[1]) + '</label>';
-            }).join('') +
-            '<div data-socios' + (r.modo === 'totalidad' ? '' : ' hidden') + ' style="margin-top:8px">' +
-            '<table class="cv-modal-tabla"><thead><tr><th>RUT socio</th><th>Nombre</th><th class="num">% participación</th></tr></thead><tbody data-socios-filas>' +
-            socios.map(filaSocio).join('') + '</tbody></table>' +
-            '<button type="button" class="cv-btn-pdf" data-agregar-socio style="margin-top:6px;cursor:pointer">Agregar socio</button></div>' +
-            '<div style="margin-top:8px"><button type="button" class="cv-btn-fin" data-guardar-modo style="cursor:pointer;opacity:1">Guardar</button>' +
-            (r.modo === 'totalidad' ? ' <span class="cv-texto" style="font-size:12px">Atribuido: $' + fmt(r.total) + '</span>' : '') + '</div></div>';
+    function filaComposicion(s, tipo, regimen) {
+        var vacio = function (v) { return v === undefined || v === null ? '' : v; };
+        return '<tr><td><input data-campo="rut" placeholder="RUT" ' + ESTILO_CAMPO + ' value="' + esc(vacio(s.rut)) + '"></td>' +
+            '<td><input data-campo="nombre" ' + ESTILO_CAMPO + ' value="' + esc(vacio(s.nombre)) + '"></td>' +
+            '<td class="num"><input data-campo="participacion" type="number" min="0" max="100" step="0.01" ' + ESTILO_CAMPO +
+            ' value="' + esc(tipo === 'EIRL' ? 100 : vacio(s.participacion)) + '"' + (tipo === 'EIRL' ? ' readonly' : '') + '></td>' +
+            '<td class="num">$' + fmt(s.utilidad || 0) + '</td>' +
+            '<td class="num"><input data-campo="monto" type="number" min="0" step="1" ' + ESTILO_CAMPO + ' value="' + esc(s.retirado || 0) + '"' +
+            (regimen === '14D8' ? ' readonly title="14 D N°8: se retira la totalidad"' : '') + '></td></tr>';
     }
+
+    function seccionComposicion(c) {
+        var socios = c.socios.length ? c.socios : [{}];
+        var nota = c.regimen === '14D8' ? 'En 14 D N°8 se atribuye y retira la totalidad de la base imponible: el monto se calcula solo.'
+            : (c.tipo === 'EIRL' ? 'EIRL: un solo titular con el 100%; todo lo retirado se le atribuye a él o ella.' : 'Ingrese lo que retiró cada socio o accionista durante el año.');
+        var html = '<div class="cv-card" data-composicion style="margin:6px 0 12px;padding:10px 12px"><strong style="display:block;margin-bottom:6px">Composición y retiros del año</strong>' +
+            '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px">' +
+            '<label style="font-size:12.5px">Tipo de contribuyente<br><select data-comp="tipo" style="padding:4px 6px;font:inherit">' + opcionesSelect(TIPOS_CONTRIBUYENTE, c.tipo) + '</select></label>' +
+            '<label style="font-size:12.5px">Régimen tributario<br><select data-comp="regimen" style="padding:4px 6px;font:inherit">' + opcionesSelect(REGIMENES, c.regimen) + '</select></label></div>';
+        (c.avisos || []).forEach(function (a) { html += '<div class="cv-aviso-ok">' + esc(a) + '</div>'; });
+        html += '<table class="cv-modal-tabla"><thead><tr><th>RUT</th><th>Nombre</th><th class="num">% participación</th><th class="num">Utilidad que le corresponde</th><th class="num">Retirado en el año</th></tr></thead>' +
+            '<tbody data-comp-filas>' + socios.map(function (s) { return filaComposicion(s, c.tipo, c.regimen); }).join('') + '</tbody></table>' +
+            '<p class="cv-texto" data-comp-nota style="font-size:12px;margin:6px 0">' + esc(nota) + '</p>' +
+            '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">' +
+            '<button type="button" class="cv-btn-pdf" data-comp-agregar style="cursor:pointer"' + (c.tipo === 'EIRL' ? ' hidden' : '') + '>Agregar socio</button>' +
+            '<label style="font-size:12.5px;cursor:pointer"><input type="checkbox" data-comp-sin' + (c.modo === 'sin_retiros' ? ' checked' : '') + '> No hubo retiros en el año</label>' +
+            '<button type="button" class="cv-btn-fin" data-comp-guardar style="cursor:pointer;opacity:1">Guardar</button>' +
+            '<span class="cv-texto" style="font-size:12px">Utilidad del ejercicio: $' + fmt(c.utilidad) + ' · Retirado: $' + fmt(c.totalRetirado) + '</span></div></div>';
+        return html;
+    }
+
+    function valorComp(nombre) { var el = cuerpo.querySelector('[data-comp="' + nombre + '"]'); return el ? el.value : ''; }
 
     cuerpo.addEventListener('change', function (e) {
-        var radio = e.target;
-        if (!radio.matches || !radio.matches('input[name="cv-modo-retiros"]')) return;
-        var caja = cuerpo.querySelector('[data-socios]');
-        if (caja) caja.hidden = radio.value !== 'totalidad';
+        var sel = e.target;
+        if (!sel.matches || !sel.matches('[data-comp]')) return;
+        var tipo = valorComp('tipo');
+        var regimen = valorComp('regimen');
+        var filas = cuerpo.querySelectorAll('[data-comp-filas] tr');
+        if (tipo === 'EIRL') {
+            filas.forEach(function (tr, i) { if (i > 0) tr.remove(); });
+            var p = cuerpo.querySelector('[data-comp-filas] [data-campo="participacion"]');
+            if (p) { p.value = 100; p.readOnly = true; }
+        } else {
+            cuerpo.querySelectorAll('[data-comp-filas] [data-campo="participacion"]').forEach(function (p) { p.readOnly = false; });
+        }
+        var agregar = cuerpo.querySelector('[data-comp-agregar]');
+        if (agregar) agregar.hidden = tipo === 'EIRL';
+        cuerpo.querySelectorAll('[data-comp-filas] [data-campo="monto"]').forEach(function (m) { m.readOnly = regimen === '14D8'; });
     });
 
     cuerpo.addEventListener('click', function (e) {
-        var b = e.target.closest ? e.target.closest('button[data-agregar-socio], button[data-guardar-modo]') : null;
+        var b = e.target.closest ? e.target.closest('button[data-comp-agregar], button[data-comp-guardar]') : null;
         if (!b) return;
-        if (b.hasAttribute('data-agregar-socio')) {
-            cuerpo.querySelector('[data-socios-filas]').insertAdjacentHTML('beforeend', filaSocio({}));
+        if (b.hasAttribute('data-comp-agregar')) {
+            cuerpo.querySelector('[data-comp-filas]').insertAdjacentHTML('beforeend', filaComposicion({}, valorComp('tipo'), valorComp('regimen')));
             return;
         }
-        var elegido = cuerpo.querySelector('input[name="cv-modo-retiros"]:checked');
-        if (!elegido) { mostrarError('Elija una opción de retiros.'); return; }
         var socios = [];
-        if (elegido.value === 'totalidad') {
-            cuerpo.querySelectorAll('[data-socios-filas] tr').forEach(function (tr) {
-                var v = function (c) { return tr.querySelector('[data-campo="' + c + '"]').value.trim(); };
-                socios.push({ rut: v('rut'), nombre: v('nombre'), participacion: v('participacion') });
-            });
-        }
+        cuerpo.querySelectorAll('[data-comp-filas] tr').forEach(function (tr) {
+            var v = function (c) { return tr.querySelector('[data-campo="' + c + '"]').value.trim(); };
+            socios.push({ rut: v('rut'), nombre: v('nombre'), participacion: v('participacion'), monto: v('monto') });
+        });
+        var sin = cuerpo.querySelector('[data-comp-sin]');
         b.disabled = true;
-        enviar('retiros_modo', { modo: elegido.value, socios: socios })
-            .then(function (r) { pintarDJ(r); mostrarError('Retiros del año guardados.'); })
+        enviar('composicion_guardar', { tipo: valorComp('tipo'), regimen: valorComp('regimen'), socios: socios, sinRetiros: !!(sin && sin.checked) })
+            .then(function (r) { pintarDJ(r); mostrarError('Composición y retiros del año guardados.'); })
             .catch(function (err) { b.disabled = false; mostrarError(err.message); });
     });
 
@@ -908,7 +932,7 @@
         sub.textContent = 'AT ' + r.anio + ' · año comercial ' + r.anioComercial;
         acc.innerHTML = '<label class="cv-importar">Importar retiros (Excel o CSV)<input type="file" accept=".xlsx,.csv" data-importar="retiros"></label>';
         var html = '<p class="cv-texto cv-mensaje-ventana">' + esc(r.paso1.mensaje) + '</p>';
-        html += seccionModoRetiros(r);
+        html += seccionComposicion(r.composicion);
         if (!r.socios.length) {
             html += '<p class="cv-texto">' + ({
                 sin_retiros: 'Se declaró que no hubo retiros en el año.',
