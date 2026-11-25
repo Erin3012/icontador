@@ -67,6 +67,167 @@ function ctrib_rtre_anterior(PDO $pdo, int $empresa, int $anio): ?array
     return $estado['estado'] === 'FINALIZADO' ? $estado['snapshot'] : null;
 }
 
+// ---------- Vista del RTRE agrupada (RAI, REX, SAC, STUT) y formularios R20 y R21 ----------
+
+const CTRIB_RTRE_SECCIONES = [
+    1 => 'Saldos iniciales o remanentes', 2 => 'Reclasificaciones del ejercicio', 3 => 'Reorganizaciones a la fecha del evento',
+    4 => 'Determinación del año comercial', 5 => 'Otras reclasificaciones', 6 => 'Imputación de retiros',
+];
+// Columna del RTRE donde se escribe a mano cada grupo de la vista.
+const CTRIB_RTRE_COLUMNA_GRUPO = ['RAI' => 'RAI', 'REX' => 'REX_CON_PRIORIDAD', 'SAC' => CTRIB_RTRE_COLUMNA_IDPC, 'STUT' => 'STUT_AFECTAS'];
+
+function ctrib_rtre_grupo(string $columna): string
+{
+    if ($columna === 'RAI') {
+        return 'RAI';
+    }
+    if (str_starts_with($columna, 'STUT')) {
+        return 'STUT';
+    }
+    if (str_starts_with($columna, 'REX') || $columna === 'INR') {
+        return 'REX';
+    }
+    return 'SAC'; // SAC_* y CREDITO_ART21_IF
+}
+
+function ctrib_rtre_sumar_grupos(array $porColumna): array
+{
+    $g = ['RAI' => 0, 'REX' => 0, 'SAC' => 0, 'STUT' => 0];
+    foreach ($porColumna as $col => $c) {
+        $g[ctrib_rtre_grupo($col)] += is_array($c) ? $c['monto'] : (int) $c;
+    }
+    return $g;
+}
+
+/** Tarjetas del RTRE: RAI final, REX final y SAC disponible (remanente para el ejercicio siguiente). */
+function ctrib_rtre_resumen(array $celdas): array
+{
+    $g = ctrib_rtre_sumar_grupos($celdas['REMANENTE_FINAL'] ?? []);
+    return ['raiFinal' => $g['RAI'], 'rexFinal' => $g['REX'], 'sacDisponible' => $g['SAC'], 'stutFinal' => $g['STUT']];
+}
+
+/** Secciones 1 a 6 con sus filas agrupadas en RAI, REX, SAC y STUT, como la hoja de trabajo de iTributario. */
+function ctrib_rtre_secciones(array $catalogo, array $celdas): array
+{
+    $secciones = [];
+    foreach (CTRIB_RTRE_SECCIONES as $bloque => $titulo) {
+        $filas = [];
+        $total = ['RAI' => 0, 'REX' => 0, 'SAC' => 0, 'STUT' => 0];
+        foreach ($catalogo as $fila => $f) {
+            if ((int) $f['bloque'] !== $bloque) {
+                continue;
+            }
+            $presentes = [];
+            foreach ($f['celdas'] as $ce) {
+                $presentes[ctrib_rtre_grupo($ce['columna'])][] = $ce['columna'];
+            }
+            $valores = ctrib_rtre_sumar_grupos(array_intersect_key($celdas[$fila] ?? [], array_flip(array_column($f['celdas'], 'columna'))));
+            $editable = in_array($f['naturalezaConfiguracion'], ['MANUAL', 'AUTO_CON_OVERRIDE'], true);
+            $grupos = [];
+            foreach (['RAI', 'REX', 'SAC', 'STUT'] as $g) {
+                $columna = CTRIB_RTRE_COLUMNA_GRUPO[$g];
+                $grupos[$g] = [
+                    'presente' => isset($presentes[$g]),
+                    'monto' => $valores[$g],
+                    'columnaEditable' => $editable && in_array($columna, $presentes[$g] ?? [], true) ? $columna : null,
+                ];
+                $total[$g] += $valores[$g];
+            }
+            $filas[] = ['fila' => $fila, 'glosa' => $f['glosaCorta'], 'naturaleza' => $f['naturalezaConfiguracion'], 'grupos' => $grupos];
+        }
+        $secciones[] = ['bloque' => $bloque, 'titulo' => $titulo, 'total' => $total, 'filas' => $filas];
+    }
+    return [
+        'secciones' => $secciones,
+        'disponibles' => ctrib_rtre_sumar_grupos($celdas['SUBTOTAL_5'] ?? []),
+        'saldoFinal' => ctrib_rtre_sumar_grupos($celdas['REMANENTE_FINAL'] ?? []),
+    ];
+}
+
+// Formulario R20: columnas del F22 y columnas del RTRE que suman en cada una (la correspondencia de REX queda por validar).
+const CTRIB_R20_COLUMNAS = [
+    ['RAI', ['RAI']],
+    ['REX · RAP y diferencia inicial ex art. 14 ter A)', ['REX_SIN_PRIORIDAD_RENTA_PRESUNTA', 'REX_DISTRIBUIBLE_PRE_1984', 'REX_DISTRIBUIBLE_EXCESO_N9', 'REX_SIN_PRIORIDAD_IUSCAPT']],
+    ['REX · ISFUT/ISIF', ['REX_DISTRIBUIBLE_ISFUT_LEY20780', 'REX_DISTRIBUIBLE_ISFUT_LEY21210', 'REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO']],
+    ['REX · Otras', ['REX_CON_PRIORIDAD']],
+    ['Rentas exentas', ['REX_EXENTA_IGC_O_IA', 'REX_EXENTA_AFECTA_IA']],
+    ['INR', ['INR']],
+    ['STUT', ['STUT_AFECTAS', 'STUT_EXENTAS']],
+];
+const CTRIB_RTRE_FILAS_REORG = ['1.2', '1.3', '3.1', '3.2'];
+const CTRIB_RTRE_FILAS_OTRAS = ['2.1', '2.2', '2.3', '5.1', '5.2', '5.3', '5.4'];
+// [glosa, filas del RTRE, modo (pos: parte positiva, neg: parte negativa en valor absoluto, val: valor), códigos por columna]
+const CTRIB_R20_FILAS = [
+    ['Remanente ejercicio anterior o saldo inicial (saldo positivo)', ['1.1'], 'pos', [1451, 1452, 1752, 1753, 1453, 1454, 1382]],
+    ['Remanente ejercicio anterior o saldo inicial (saldo negativo)', ['1.1'], 'neg', [null, 1589, null, 1845, 1455, 1456, null]],
+    ['Monto acogido al ISIF, según arts. 10 y 11 Ley N° 21.681', [], 'val', [1942, null, 1943, null, null, null, 1944]],
+    ['Aumentos del ejercicio (por reorganizaciones)', CTRIB_RTRE_FILAS_REORG, 'pos', [1392, 1393, 1755, 1756, 1394, 1395, 1384]],
+    ['Disminuciones del ejercicio (por reorganizaciones)', CTRIB_RTRE_FILAS_REORG, 'neg', [1396, 1397, 1757, 1758, 1398, 1399, 1385]],
+    ['Reversos y/o disminuciones del ejercicio (propios)', ['4.1'], 'neg', [1459, 1460, 1759, 1760, 1461, 1462, 1386]],
+    ['Aumentos del ejercicio (propios)', ['4.2', '4.4'], 'pos', [1463, null, null, 1762, 1465, 1466, null]],
+    ['Otros aumentos del ejercicio', CTRIB_RTRE_FILAS_OTRAS, 'pos', [1467, 1468, 1763, 1764, 1469, 1470, 1387]],
+    ['Otras disminuciones del ejercicio', CTRIB_RTRE_FILAS_OTRAS, 'neg', [1471, 1472, 1765, 1766, 1473, 1474, 1388]],
+    ['Remesas, retiros o dividendos imputados a los RTRE', ['6.1'], 'val', [1475, 1476, 1767, 1768, 1477, 1478, 1389]],
+    ['Retiros en exceso y devoluciones de capital imputados en el ejercicio', ['6.2', '6.3'], 'val', [1480, 1481, 1769, 1770, 1482, 1483, 1390]],
+    ['Remanente ejercicio siguiente (saldo positivo)', ['REMANENTE_FINAL'], 'pos', [1484, 1485, 1771, 1772, 1486, 1487, 1391]],
+    ['Remanente ejercicio siguiente (saldo negativo)', ['REMANENTE_FINAL'], 'neg', [null, 1489, null, 1846, 1490, 1491, null]],
+];
+// Formulario R21 (Registro SAC): columnas del F22 y columnas SAC del RTRE.
+const CTRIB_R21_COLUMNAS = [
+    ['Desde 2017 · No sujeto a restitución · sin derecho a devolución', ['SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION', 'SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION']],
+    ['Desde 2017 · No sujeto a restitución · con derecho a devolución', ['SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION', 'SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION']],
+    ['Desde 2017 · Sujeto a restitución · sin derecho a devolución', ['SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION', 'SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION']],
+    ['Desde 2017 · Sujeto a restitución · con derecho a devolución', ['SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION', 'SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION']],
+    ['Desde 2017 · IPE', ['SAC_IPE_DESDE_2017']],
+    ['Hasta 2016 · sin derecho a devolución', ['SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION', 'SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION']],
+    ['Hasta 2016 · con derecho a devolución', ['SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION', 'SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION']],
+    ['Hasta 2016 · IPE', ['SAC_IPE_HASTA_2016']],
+];
+const CTRIB_R21_FILAS = [
+    ['Remanente ejercicio anterior o saldo inicial (saldo positivo)', ['1.1'], 'pos', [1495, 1496, 1497, 1498, 1499, 1501, 1502, 1503]],
+    ['Remanente ejercicio anterior o saldo inicial (saldo negativo)', ['1.1'], 'neg', [1655, 1656, 1504, 1505, null, null, null, null]],
+    ['Monto imputado al ISIF, según arts. 10 y 11 Ley N° 21.681', [], 'val', [1945, 1946, 1947, 1948, null, 1949, 1950, null]],
+    ['Aumentos del ejercicio (por reorganizaciones)', CTRIB_RTRE_FILAS_REORG, 'pos', [1590, 1436, 1437, 1438, 1439, 1441, 1442, 1443]],
+    ['Disminuciones del ejercicio (por reorganizaciones)', CTRIB_RTRE_FILAS_REORG, 'neg', [1444, 1447, 1448, 1449, 1508, 1509, 1510, 1511]],
+    ['IDPC e IPE — RLI o base imponible generada en el ejercicio', ['4.5'], 'pos', [null, 1513, null, null, 1514, null, null, null]],
+    ['IDPC e IPE — retiros o dividendos percibidos', [], 'val', [1515, 1516, 1517, 1518, 1519, 1520, 1521, 1522]],
+    ['Otros aumentos del ejercicio', CTRIB_RTRE_FILAS_OTRAS, 'pos', [1523, 1524, 1525, 1526, 1527, 1528, 1529, 1530]],
+    ['Otras disminuciones del ejercicio', CTRIB_RTRE_FILAS_OTRAS, 'neg', [1531, 1532, 1533, 1534, 1535, 1536, 1537, 1538]],
+    ['Asignado a remesas, retiros o dividendos efectuados en el ejercicio', ['6.1'], 'val', [1539, 1540, 1541, 1542, 1543, 1544, 1547, 1548]],
+    ['Asignado a retiros en exceso y devoluciones de capital efectuados en el ejercicio', ['6.2', '6.3'], 'val', [1549, 1550, 1551, 1552, 1553, 1554, 1555, 1556]],
+    ['IDPC e IPE asignado a gastos rechazados del art. 21', ['6.4'], 'val', [1557, 1558, null, null, 1559, 1560, 1561, 1562]],
+    ['Remanente ejercicio siguiente (saldo positivo)', ['REMANENTE_FINAL'], 'pos', [1563, 1564, 1565, 1566, 1567, 1568, 1569, 1570]],
+    ['Remanente ejercicio siguiente (saldo negativo)', ['REMANENTE_FINAL'], 'neg', [1368, 1371, 1571, 1572, null, null, null, null]],
+];
+
+/** Formulario del F22 (R20 o R21) calculado desde las celdas del RTRE: filas con sus códigos y montos. */
+function ctrib_formulario(array $celdas, array $columnas, array $filas): array
+{
+    $salida = [];
+    $codigos = [];
+    foreach ($filas as [$glosa, $filasRtre, $modo, $codigosFila]) {
+        $celdasFila = [];
+        foreach ($columnas as $i => [, $columnasRtre]) {
+            $codigo = $codigosFila[$i] ?? null;
+            if ($codigo === null) {
+                $celdasFila[] = null;
+                continue;
+            }
+            $valor = 0;
+            foreach ($filasRtre as $fr) {
+                foreach ($columnasRtre as $cr) {
+                    $valor += (int) ($celdas[$fr][$cr]['monto'] ?? 0);
+                }
+            }
+            $monto = match ($modo) { 'pos' => max(0, $valor), 'neg' => max(0, -$valor), default => $valor };
+            $celdasFila[] = ['codigo' => (string) $codigo, 'monto' => $monto];
+            $codigos[(string) $codigo] = $monto;
+        }
+        $salida[] = ['glosa' => $glosa, 'celdas' => $celdasFila];
+    }
+    return ['columnas' => array_column($columnas, 0), 'filas' => $salida, 'codigos' => $codigos];
+}
+
 /** Cálculo completo del RTRE del año: celdas, subtotales, remanente, fórmulas del RAI y del IDPC. */
 function ctrib_r20(PDO $pdo, int $empresa, int $anio): array
 {
@@ -143,6 +304,12 @@ function ctrib_r20(PDO $pdo, int $empresa, int $anio): array
     $celdas['6.1']['RAI'] = ['monto' => $retirosRai, 'origen' => 'AUTO'];
     $retirosNoImputados = $retiros - $retirosRai;
 
+    // Crédito SAC asignado a los retiros (6.1): retiro × tasa / (100 − tasa), hasta el SAC disponible (como iTributario).
+    $factorSac = round($tasa / (100 - $tasa), 6);
+    $s5Sac = $suma([1, 2, 3, 4, 5], CTRIB_RTRE_COLUMNA_IDPC);
+    $creditoSac = min((int) round($retirosRai * $factorSac, 0, PHP_ROUND_HALF_UP), max(0, $s5Sac));
+    $celdas['6.1'][CTRIB_RTRE_COLUMNA_IDPC] = ['monto' => $creditoSac, 'origen' => 'AUTO'];
+
     // Subtotales y remanente por columna.
     $subtotales = [];
     foreach ($columnas as $col) {
@@ -209,8 +376,14 @@ function ctrib_r20(PDO $pdo, int $empresa, int $anio): array
         ],
         'formulaSac' => [
             'rli' => $rli, 'tasaIdpc' => $tasa, 'idpcEjercicio' => $idpc, 'columnaSacPropio' => CTRIB_RTRE_COLUMNA_IDPC,
+            'factorSac' => $factorSac, 'creditoRetiros' => $creditoSac,
         ],
         'retirosImputadosRai' => $retirosRai,
+        'retirosEjercicio' => $retiros,
+        'resumen' => ctrib_rtre_resumen($celdas),
+        'secciones' => ctrib_rtre_secciones($catalogo, $celdas),
+        'formularioR20' => ctrib_formulario($celdas, CTRIB_R20_COLUMNAS, CTRIB_R20_FILAS),
+        'formularioR21' => ctrib_formulario($celdas, CTRIB_R21_COLUMNAS, CTRIB_R21_FILAS),
         'estado' => $estado['estado'], 'finalizado' => $estado['finalizado'], 'usuario' => $estado['usuario'],
         'desactualizado' => ctrib_desactualizado($estado, $snapshotActual),
         'todas' => $todas,
@@ -290,18 +463,25 @@ function ctrib_r20_reabrir(PDO $pdo, int $empresa, int $anio, string $usuario, s
     return ctrib_r20($pdo, $empresa, $anio);
 }
 
-/** Registro SAC (R21): se vacía desde el RTRE. En esta versión se calculan 1513 y 1564. */
+/** Registro SAC (R21): se vacía desde el RTRE en la grilla del formulario (códigos 1495 a 1572). */
 function ctrib_r21(PDO $pdo, int $empresa, int $anio): array
 {
     $r20 = ctrib_r20($pdo, $empresa, $anio);
+    $formulario = $r20['formularioR21'];
+    $lineas = [];
+    foreach ($formulario['filas'] as $fila) {
+        foreach ($fila['celdas'] as $i => $c) {
+            if ($c !== null) {
+                $lineas[] = ['codigo' => $c['codigo'], 'glosa' => $fila['glosa'] . ' — ' . $formulario['columnas'][$i], 'monto' => $c['monto']];
+            }
+        }
+    }
     return [
         'recuadro' => 'R21', 'anio' => $anio, 'anioComercial' => ctrib_anio_comercial($anio),
-        'lineas' => [
-            ['codigo' => '1513', 'glosa' => 'IDPC e IPE — RLI o base imponible generada en el ejercicio', 'monto' => $r20['idpc']],
-            ['codigo' => '1564', 'glosa' => 'Remanente ejercicio siguiente (saldo positivo)', 'monto' => max(0, $r20['remanenteSac'])],
-        ],
+        'formulario' => $formulario,
+        'lineas' => $lineas,
         'estado' => $r20['estado'],
-        'pendientesDeCalculo' => ['El resto de las columnas del Registro SAC (1495 a 1371) todavía no se calcula en Cifrax.'],
+        'pendientesDeCalculo' => ['Créditos de IDPC voluntario y del art. 21 (CREDITO_ART21) no tienen columna en el formulario en esta versión.'],
     ];
 }
 

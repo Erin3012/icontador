@@ -78,7 +78,7 @@ ctrib_retiros_importar($b, 1, 2026, [
 ], 'retiros.csv', 'prueba');
 $r = ctrib_r20($b, 1, 2026);
 $esperadas = ["4.2::RAI" => 6905357, "4.5::$SAC" => 494085, "6.1::RAI" => 1000000, "SUBTOTAL_5::RAI" => 6905357,
-    "SUBTOTAL_5::$SAC" => 494085, "REMANENTE_FINAL::RAI" => 5905357, "REMANENTE_FINAL::$SAC" => 494085];
+    "SUBTOTAL_5::$SAC" => 494085, "6.1::$SAC" => 142857, "REMANENTE_FINAL::RAI" => 5905357, "REMANENTE_FINAL::$SAC" => 351228];
 $nn = celdas_no_nulas($r);
 check(count($nn) === count($esperadas), 'escenario con retiros: ' . count($nn) . ' celdas no nulas');
 foreach ($esperadas as $clave => $valor) {
@@ -112,15 +112,31 @@ falla(fn() => ctrib_certificado_emitir($b, 1, 2026, '11111111-1', 'prueba'), 'no
 // R21: 1513 = IDPC del ejercicio y 1564 = remanente SAC.
 $r21 = ctrib_r21($b, 1, 2026);
 $lineas21 = array_column($r21['lineas'], 'monto', 'codigo');
-check($lineas21['1513'] === 494085 && $lineas21['1564'] === 494085, 'R21: 1513 y 1564 = 494.085');
+check($lineas21['1513'] === 494085 && $lineas21['1540'] === 142857 && $lineas21['1564'] === 351228, 'R21: 1513 = 494.085, asignado a retiros 1540 = 142.857, remanente 1564 = 351.228');
+check(count($r21['formulario']['filas']) === 14 && count($r21['formulario']['columnas']) === 8, 'R21: grilla del formulario de 14 filas y 8 columnas');
 
 // --- Escenario C: el año siguiente toma el remanente finalizado ---
 $siguiente = ctrib_r20($b, 1, 2027);
 $nn = celdas_no_nulas($siguiente);
-check(($nn['1.1::RAI'] ?? null) === 5905357 && ($nn['1.1::' . $SAC] ?? null) === 494085, '1.1 del año siguiente = remanente finalizado (RAI 5.905.357, SAC 494.085)');
+check(($nn['1.1::RAI'] ?? null) === 5905357 && ($nn['1.1::' . $SAC] ?? null) === 351228, '1.1 del año siguiente = remanente finalizado (RAI 5.905.357, SAC 351.228)');
 // El CPTS de 2027 arrastra el 1545 de 2026 (código 1445 del R19), así que el RAI se reconstruye con ese saldo:
 // el reverso del 4.1 evita contarlo dos veces y el remanente RAI queda igual que el de 2026.
-check($siguiente['remanenteSac'] === 494085 && $siguiente['remanenteRai'] === 5905357, 'el año siguiente arrastra el SAC (494.085) y el RAI del CPTS (5.905.357) sin duplicarlo');
+check($siguiente['remanenteSac'] === 351228 && $siguiente['remanenteRai'] === 5905357, 'el año siguiente arrastra el SAC (351.228) y el RAI del CPTS (5.905.357) sin duplicarlo');
+
+// --- Escenario D: la pantalla actual de iTributario (406001 en 1402 y retiros de 6.300.000) ---
+$d = preparar(false);
+ctrib_retiros_importar($d, 1, 2026, [['rut' => '12345678-5', 'nombre' => 'ANGELA', 'fecha' => '2025-12-31', 'monto' => 6300000, 'tipo' => 'Retiro']], 'r.csv', 'prueba');
+$r17d = ctrib_r17($d, 1, 2026);
+check($r17d['totales']['1432'] === 542255 && $r17d['totales']['1440'] === 6842254, 'D: 1432 = 542.255 y 1440 = 6.842.254 como iTributario');
+$rd = ctrib_r20($d, 1, 2026);
+check($rd['idpc'] === 855282 && $rd['formulaSac']['creditoRetiros'] === 855282 && $rd['formulaSac']['factorSac'] === 0.142857, 'D: IDPC 855.282 y crédito SAC imputado a los retiros 855.282 (factor 0,142857)');
+check($rd['resumen'] === ['raiFinal' => 1084509, 'rexFinal' => 0, 'sacDisponible' => 0, 'stutFinal' => 0] && $rd['retirosEjercicio'] === 6300000, 'D: tarjetas RAI final 1.084.509, REX 0, SAC disponible 0, retiros 6.300.000');
+$secD = array_column($rd['secciones']['secciones'], null, 'bloque');
+check($secD[6]['total']['RAI'] === 6300000 && $secD[6]['total']['SAC'] === 855282 && $rd['secciones']['disponibles']['RAI'] === 7384509, 'D: sección 6 (imputación de retiros) y rentas disponibles como iTributario');
+$codD = $rd['formularioR20']['codigos'];
+check($codD['1463'] === 7384509 && $codD['1475'] === 6300000 && $codD['1484'] === 1084509, 'D: R20 1463 = 7.384.509, 1475 = 6.300.000, 1484 = 1.084.509 como iTributario');
+$cod21 = $rd['formularioR21']['codigos'];
+check($cod21['1513'] === 855282 && $cod21['1540'] === 855282 && $cod21['1564'] === 0, 'D: R21 1513 = 855.282, 1540 = 855.282, 1564 = 0 como iTributario');
 
 // Reabrir
 $reabierto = ctrib_r20_reabrir($b, 1, 2026, 'prueba', 'Ajuste de retiros');

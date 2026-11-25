@@ -96,6 +96,19 @@ function ctrib_schema(PDO $pdo): void
         usuario VARCHAR(120) NOT NULL DEFAULT '',
         UNIQUE (empresa_id, anio, rut)
     )$motor");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_cpt_cuentas (
+        empresa_id INT NOT NULL DEFAULT 0,
+        anio INT NOT NULL,
+        cuenta VARCHAR(20) NOT NULL,
+        concepto VARCHAR(8) NOT NULL,
+        PRIMARY KEY (empresa_id, anio, cuenta)
+    )$motor");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_cpt_maestro (
+        empresa_id INT NOT NULL DEFAULT 0,
+        cuenta VARCHAR(20) NOT NULL,
+        concepto VARCHAR(8) NOT NULL,
+        PRIMARY KEY (empresa_id, cuenta)
+    )$motor");
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_incentivo (
         empresa_id INT NOT NULL DEFAULT 0,
         anio INT NOT NULL,
