@@ -92,6 +92,7 @@ $b = preparar(true);
 ctrib_r4_finalizar($b, 1, 2026, 'prueba');
 ctrib_r6_finalizar($b, 1, 2026, 'prueba');
 falla(fn() => ctrib_r6_finalizar($b, 1, 2026, 'prueba'), 'ya está finalizado', 'R6 no se finaliza dos veces');
+ctrib_incentivo_guardar($b, 1, 2026, true, true, true, null, 'prueba'); // confirmaciones del 1432
 ctrib_r17_finalizar($b, 1, 2026, 'prueba');
 ctrib_r19_finalizar($b, 1, 2026, 'prueba');
 ctrib_r20_finalizar($b, 1, 2026, 'prueba');

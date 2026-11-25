@@ -67,6 +67,7 @@ $r17 = ctrib_r17($pdo, 1, $anio);
 check($r17['totales']['1432'] === 2952679 && $r17['totales']['1440'] === 3952678, 'con retiros, el incentivo 1432 usa la base menos retiros (2.952.679)');
 
 // --- Finalizar R17 y luego R19 ---
+ctrib_incentivo_guardar($pdo, 1, $anio, true, true, true, null, $usuario); // confirmaciones del 1432
 ctrib_r17_finalizar($pdo, 1, $anio, $usuario);
 $r19 = ctrib_r19_finalizar($pdo, 1, $anio, $usuario);
 check($r19['estado'] === 'FINALIZADO', 'R19 finalizado con R17 finalizado');

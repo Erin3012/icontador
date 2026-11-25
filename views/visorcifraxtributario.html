@@ -6,7 +6,7 @@
     <title>Visor Cifrax Tributario</title>
     <link rel="stylesheet" href="../assets/5ef3f133326af069-original.css">
     <link rel="stylesheet" href="../assets/cifrax-tributario.css">
-    <link rel="stylesheet" href="../assets/cifrax-visor.css?v=6">
+    <link rel="stylesheet" href="../assets/cifrax-visor.css?v=7">
 </head>
 <body>
 <div class="cv-app">
@@ -745,8 +745,97 @@
         return l.origen === 'MANUAL' || ['1445', '1446', '1377', '1378', '1380', '1381'].indexOf(l.codigo) >= 0;
     }
 
+    // ---------- Incentivo al ahorro (1432): confirmaciones de elegibilidad y monto a utilizar ----------
+    var r17Actual = null;
+    function fmtDec(n) { return Number(n || 0).toLocaleString('es-CL', { maximumFractionDigits: 2 }); }
+    function cerrarIncentivo() {
+        var s = document.querySelector('[data-sub-incentivo]');
+        if (s) s.remove();
+    }
+    function abrirIncentivo() {
+        if (!r17Actual) return;
+        cerrarIncentivo();
+        var i = r17Actual.incentivoAhorro;
+        var fin = r17Actual.estado === 'FINALIZADO';
+        var dis = fin ? ' disabled' : '';
+        var casilla = function (campo, valor, texto) {
+            return '<label class="cv-sub-check"><input type="checkbox" data-inc="' + campo + '"' + (valor ? ' checked' : '') + dis + '><span>' + texto + '</span></label>';
+        };
+        var totalidad = i.retiros === null;
+        var filas = [
+            ['1729 (Base imponible antes de rebajas)', fmt(i.base1729)],
+            ['− Retiros/remesas/distribuciones', totalidad ? 'Totalidad' : fmt(i.retiros)],
+            ['− 1422 (partidas no afectas a IU 40%/IGC+IA)', fmt(i.monto1422)],
+            null,
+            ['Base reinvertida', fmt(Math.max(0, i.baseReinvertida))],
+            ['50% de la base reinvertida', fmtDec(Math.max(0, i.topeMitad))],
+            ['Tope (5.000 UF a $' + fmtDec(i.ufUsada) + ')', i.topeUf === null ? 'Sin UF del año' : fmtDec(i.topeUf)],
+            null,
+            ['<strong>Monto sugerido (el menor de los dos)</strong>', '<strong>' + fmtDec(i.sugerido) + '</strong>']
+        ];
+        var calculo = filas.map(function (f) {
+            return f === null ? '<hr>' : '<div class="cv-sub-fila"><span>' + f[0] + '</span><span>' + f[1] + '</span></div>';
+        }).join('');
+        var html = '<div class="cv-sub" data-sub-incentivo role="dialog" aria-modal="true" aria-label="Incentivo al ahorro"><div class="cv-sub-caja">' +
+            '<div class="cv-sub-cab"><strong>1432 — Incentivo al ahorro según art. 14 letra E) LIR</strong>' +
+            '<button type="button" class="cv-modal-x" data-inc-cerrar aria-label="Cerrar">×</button></div>' +
+            (fin ? '<div class="cv-aviso-ok">El Recuadro 17 está finalizado: reábralo para modificar el incentivo.</div>' : '') +
+            '<label class="cv-sub-label">Retiros, remesas o distribuciones del ejercicio</label>' +
+            '<input class="cv-sub-input" value="' + esc(totalidad ? 'Retiro de la totalidad (sin base reinvertida)' : fmt(i.retiros)) + '" readonly>' +
+            '<button type="button" class="cv-sub-link" data-inc-socios>Ver detalle por socio</button>' +
+            casilla('elegibilidad', i.elegibilidad, 'Declaro que esta empresa cumple los requisitos de elegibilidad del incentivo al ahorro (art. 14 letra E) LIR)') +
+            casilla('limiteIngresos', i.limiteIngresos, 'Confirmo, bajo mi responsabilidad, que el promedio anual de ingresos del giro de la empresa en los tres años comerciales anteriores no excede de 100.000 UF. <small>(Se consideran ejercicios consecutivos; si inició actividades hace menos de tres ejercicios, el promedio se calcula desde que las inició; si es su primer ejercicio, se consideran los ingresos de ese ejercicio.)</small>') +
+            casilla('limiteRentasPasivas', i.limiteRentasPasivas, 'Confirmo, bajo mi responsabilidad, que los ingresos del ejercicio por renta fija, derechos sociales, cuotas de fondos de inversión o mutuos, acciones, contratos de asociación y cuentas en participación no superan, en conjunto, el 20% del total de ingresos del ejercicio (requisito del art. 14 E de la LIR).') +
+            '<div class="cv-sub-calculo">' + calculo + '</div>' +
+            '<label class="cv-sub-label">Monto a utilizar</label>' +
+            '<input class="cv-sub-input cv-sub-num" type="number" min="0" step="1" data-inc="monto" value="' + esc(i.montoUtilizado) + '"' + dis + '>' +
+            '<p class="cv-sub-ayuda">Sugerido: el menor entre el 50% de la base reinvertida y el tope de 5.000 UF. Puede reducirlo si no quiere usar todo el beneficio.</p>' +
+            '<div data-inc-error></div>' +
+            '<button type="button" class="cv-sub-guardar" data-inc-guardar' + dis + '>Guardar</button>' +
+            '<button type="button" class="cv-sub-cancelar" data-inc-cerrar>Cancelar</button>' +
+            '</div></div>';
+        document.body.insertAdjacentHTML('beforeend', html);
+        var primero = document.querySelector('[data-sub-incentivo] [data-inc="elegibilidad"]');
+        if (primero && !primero.disabled) primero.focus();
+    }
+
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('[data-incentivo], [data-inc-cerrar], [data-inc-socios], [data-inc-guardar]') : null;
+        if (!b || b.disabled) return;
+        if (b.hasAttribute('data-incentivo')) { abrirIncentivo(); return; }
+        if (b.hasAttribute('data-inc-cerrar')) { cerrarIncentivo(); return; }
+        if (b.hasAttribute('data-inc-socios')) { cerrarIncentivo(); abrirRecuadro('DJ1948'); return; }
+        var sub = document.querySelector('[data-sub-incentivo]');
+        var marcado = function (c) { return sub.querySelector('[data-inc="' + c + '"]').checked; };
+        var montoTexto = sub.querySelector('[data-inc="monto"]').value.trim();
+        var i = r17Actual.incentivoAhorro;
+        // Si deja el sugerido, se guarda como automático (sigue al cálculo si cambia la base).
+        var monto = montoTexto === '' || Number(montoTexto) === i.sugeridoRedondeado ? '' : montoTexto;
+        b.disabled = true;
+        enviar('r17_incentivo', {
+            elegibilidad: marcado('elegibilidad'), limiteIngresos: marcado('limiteIngresos'), limiteRentasPasivas: marcado('limiteRentasPasivas'), monto: monto
+        }).then(function (r) {
+            cerrarIncentivo();
+            pintarRecuadro('R17', r);
+            mostrarError('Incentivo al ahorro guardado.');
+        }).catch(function (err) {
+            b.disabled = false;
+            sub.querySelector('[data-inc-error]').innerHTML = '<div class="cv-aviso-ok">' + esc(err.message) + '</div>';
+        });
+    });
+
+    // Esc cierra solo la ventana del incentivo (no la del R17); el clic fuera no la cierra.
+    window.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && document.querySelector('[data-sub-incentivo]')) {
+            e.stopPropagation();
+            e.preventDefault();
+            cerrarIncentivo();
+        }
+    }, true);
+
     function pintarRecuadro(clave, r) {
         recuadroActual = clave;
+        if (clave === 'R17') r17Actual = r;
         titulo.textContent = titulosRecuadro[clave] || clave;
         sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
         var estadoHtml = r.estado === 'FINALIZADO'
@@ -775,6 +864,9 @@
             var valor = puedeEditar
                 ? '<input type="number" min="0" step="1" data-codigo="' + esc(l.codigo) + '" value="' + esc(l.monto) + '" style="width:120px;text-align:right;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font:inherit">'
                 : '$' + fmt(l.monto);
+            if (clave === 'R17' && l.codigo === '1432') {
+                valor = '$' + fmt(l.monto) + ' <button type="button" class="cv-btn-pdf" data-incentivo style="padding:2px 8px;margin-left:6px;cursor:pointer">Editar</button>';
+            }
             var cuentas = l.cuentas && l.cuentas.length
                 ? '<br><small>' + l.cuentas.map(function (c) { return esc(c.cuenta + ' ' + c.nombre); }).join(' · ') + '</small>' : '';
             html += '<tr><td>' + esc(l.glosa) + cuentas + '</td><td class="num">' + esc(l.codigo) + '</td><td class="num">' + valor +

@@ -84,6 +84,18 @@ CREATE TABLE IF NOT EXISTS ctrib_certificados (
     UNIQUE (empresa_id, anio, rut)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS ctrib_incentivo (
+    empresa_id INT NOT NULL DEFAULT 0,
+    anio INT NOT NULL,
+    elegibilidad INT NOT NULL DEFAULT 0,
+    limite_ingresos INT NOT NULL DEFAULT 0,
+    limite_rentas_pasivas INT NOT NULL DEFAULT 0,
+    monto BIGINT NULL,
+    usuario VARCHAR(120) NOT NULL DEFAULT '',
+    actualizado VARCHAR(25) NOT NULL,
+    PRIMARY KEY (empresa_id, anio)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS ctrib_empresa_config (
     empresa_id INT NOT NULL PRIMARY KEY,
     tipo VARCHAR(12) NOT NULL DEFAULT '',

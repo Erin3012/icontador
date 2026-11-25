@@ -88,6 +88,7 @@ check($r['rai'] === 6905357 && $r['idpc'] === 494085 && $r['retirosImputadosRai'
 check(!in_array(true, array_map(fn($p) => str_contains($p, 'exceden'), $r['pendientesDeCalculo']), true), 'sin retiros que excedan el RAI');
 
 // Finalizar en orden: R17, R19 y luego RTRE.
+ctrib_incentivo_guardar($b, 1, 2026, true, true, true, null, 'prueba'); // confirmaciones del 1432
 ctrib_r17_finalizar($b, 1, 2026, 'prueba');
 falla(fn() => ctrib_r20_finalizar($b, 1, 2026, 'prueba'), 'Recuadro 19', 'el RTRE exige el R19 finalizado');
 ctrib_r19_finalizar($b, 1, 2026, 'prueba');

@@ -12,7 +12,6 @@ const CTRIB_R17_PENDIENTES = [
     '1409' => 'cuentas de ajuste CXP y existencias',
     '1817' => 'reparto de cobros de ejercicios anteriores',
     '1818' => 'reparto FIFO de pagos de ejercicios anteriores',
-    '1432' => 'confirmaciones de elegibilidad (límites de ingresos y rentas pasivas)',
 ];
 
 /** Valores manuales del recuadro: código => monto (magnitud positiva; el signo lo da el catálogo). */
@@ -140,7 +139,11 @@ function ctrib_r17(PDO $pdo, int $empresa, int $anio): array
     $uf = ctrib_uf($anio - 1);
     $topeUf = $uf !== null ? CTRIB_R17_TOPE_UF * $uf : null;
     $tope = $topeUf !== null ? min($topeMitad, $topeUf) : $topeMitad;
-    $m1432 = $baseReinvertida > 0 ? (int) round($tope, 0, PHP_ROUND_HALF_UP) : 0;
+    // Sugerido: el menor entre el 50% de la base reinvertida y 5.000 UF. Se puede usar un monto menor (no mayor).
+    $sugerido = $baseReinvertida > 0 ? $tope : 0.0;
+    $sugeridoRedondeado = (int) round($sugerido, 0, PHP_ROUND_HALF_UP);
+    $incentivo = ctrib_incentivo($pdo, $empresa, $anio);
+    $m1432 = $incentivo['monto'] !== null ? min($incentivo['monto'], $sugeridoRedondeado) : $sugeridoRedondeado;
     $m1433 = $montos['1433'] ?? 0;
     $t1440 = $t1729 - $m1432 - $m1433;
 
@@ -158,7 +161,7 @@ function ctrib_r17(PDO $pdo, int $empresa, int $anio): array
             $lineas[$codigo]['origen'] = 'PENDIENTE';
         }
     }
-    $lineas['1432']['origen'] = 'CALCULADO_CON_TOPE';
+    $lineas['1432']['origen'] = $incentivo['monto'] !== null ? 'MANUAL' : 'CALCULADO_CON_TOPE';
 
     $estado = ctrib_estado_recuadro($pdo, $empresa, $anio, 'R17');
     $actual = array_map(fn($x) => $x['monto'], $lineas);
@@ -171,14 +174,24 @@ function ctrib_r17(PDO $pdo, int $empresa, int $anio): array
     if ($homologacion['alertas'] > 0) {
         $bloqueos[] = "Hay {$homologacion['alertas']} cuenta(s) con código incompatible: corríjalas en la homologación.";
     }
+    $confirmado = $incentivo['elegibilidad'] && $incentivo['limiteIngresos'] && $incentivo['limiteRentasPasivas'];
+    if ($m1432 > 0 && !$confirmado && $estado['estado'] !== 'FINALIZADO') {
+        $bloqueos[] = 'No se puede finalizar: el incentivo al ahorro (código 1432) se está aplicando sin confirmar los requisitos. '
+            . 'En el código 1432 declare la elegibilidad, confirme que el promedio anual de ingresos del giro de los tres años comerciales '
+            . 'anteriores no excede de 100.000 UF y que los ingresos por rentas pasivas no superan el 20% del total de ingresos del ejercicio, y guarde.';
+    }
 
     return [
         'recuadro' => 'R17', 'anio' => $anio, 'anioComercial' => ctrib_anio_comercial($anio), 'modoRetiros' => $modoRetiros,
         'lineas' => array_values($lineas),
         'totales' => ['1410' => $t1410, '1430' => $t1430, '1729' => $t1729, '1432' => $m1432, '1440' => $t1440],
         'incentivoAhorro' => [
+            'base1729' => $t1729, 'retiros' => $modoRetiros === 'totalidad' ? null : $retiros, 'monto1422' => $m1422,
             'baseReinvertida' => $baseReinvertida, 'topeMitad' => $topeMitad, 'topeUf' => $topeUf,
-            'ufUsada' => $uf, 'montoUtilizado' => $m1432, 'topeUfAplicado' => $topeUf !== null && $topeUf < $topeMitad,
+            'ufUsada' => $uf, 'sugerido' => $sugerido, 'sugeridoRedondeado' => $sugeridoRedondeado,
+            'montoManual' => $incentivo['monto'], 'montoUtilizado' => $m1432, 'topeUfAplicado' => $topeUf !== null && $topeUf < $topeMitad,
+            'elegibilidad' => $incentivo['elegibilidad'], 'limiteIngresos' => $incentivo['limiteIngresos'],
+            'limiteRentasPasivas' => $incentivo['limiteRentasPasivas'], 'confirmado' => $confirmado,
         ],
         'estado' => $estado['estado'], 'finalizado' => $estado['finalizado'], 'usuario' => $estado['usuario'],
         'desactualizado' => $desactualizado,
@@ -186,6 +199,52 @@ function ctrib_r17(PDO $pdo, int $empresa, int $anio): array
         'bloqueos' => $bloqueos,
         'puedeFinalizar' => $bloqueos === [] && $estado['estado'] !== 'FINALIZADO',
     ];
+}
+
+/** Confirmaciones del incentivo al ahorro (1432) y monto elegido (null = el sugerido). */
+function ctrib_incentivo(PDO $pdo, int $empresa, int $anio): array
+{
+    $st = $pdo->prepare('SELECT elegibilidad, limite_ingresos, limite_rentas_pasivas, monto FROM ctrib_incentivo WHERE empresa_id = ? AND anio = ?');
+    $st->execute([$empresa, $anio]);
+    $f = $st->fetch();
+    return [
+        'elegibilidad' => (bool) ($f['elegibilidad'] ?? false), 'limiteIngresos' => (bool) ($f['limite_ingresos'] ?? false),
+        'limiteRentasPasivas' => (bool) ($f['limite_rentas_pasivas'] ?? false),
+        'monto' => isset($f['monto']) && $f['monto'] !== null ? (int) $f['monto'] : null,
+    ];
+}
+
+/**
+ * Guarda las confirmaciones del incentivo al ahorro y el monto a utilizar (null o vacío = el sugerido).
+ * El monto no puede superar el sugerido (el menor entre el 50% de la base reinvertida y 5.000 UF).
+ */
+function ctrib_incentivo_guardar(PDO $pdo, int $empresa, int $anio, bool $elegibilidad, bool $limiteIngresos, bool $limiteRentasPasivas, mixed $monto, string $usuario): array
+{
+    if (ctrib_estado_recuadro($pdo, $empresa, $anio, 'R17')['estado'] === 'FINALIZADO') {
+        throw new CtribError('El Recuadro 17 está finalizado. Reábralo para modificar el incentivo al ahorro.');
+    }
+    $valor = null;
+    if ($monto !== null && $monto !== '') {
+        if (!(is_int($monto) || (is_string($monto) && preg_match('/^\d+$/', trim($monto)))) || (int) $monto < 0) {
+            throw new CtribError('El monto a utilizar debe ser un número entero mayor o igual a cero.');
+        }
+        $valor = (int) $monto;
+        $sugerido = ctrib_r17($pdo, $empresa, $anio)['incentivoAhorro']['sugeridoRedondeado'];
+        if ($valor > $sugerido) {
+            throw new CtribError('El monto a utilizar no puede superar el sugerido ($' . number_format($sugerido, 0, ',', '.') . ').');
+        }
+    }
+    $antes = ctrib_incentivo($pdo, $empresa, $anio);
+    $pdo->prepare('DELETE FROM ctrib_incentivo WHERE empresa_id = ? AND anio = ?')->execute([$empresa, $anio]);
+    $pdo->prepare('INSERT INTO ctrib_incentivo (empresa_id, anio, elegibilidad, limite_ingresos, limite_rentas_pasivas, monto, usuario, actualizado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+        ->execute([$empresa, $anio, (int) $elegibilidad, (int) $limiteIngresos, (int) $limiteRentasPasivas, $valor, $usuario, ctrib_ahora()]);
+    $describe = fn(array $i) => 'elegibilidad ' . ($i['elegibilidad'] ? 'sí' : 'no') . ', ingresos ' . ($i['limiteIngresos'] ? 'sí' : 'no')
+        . ', rentas pasivas ' . ($i['limiteRentasPasivas'] ? 'sí' : 'no') . ', monto ' . ($i['monto'] === null ? 'sugerido' : $i['monto']);
+    $despues = ['elegibilidad' => $elegibilidad, 'limiteIngresos' => $limiteIngresos, 'limiteRentasPasivas' => $limiteRentasPasivas, 'monto' => $valor];
+    if ($describe($antes) !== $describe($despues)) {
+        ctrib_registrar_historial($pdo, $empresa, $anio, 'recuadro', 'R17 1432', $describe($antes), $describe($despues), 'Incentivo al ahorro', $usuario);
+    }
+    return ctrib_r17($pdo, $empresa, $anio);
 }
 
 /** Guarda un campo manual del R17. No se edita un recuadro finalizado. */

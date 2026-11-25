@@ -44,7 +44,7 @@ check(linea($r, '1431')['monto'] === 0, '1431 copia del 1422 (cero en ENYEL)');
 check($r['totales'] === ['1410' => 22257576, '1430' => 14873067, '1729' => 7384509, '1432' => 3692255, '1440' => 3692254], 'totales iTributario: 1410, 1430, 1729, 1432 y 1440');
 check($r['incentivoAhorro']['baseReinvertida'] === 7384509 && $r['incentivoAhorro']['topeMitad'] === 3692254.5, 'base reinvertida y tope 50%');
 check($r['incentivoAhorro']['topeUfAplicado'] === false, 'el tope de 5.000 UF no se aplica en ENYEL');
-check($r['estado'] === 'BORRADOR' && $r['puedeFinalizar'] === false && count($r['bloqueos']) === 1, 'un bloqueo: cuenta incompatible 406001');
+check($r['estado'] === 'BORRADOR' && $r['puedeFinalizar'] === false && count($r['bloqueos']) === 2, 'dos bloqueos: cuenta incompatible 406001 e incentivo sin confirmar');
 falla(fn() => ctrib_r17_finalizar($pdo, 1, $anio, $usuario), 'incompatible', 'no se finaliza con una cuenta incompatible');
 
 // --- Corrección 406001 → 1419 (intereses pagados) ---
@@ -54,7 +54,23 @@ check(linea($r, '1402')['monto'] === 0 && linea($r, '1419')['monto'] === 239576,
 check($r['totales']['1410'] === 22018000 && $r['totales']['1430'] === 15112643, 'ingresos 22.018.000 y egresos 15.112.643 tras la corrección');
 check($r['totales']['1729'] === 6905357, 'la base imponible 1729 queda igual al resultado del balance (6.905.357)');
 check($r['totales']['1432'] === 3452679 && $r['totales']['1440'] === 3452678, 'incentivo 3.452.679 (50% redondeado) y base 1440 3.452.678');
-check($r['bloqueos'] === [] && $r['puedeFinalizar'] === true, 'sin bloqueos: se puede finalizar');
+check(count($r['bloqueos']) === 1 && str_contains($r['bloqueos'][0], 'incentivo al ahorro (código 1432)'), 'queda el bloqueo del incentivo al ahorro sin confirmar');
+falla(fn() => ctrib_r17_finalizar($pdo, 1, $anio, $usuario), 'sin confirmar los requisitos', 'no se finaliza con el 1432 sin confirmar');
+
+// --- Incentivo al ahorro (1432): confirmaciones y monto a utilizar ---
+$i = $r['incentivoAhorro'];
+check($i['base1729'] === 6905357 && $i['retiros'] === 0 && $i['monto1422'] === 0 && $i['sugerido'] === 3452678.5 && $i['sugeridoRedondeado'] === 3452679, 'desglose: 1729, retiros, 1422 y sugerido 3.452.678,5');
+check(abs($i['topeUf'] - 198639800.0) < 0.01 && $i['ufUsada'] === 39727.96, 'tope 5.000 UF a $39.727,96 = 198.639.800');
+$r = ctrib_incentivo_guardar($pdo, 1, $anio, true, true, false, null, $usuario);
+check(count($r['bloqueos']) === 1 && $r['incentivoAhorro']['confirmado'] === false, 'con una confirmación pendiente sigue bloqueado');
+falla(fn() => ctrib_incentivo_guardar($pdo, 1, $anio, true, true, true, 3452680, $usuario), 'no puede superar el sugerido', 'monto mayor al sugerido');
+falla(fn() => ctrib_incentivo_guardar($pdo, 1, $anio, true, true, true, '-1', $usuario), 'entero mayor', 'monto negativo');
+$r = ctrib_incentivo_guardar($pdo, 1, $anio, true, true, true, 1000000, $usuario);
+check($r['totales']['1432'] === 1000000 && $r['totales']['1440'] === 5905357 && linea($r, '1432')['origen'] === 'MANUAL', 'monto menor al sugerido: 1432 = 1.000.000 y 1440 = 5.905.357');
+$r = ctrib_incentivo_guardar($pdo, 1, $anio, true, true, true, '', $usuario);
+check($r['totales']['1432'] === 3452679 && $r['incentivoAhorro']['montoManual'] === null, 'monto vacío vuelve al sugerido');
+check($r['bloqueos'] === [] && $r['puedeFinalizar'] === true && $r['incentivoAhorro']['confirmado'] === true, 'con las tres confirmaciones se puede finalizar');
+check(count(array_filter(ctrib_historial_listar($pdo, 1, $anio, 'recuadro'), fn($h) => $h['referencia'] === 'R17 1432')) === 3, 'cada cambio del 1432 queda en el historial');
 
 // --- Campos manuales ---
 $r = ctrib_r17_guardar_manual($pdo, 1, $anio, '1426', 50, $usuario);
@@ -69,6 +85,7 @@ $r = ctrib_r17_finalizar($pdo, 1, $anio, $usuario);
 check($r['estado'] === 'FINALIZADO' && $r['desactualizado'] === false && $r['finalizado'] !== null, 'finalizado sin cambios');
 falla(fn() => ctrib_r17_guardar_manual($pdo, 1, $anio, '1404', 10, $usuario), 'finalizado', 'un recuadro finalizado no se edita');
 falla(fn() => ctrib_r17_finalizar($pdo, 1, $anio, $usuario), 'ya está finalizado', 'no se finaliza dos veces');
+falla(fn() => ctrib_incentivo_guardar($pdo, 1, $anio, true, true, true, null, $usuario), 'finalizado', 'el incentivo no se edita con el R17 finalizado');
 
 // Quitar una homologación después de finalizar lo deja desactualizado y con una cuenta pendiente.
 ctrib_homologar($pdo, 1, $anio, '405038', '', $usuario, 'Prueba');

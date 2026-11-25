@@ -97,6 +97,25 @@ a.cv-archivo:hover { text-decoration: underline; }
 .cv-btn-pdf { background: #fff; border: 1px solid #111827; border-radius: 6px; padding: 5px 10px; font: inherit; font-size: 12.5px; color: #111827; cursor: not-allowed; }
 .cv-btn-pdf:disabled { opacity: .45; }
 .cv-btn-pdf:not(:disabled) { cursor: pointer; }
+
+/* Ventana del incentivo al ahorro (1432), sobre la ventana del R17. Se cierra con la X, Cancelar o Esc; no con clic fuera. */
+.cv-sub { position: fixed; inset: 0; background: rgba(15, 23, 42, .35); display: flex; align-items: center; justify-content: center; padding: 18px; z-index: 80; }
+.cv-sub-caja { background: #fff; border-radius: 10px; width: min(600px, 100%); max-height: 92vh; overflow: auto; padding: 16px 22px 18px; box-shadow: 0 12px 34px rgba(0, 0, 0, .3); font-size: 13.5px; }
+.cv-sub-cab { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+.cv-sub-label { display: block; font-weight: 600; margin: 10px 0 4px; }
+.cv-sub-input { width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font: inherit; background: #f9fafb; box-sizing: border-box; }
+.cv-sub-num { text-align: right; background: #fff; }
+.cv-sub-link { background: none; border: 0; padding: 4px 0; color: var(--cv-azul-texto); font: inherit; font-size: 12.5px; cursor: pointer; text-decoration: underline; }
+.cv-sub-check { display: flex; gap: 10px; align-items: flex-start; margin: 10px 0; line-height: 1.45; cursor: pointer; }
+.cv-sub-check input { margin-top: 3px; }
+.cv-sub-check small { color: var(--cv-suave); }
+.cv-sub-calculo { border: 1px solid var(--cv-borde); border-radius: 8px; padding: 10px 14px; margin: 12px 0; }
+.cv-sub-fila { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; font-variant-numeric: tabular-nums; }
+.cv-sub-calculo hr { border: 0; border-top: 1px solid var(--cv-borde); margin: 6px 0; }
+.cv-sub-ayuda { font-size: 12px; color: var(--cv-suave); margin: 6px 0 10px; }
+.cv-sub-guardar { width: 100%; background: #111827; color: #fff; border: 0; border-radius: 6px; padding: 10px; font: inherit; font-weight: 700; cursor: pointer; }
+.cv-sub-guardar:disabled { opacity: .5; cursor: not-allowed; }
+.cv-sub-cancelar { width: 100%; background: none; border: 0; padding: 8px; font: inherit; color: #374151; cursor: pointer; }
 .cv-btn-pdf:not(:disabled):hover { border-color: var(--cv-azul); color: var(--cv-azul-texto); }
 @media (max-width: 760px) { .cv-rep { grid-template-columns: 1fr; } .cv-rep-acc { justify-content: flex-start; } }
 

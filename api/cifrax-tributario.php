@@ -135,6 +135,11 @@ ejecutar(function (PDO $pdo, int $empresa) {
             $datos = cuerpoJson();
             return ctrib_certificado_emitir($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), (string) ($datos['rut'] ?? ''), $usuario);
         }
+        if ($metodo === 'POST' && $accion === 'r17_incentivo') {
+            $datos = cuerpoJson();
+            return ctrib_incentivo_guardar($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), !empty($datos['elegibilidad']),
+                !empty($datos['limiteIngresos']), !empty($datos['limiteRentasPasivas']), $datos['monto'] ?? null, $usuario);
+        }
         if ($metodo === 'POST' && $accion === 'composicion_guardar') {
             $datos = cuerpoJson();
             $anio = ctrib_anio_desde($datos['anio'] ?? null);
