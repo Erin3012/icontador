@@ -287,10 +287,18 @@ function ctrib_documento_cuerpo(PDO $pdo, int $empresa, int $anio, string $doc, 
         case 'R17':
             $r = ctrib_r17($pdo, $empresa, $anio);
             $lineas = array_map(function (array $l) {
+                $partes = [];
+                $x = $l['existencias'] ?? null;
+                if ($x && $x['configurado']) {
+                    $partes[] = 'Existencias: final ' . ctrib_pesos($x['saldoFinal']) . ' − inicial ' . ctrib_pesos($x['saldoInicial']) . ' = variación ' . ctrib_pesos($x['variacion']);
+                }
                 $a = $l['ajuste'] ?? null;
                 if ($a && $a['configurado']) {
-                    $l['detalle'] = ctrib_h('Devengado ' . ctrib_pesos($a['devengado']) . ' + saldo inicial ' . $a['tipo'] . ' ' . ctrib_pesos($a['saldoInicial'])
-                        . ' − saldo final ' . ctrib_pesos($a['saldoFinal']) . ($a['repartoAnioAnterior'] ? ' · ' . ctrib_pesos($a['repartoAnioAnterior']) . ' al ' . $a['destinoReparto'] : ''));
+                    $partes[] = 'Devengado ' . ctrib_pesos($a['devengado']) . ' + saldo inicial ' . $a['tipo'] . ' ' . ctrib_pesos($a['saldoInicial'])
+                        . ' − saldo final ' . ctrib_pesos($a['saldoFinal']) . ($a['repartoAnioAnterior'] ? ' · ' . ctrib_pesos($a['repartoAnioAnterior']) . ' al ' . $a['destinoReparto'] : '');
+                }
+                if ($partes) {
+                    $l['detalle'] = ctrib_h(implode(' · ', $partes));
                 }
                 return $l;
             }, $r['lineas']);

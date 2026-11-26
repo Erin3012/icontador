@@ -37,6 +37,20 @@ function ctrib_schema(PDO $pdo): void
         saldo_final BIGINT NULL,
         PRIMARY KEY (empresa_id, anio, codigo)
     )$motor");
+    // Cuentas de existencias del 1409 (su variación del año suma al devengado) y sus saldos manuales.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_existencias_cuentas (
+        empresa_id INT NOT NULL DEFAULT 0,
+        anio INT NOT NULL,
+        cuenta VARCHAR(20) NOT NULL,
+        PRIMARY KEY (empresa_id, anio, cuenta)
+    )$motor");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_existencias_saldos (
+        empresa_id INT NOT NULL DEFAULT 0,
+        anio INT NOT NULL,
+        saldo_inicial BIGINT NULL,
+        saldo_final BIGINT NULL,
+        PRIMARY KEY (empresa_id, anio)
+    )$motor");
     // Partidas agregadas o deducidas del resultado del balance en el informe de RLI.
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_rli_partidas (
         id $id,
