@@ -1,0 +1,2865 @@
+[
+ {
+  "codigo": "1.00.00.00",
+  "descripcion": "ACTIVOS",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "1.01.00.00",
+  "descripcion": "ACTIVOS CORRIENTES",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "1.01.01.00",
+  "descripcion": "Disponible",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.03.00",
+  "descripcion": "Depósitos a plazo",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.05.00",
+  "descripcion": "Valores negociables",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.07.00",
+  "descripcion": "Instrumentos derivados",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.09.00",
+  "descripcion": "Pactos Retrocompra- Retroventa",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.15.00",
+  "descripcion": "Inversiones en el Exterior",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.20.00",
+  "descripcion": "Deudores por venta, neto (excluye deudores por leasing)",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.21.00",
+  "descripcion": "Deudores por Leasing",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.25.00",
+  "descripcion": "Documentos por cobrar",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.30.00",
+  "descripcion": "Deudores varios",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.40.00",
+  "descripcion": "Documentos y cuentas por cobrar empresas relacionadas situadas en Chile (cuenta corriente mercantil)",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.41.00",
+  "descripcion": "Documentos y cuentas por cobrar empresas relacionadas situadas en el Extranjero (cuenta corriente mercantil)",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.50.00",
+  "descripcion": "Existencias, neto",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.51.00",
+  "descripcion": "Activos Biológicos, neto",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.55.00",
+  "descripcion": "Existencias en Tránsito",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.59.00",
+  "descripcion": "IVA Crédito Fiscal",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.60.00",
+  "descripcion": "Impuestos por recuperar",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.61.00",
+  "descripcion": "Créditos por Donaciones",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.62.00",
+  "descripcion": "Otros Créditos por recuperar",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.63.00",
+  "descripcion": "Gastos Anticipados",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.64.00",
+  "descripcion": "Impuesto Diferido",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.70.00",
+  "descripcion": "Bienes entregados en leasing",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.01.99.00",
+  "descripcion": "Otros activos corrientes",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.00.00",
+  "descripcion": "ACTIVOS NO CORRIENTES",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "1.02.10.00",
+  "descripcion": "Propiedad Planta y Equipos y Otros  (excepto bienes entregados en Leasing)",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.11.00",
+  "descripcion": "Terrenos",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.12.00",
+  "descripcion": "Construcción y obras de infraestructura",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.13.00",
+  "descripcion": "Maquinarias y equipos",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.14.00",
+  "descripcion": "Muebles y utiles",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.15.00",
+  "descripcion": "Equipos Computacionales y similares",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.16.00",
+  "descripcion": "Automóviles",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.17.00",
+  "descripcion": "Vehículos",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.18.00",
+  "descripcion": "Barcos y Aviones",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.19.00",
+  "descripcion": "Propiedades de Inversion",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.25.00",
+  "descripcion": "Software",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.26.00",
+  "descripcion": "Concesiones",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.27.00",
+  "descripcion": "Obras en Ejecución",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.30.00",
+  "descripcion": "Activos en Leasing",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.90.00",
+  "descripcion": "Depreciación Acumulada (excepto Automoviles y Activos en Leasing)",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.92.00",
+  "descripcion": "Depreciación Acumulada Automóviles",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.95.00",
+  "descripcion": "Depreciación Acumulada Activos en Leasing",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.02.99.00",
+  "descripcion": "Otros Bienes Propiedad Planta y Equipo",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.00.00",
+  "descripcion": "OTROS ACTIVOS NO CORRIENTES",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "1.03.01.00",
+  "descripcion": "Inversiones en empresas relacionadas",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": true,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.03.00",
+  "descripcion": "Menor valor de inversiones (Plusvalias, Goodwill)",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": true,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.04.00",
+  "descripcion": "Mayor valor de inversiones (Minusvalias, Badwill)",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": true,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.05.00",
+  "descripcion": "Cuenta Particular Socio",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": true,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.10.00",
+  "descripcion": "Inversiones en otras sociedades en Chile",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": true,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.11.00",
+  "descripcion": "Inversiones en otras sociedades en el extranjero",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": true,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.15.00",
+  "descripcion": "Cuenta en participacion",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": true,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.16.00",
+  "descripcion": "Inversion en Agencias",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": true,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.20.00",
+  "descripcion": "Deudores a largo plazo",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.24.00",
+  "descripcion": "Anticipo y préstamos a los empleados",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.25.00",
+  "descripcion": "Anticipo a proveedores",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.30.00",
+  "descripcion": "Gastos pagados por anticipado",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.31.00",
+  "descripcion": "Gastos de Investigación y Desarrollo",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.32.00",
+  "descripcion": "Gastos Diferidos",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.33.00",
+  "descripcion": "Menor Valor en Colocacion de bonos",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.40.00",
+  "descripcion": "Intereses Diferidos por Leasing",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.41.00",
+  "descripcion": "Otros Intereses Diferidos",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.45.00",
+  "descripcion": "Garantias",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.50.00",
+  "descripcion": "Impuestos diferidos",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.60.00",
+  "descripcion": "Intangibles distintos a la Plusvalia (neto)",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.70.00",
+  "descripcion": "Posicion de Cambio",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.71.00",
+  "descripcion": "Intereses Suspendidos",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.98.00",
+  "descripcion": "Cuentas de Orden de Activos",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "1.03.99.00",
+  "descripcion": "Otros Activos No Corrientes",
+  "grupo": "ACTIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.00.00.00",
+  "descripcion": "PASIVOS",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "2.01.00.00",
+  "descripcion": "PASIVOS CORRIENTES",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "2.01.01.00",
+  "descripcion": "Obligaciones con bancos e instituciones financieras",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.03.00",
+  "descripcion": "Obligaciones con el público (Bonos Emitidos)",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.04.00",
+  "descripcion": "Obligaciones por Leasing",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.07.00",
+  "descripcion": "Instrumentos derivados",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.08.00",
+  "descripcion": "Fondo Opcion de Compra por Pagar (Leasing)",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.10.00",
+  "descripcion": "Cuentas por pagar",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.11.00",
+  "descripcion": "Proveedores por Pagar",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.12.00",
+  "descripcion": "Acreedores varios",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.14.00",
+  "descripcion": "Documentos por pagar",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.20.00",
+  "descripcion": "Dividendos por pagar",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.40.00",
+  "descripcion": "Documentos y cuentas por pagar empresas relacionadas situadas en Chile (cuenta corriente mercantil)",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.41.00",
+  "descripcion": "Documentos y cuentas por pagar empresas relacionadas situadas en el Extranjero (cuenta corriente mercantil)",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.50.00",
+  "descripcion": "Provision de Indemnización",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.51.00",
+  "descripcion": "Provisiones por Vacaciones, por Bonos y por otros Beneficios a los Empleados",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.54.00",
+  "descripcion": "Otras Provisiones",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.55.00",
+  "descripcion": "Retenciones por Pagar",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.59.00",
+  "descripcion": "IVA Débito Fiscal",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.60.00",
+  "descripcion": "Impuesto a la renta por Pagar",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.61.00",
+  "descripcion": "Otros Impuestos por Pagar",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.62.00",
+  "descripcion": "Ingresos percibidos por adelantado",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.70.00",
+  "descripcion": "Anticipo de Clientes",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.01.99.00",
+  "descripcion": "Otros pasivos Corrientes",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.02.00.00",
+  "descripcion": "PASIVOS NO CORRIENTES",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "2.02.01.00",
+  "descripcion": "Obligaciones con bancos e instituciones financieras",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.02.02.00",
+  "descripcion": "Obligaciones con el público (Bonos Emitidos)",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.02.03.00",
+  "descripcion": "Documentos por pagar largo plazo",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.02.04.00",
+  "descripcion": "Acreedores varios largo plazo",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.02.06.00",
+  "descripcion": "Provisiones",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.02.07.00",
+  "descripcion": "Impuestos diferidos",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.02.98.00",
+  "descripcion": "Cuentas de Orden de Pasivos",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.02.99.00",
+  "descripcion": "Otros pasivos NO Corrientes",
+  "grupo": "PASIVO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.00.00",
+  "descripcion": "PATRIMONIO",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "2.03.01.00",
+  "descripcion": "Capital pagado",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.02.00",
+  "descripcion": "Reserva revalorización capital",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.03.00",
+  "descripcion": "Sobreprecio en venta de acciones propias",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.04.00",
+  "descripcion": "Otras reservas",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.05.00",
+  "descripcion": "Reservas futuros dividendos",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.06.00",
+  "descripcion": "Utilidades acumuladas",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.07.00",
+  "descripcion": "Pérdidas acumuladas",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.08.00",
+  "descripcion": "Dividendos provisorios",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.09.00",
+  "descripcion": "Cuenta Obligada Socio",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.20.00",
+  "descripcion": "Reserva Ajuste IFRS por 1a Aplicación",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.21.00",
+  "descripcion": "Reserva Ajuste IFRS",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.30.00",
+  "descripcion": "Valor Mercado Intrumentos Derivados de Cobertura acogidos Ley 20.544",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.31.00",
+  "descripcion": "Valor Mercado Intrumentos Derivados de Cobertura No acogidos Ley 20.544",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "2.03.99.00",
+  "descripcion": "Otros ajustes patrimoniales",
+  "grupo": "PATRIMONIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.01.00.00",
+  "descripcion": "Resultado De Explotacion",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "3.01.01.00",
+  "descripcion": "Ingresos de explotación",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.01.02.00",
+  "descripcion": "Costos de explotación",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.01.03.00",
+  "descripcion": "Gastos de administración y ventas",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.01.11.00",
+  "descripcion": "Ingresos de explotación con partes relacionadas del exterior",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.01.12.00",
+  "descripcion": "Costos de explotación con relacionados del exterior",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.01.13.00",
+  "descripcion": "Gastos de administración y ventas con relacionados del exterior",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.02.00.00",
+  "descripcion": "Resultado Fuera De Explotacion",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "3.02.01.00",
+  "descripcion": "Ingresos financieros",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.02.02.00",
+  "descripcion": "Utilidad (pérdida) inversiones empresas relacionadas",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.02.03.00",
+  "descripcion": "Otros ingresos fuera de la explotación",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.02.06.00",
+  "descripcion": "Gastos financieros con empresas relacionadas",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.02.07.00",
+  "descripcion": "Gastos financieros con empresas no relacionadas",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.02.08.00",
+  "descripcion": "Resultado por Instrumentos Derivados",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.02.11.00",
+  "descripcion": "Ingresos financieros con partes relacionadas del exterior",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.02.16.00",
+  "descripcion": "Gastos financieros con partes relacionadas del exterior",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.02.30.00",
+  "descripcion": "Intereses percibidos o devengado con partes relacionadas del exterior",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.02.31.00",
+  "descripcion": "Intereses pagados o adeudados con partes relacionadas del exterior",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.03.00.00",
+  "descripcion": "Resultados que no representan flujo de fondos",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "3.03.01.00",
+  "descripcion": "Depreciacion",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.03.02.00",
+  "descripcion": "Deterioros",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.03.03.00",
+  "descripcion": "Amortización Intangibles distintos a las Plusvalias",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.03.04.00",
+  "descripcion": "Amortización menor valor de inversiones (Goodwill)",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.03.05.00",
+  "descripcion": "Amortización mayor valor de inversiones",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.03.06.00",
+  "descripcion": "Castigos",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.03.07.00",
+  "descripcion": "Deudores Incobrables",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.04.00.00",
+  "descripcion": "Ajustes a Valor de Mercado",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "3.04.01.00",
+  "descripcion": "Valor Mercado Instrumentos Derivados acogidos Ley 20.544",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.04.02.00",
+  "descripcion": "Valor Mercado Instrumentos Derivados NO acogidos Ley 20.544",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.04.03.00",
+  "descripcion": "Ajuste Valor Mercado Existencias (VNR) y Activos Biologicos",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.04.04.00",
+  "descripcion": "Ajuste Valor Mercado Propiedad Planta y Equipo, Propiedad Inversion, Activos No Corrientes Mantenidos para la Venta",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.04.05.00",
+  "descripcion": "Ajuste Valor Mercado Fondos Mutuos",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.04.06.00",
+  "descripcion": "Ajuste Valor Mercado Valores Negociables",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.04.07.00",
+  "descripcion": "Ajuste Valor Neto Realización",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.04.99.00",
+  "descripcion": "Otros Ajustes a Valor Mercado",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.05.00.00",
+  "descripcion": "Otros Resultados",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "3.05.01.00",
+  "descripcion": "Resultado por la Enajenacion de Inversiones Permanentes",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.05.02.00",
+  "descripcion": "Resultado por la Enajenacion de Inversiones en otras sociedades",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.05.05.00",
+  "descripcion": "Resultado por la Enajenacion de Inversiones en Valores Negociables",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.05.07.00",
+  "descripcion": "Resultado por la Enajenacion Propiedad Planta y Equipos,Propiedad de Inversion y Activos no Corrientes mantenidos para la venta",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.05.08.00",
+  "descripcion": "Resultado enajenación Activo Fijo",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.05.09.00",
+  "descripcion": "Utilidad (pérdida) por resultados devengados en Otras Sociedades",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.05.10.00",
+  "descripcion": "Otros egresos fuera de la explotación",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.05.11.00",
+  "descripcion": "Corrección monetaria",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.05.12.00",
+  "descripcion": "Diferencias de cambio",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.05.13.00",
+  "descripcion": "Donaciones",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.05.15.00",
+  "descripcion": "Intereses,Multas y Reajustes",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.05.16.00",
+  "descripcion": "Patentes Municipales",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.05.17.00",
+  "descripcion": "Otros Impuestos",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.06.00.00",
+  "descripcion": "Resultado Antes de Impuesto a la Renta",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "3.06.01.00",
+  "descripcion": "Impuesto a La Renta",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "3.06.02.00",
+  "descripcion": "Impuesto Diferido",
+  "grupo": "RESULTADO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.00",
+  "descripcion": "Por Efectivo y Valores Negociables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.01.01",
+  "descripcion": "Corr.mon. de las acciones de sociedades anónimas (SPA, FIP)  Art. 41 inciso 1 N°8",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.02",
+  "descripcion": "Corr.mon. de los aportes en sociedades de personas. Art. 41 inciso 1 N°9",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.03",
+  "descripcion": "Corr.mon.bonos, pagares y otros activos financieros",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.04",
+  "descripcion": "Interes a valor tributario por activos financieros",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.05",
+  "descripcion": "Dividendos o retiros percibidos contabilizados en ingresos según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.06",
+  "descripcion": "Ajuste por Valor Mercado de Fondos Mutuos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.07",
+  "descripcion": "Ajuste por Valor Mercado otros instrumentos Financieros",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.08",
+  "descripcion": "Deterioro por activos financieros",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.09",
+  "descripcion": "Ajuste tasa efectiva por activos financieros",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.10",
+  "descripcion": "Resultado por Enajenación activos financieros según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.11",
+  "descripcion": "Resultado por Enajenación activos financieros a valor tributario",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.12",
+  "descripcion": "Participaciones percibidos desde Fondos Mutuos, o Fondos de Inversión",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.98",
+  "descripcion": "Otros agregados al resultado tributario por activos financieros",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.01.99",
+  "descripcion": "Otros deducidos al resultado tributario por activos financieros",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.02.00",
+  "descripcion": "Por Instrumentos Derivados y contratos de Retrocompra o Retroventa",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.02.01",
+  "descripcion": "Valor mercado instrumentos derivados NO acogidos Ley 20.544",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.02.02",
+  "descripcion": "Valor mercado instrumentos derivados registrados en patrimonio acogidos Ley 20.544",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.02.03",
+  "descripcion": "Ineficacia por Instrumentos derivados",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.02.04",
+  "descripcion": "Ajuste por pactos o contratos de retrocompra y/o retroventa según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.02.05",
+  "descripcion": "Ajuste por pactos, contratos de retrocompra y/o retroventa a valor tributario",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.02.96",
+  "descripcion": "Otros agregados al resultado tributario por instrumentos derivados",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.02.97",
+  "descripcion": "Otras deducciones al resultado tributario por instrumentos derivados",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.02.98",
+  "descripcion": "Otros agregados al resultado tributario por pactos, pactos retrocompra y/o retroventa",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.02.99",
+  "descripcion": "Otras deducciones al resultado tributario por pactos, pactos retrocompra y/o retroventa",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.03.00",
+  "descripcion": "Por deudores comerciales",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.03.01",
+  "descripcion": "Castigo directo deudores incobrables según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.03.02",
+  "descripcion": "Estimación deudores incobrables según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.03.03",
+  "descripcion": "Castigo deudores incobrables Art.31 Inciso 4 N°4  > 365 días",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.03.04",
+  "descripcion": "Estimacion deudores incobrables Art.31 Inciso 4 N°4  <= 365 días",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.03.05",
+  "descripcion": "Resultado por Venta de Cartera según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.03.06",
+  "descripcion": "Resultado por Venta de Cartera a Valor Tributario",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.03.07",
+  "descripcion": "Ajuste por Colocaciones por efecto de Tasa Efectiva",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.03.98",
+  "descripcion": "Otros agregados al resultado tributario por deudores comericales",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.03.99",
+  "descripcion": "Otras deducciones al resultado tributario por deudores incobrables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.04.00",
+  "descripcion": "Por Activo realizable (inventarios) y Activos Biológicos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.04.01",
+  "descripcion": "Corr.mon. de los bienes físicos del activo realizable (inventarios)  Art. 41 inciso 1 N°3 LIR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.04.02",
+  "descripcion": "Ajuste por  Valor Neto Realización",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.04.03",
+  "descripcion": "Ajuste por Provision Obsolescencia",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.04.04",
+  "descripcion": "Ajuste por concepto de acortamiento",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.04.05",
+  "descripcion": "Ajuste por CIF activados financieramente",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.04.06",
+  "descripcion": "Costo de Ventas según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.04.07",
+  "descripcion": "Costo directo de bienes y servicios Art.30 LIR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.04.08",
+  "descripcion": "Ajuste Valor Mercado activos Biológicos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.04.09",
+  "descripcion": "Ajuste por Costo Financiero activado (Intereses activados en inventario)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.04.98",
+  "descripcion": "Otros agregados al resultado tributario por inventarios",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.04.99",
+  "descripcion": "Otras deducciones al resultado tributario por inventarios",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.00",
+  "descripcion": "Por Propiedad Planta y Equipo , Propiedades de Inversion  y Activos disponibles para la Venta  (excluye a Bienes entregados en Leasing)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.05.01",
+  "descripcion": "Corr.mon. de los bienes físicos del activo inmovilizado. Art. 41 inciso 1 N°2",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.02",
+  "descripcion": "Deterioro (Impairtment) propiedad planta y equipo según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.03",
+  "descripcion": "Pérdida por revalorización propiedad planta y equipo según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.04",
+  "descripcion": "Castigo Financiero propiedad planta y equipo  según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.05",
+  "descripcion": "Depreciación Financiera según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.06",
+  "descripcion": "Depreciación Normal bienes físicos del activo inmovilizado Art.31 Inciso 4 N°5",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.07",
+  "descripcion": "Depreciación Acelerada bienes físicos del activo inmovilizado Art.31 Inciso 4 N°5",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.08",
+  "descripcion": "Ajuste por Costo Financiero activado (Intereses activados PPE)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.09",
+  "descripcion": "Utilidad por revalorización propiedad planta y equipo según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.10",
+  "descripcion": "Ajuste Valor Mercado Propiedades de Inversión",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.11",
+  "descripcion": "Ajuste Valor Mercado Activos mantenidos para la venta",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.12",
+  "descripcion": "Ajuste Valor Mercado Activos provenientes de Intercambios de activos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.13",
+  "descripcion": "Provisión bienes recibidos en pago, remate judicial o de aquellos disponibles para la venta",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.14",
+  "descripcion": "Resultado por Enajenacion de propiedad planta y equipo, Propiedades de Inversion y Activos disponibles para la venta según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.15",
+  "descripcion": "Resultado por Enajenacion de  bienes físicos del activo inmovilizado (valor tributario)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.16",
+  "descripcion": "Castigo Tributario de los bienes físicos del activo inmovilizado",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.17",
+  "descripcion": "Ajuste por Remodelaciones Bienes Propios",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.18",
+  "descripcion": "Ajuste por Remodelaciones Bienes de Terceros",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.20",
+  "descripcion": "Dep.Acel.bienes físicos del activo inmovilizado Art.31 Inciso 4 N°5 Bis (1/10 Depreciacion)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.21",
+  "descripcion": "Dep.Acel. 50% activo inmovilizado utilizado en el ejercicio (art. 21° transitorio Ley N° 21.210)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.22",
+  "descripcion": "Dep.Acel. 100% activo inmovilizado adquirido en el ejercicio (art. 22° transitorio Ley N° 21.210)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.23",
+  "descripcion": "Dep.Acel. 100%  N°3 del Art.3 de la Ley 21.256 (Acuerdo de reactivación) (art. 22° Bis transitorio Ley N° 21.210)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.96",
+  "descripcion": "Otros agregados o deducciones por Propiedades de Inversión",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.97",
+  "descripcion": "Otros agregados o deducciones por activos mantenidos para la venta",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.98",
+  "descripcion": "Otros agregados al resultado tributario por activo fijo",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.05.99",
+  "descripcion": "Otras deducciones al resultado tributario por activo fijo",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.06.00",
+  "descripcion": "Activos contratados por leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.06.01",
+  "descripcion": "Depreciación de activos en leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.06.02",
+  "descripcion": "Intereses pagados por Leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.06.03",
+  "descripcion": "Reajustes por  Obligaciones por Leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.06.04",
+  "descripcion": "Reajustes por Intereses Diferidos por Leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.06.05",
+  "descripcion": "Cuotas pagadas por Leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.06.06",
+  "descripcion": "Cuotas anticipadas por Leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.06.98",
+  "descripcion": "Otros agregados al resultado tributario por  activos en leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.06.99",
+  "descripcion": "Otras deducciones al resultado tributario por activos en leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.07.00",
+  "descripcion": "Activos intangibles distintos de la plusvalía (neto)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.07.01",
+  "descripcion": "Corr.mon. de los derechos de llave, pertenencias, concesiones mineras y otros. Art. 41 inciso 1 N°6",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.07.02",
+  "descripcion": "Corr.mon. de los gastos de organización y puesta en marcha, Art. 41 inciso 1 N°7",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.07.03",
+  "descripcion": "Corr.mon. de los costos y gastos diferidos. Art. 41 inciso 1 N°7",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.07.04",
+  "descripcion": "Amortización de derechos de llave, pertenencias y concesiones mineras (Valor Financiero)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.07.05",
+  "descripcion": "Amortización gastos de organización y puesta en marcha",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.07.06",
+  "descripcion": "Amortizacion de los costos y gastos diferidos. Art. 41 inciso 1 N°7",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.07.98",
+  "descripcion": "Otros agregados al resultado tributario por intangibles",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.07.99",
+  "descripcion": "Otras deducciones al resultado tributario por intangibles",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.00",
+  "descripcion": "Por Inversiones en otras Entidades o Entidades Relacionadas",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.08.01",
+  "descripcion": "Corr.mon. de las acciones de sociedades anónimas (SPA, FIP)  Art. 41 inciso 1 N°8",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.02",
+  "descripcion": "Corr.mon. de los aportes en sociedades de personas. Art. 41 inciso 1 N°9",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.03",
+  "descripcion": "Corr.Mon.derechos Moneda Extranjera art.41 N°4  (agencias)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.04",
+  "descripcion": "Resultado devengado en sociedades situadas en Chile",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.05",
+  "descripcion": "Resultado devengado en sociedades situadas en el Exterior",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.06",
+  "descripcion": "Resultado devengado en Agencia u otro establecimiento permanente",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.07",
+  "descripcion": "Resultado por Enajenación Inversiones en otras Entidades según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.08",
+  "descripcion": "Resultado por Enajenación Inversiones en otras Entidades a Valor Tributario",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.09",
+  "descripcion": "Dividendos o Retiros percibidos entidades relacionadas en Chile",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.10",
+  "descripcion": "Dividendos percibidos desde el exterior",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.11",
+  "descripcion": "Crédito total disponible",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.12",
+  "descripcion": "Gastos directos rentas extranjeras",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.13",
+  "descripcion": "Gastos comunes  rentas extranjeras",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.98",
+  "descripcion": "Otros agregados al resultado tributario por Inversiones en otras Entidades",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.08.99",
+  "descripcion": "Otras deducciones al resultado tributario por inversiones en otras Entidades",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.09.00",
+  "descripcion": "Por Plusvalía (Goodwill) y Minusvalia (Badwill)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.09.01",
+  "descripcion": "Deteriorio por Goodwill",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.09.02",
+  "descripcion": "Corr.Mon.Goodwill en relacion Art.31 inciso 4 N°9",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.09.03",
+  "descripcion": "Amortización menor valor tributario en fusión Art.31 inciso 4 N°9",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.09.04",
+  "descripcion": "Corr.Mon.Mayor valor tributario en fusión Art.15",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.09.05",
+  "descripcion": "Ingreso por mayor valor tributario en fusión Art.15",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.09.06",
+  "descripcion": "Corr.Mon. Intangible por Goodwill en relacion Art.31 inciso 4 N°9 (Ley 20.780)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.09.98",
+  "descripcion": "Otros agregados al resultado tributario por Goodwil y/o Badwill",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.09.99",
+  "descripcion": "Otras deducciones al resultado tributario por Goodwil y/o Badwill",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.00",
+  "descripcion": "Por Bienes entregados en Leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.10.01",
+  "descripcion": "Corr.mon. de los bienes físicos del activo inmovilizado (entregados en leasing) . Art. 41 inciso 1 N°2",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.02",
+  "descripcion": "Ingreso por cuotas percibidas por leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.03",
+  "descripcion": "Ingreso por cuotas devengadas por leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.04",
+  "descripcion": "Ingreso por Intereses por leasing según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.05",
+  "descripcion": "Ingreso Tributario por Seguros Devengados por Bienes Siniestrados",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.06",
+  "descripcion": "Resultado por reajustes por leasing según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.07",
+  "descripcion": "Estimación deudores incobrables por leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.08",
+  "descripcion": "Depreciación Normal bienes entregados en  leasing (valor tributario)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.09",
+  "descripcion": "Depreciación Acelerada bienes entregados en  leasing (valor tributario)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.10",
+  "descripcion": "Otros ingresos por leasing según registros contables",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.11",
+  "descripcion": "Costo Venta Bienes entregados en Leasing  (al término del contrato)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.12",
+  "descripcion": "Costo Venta Bienes entregados en Leasing (anticipado o cedido)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.13",
+  "descripcion": "Gastos relacionados con Leasing, (Notariales, seguros, entre otros)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.98",
+  "descripcion": "Otros agregados al resultado tributario por  bienes entregados  en leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.10.99",
+  "descripcion": "Otras deducciones al resultado tributario por activos bienes entregados en leasing",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.11.00",
+  "descripcion": "Por Otros pasivos financieros, corrientes",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.11.01",
+  "descripcion": "Ajuste tasa efectiva en obligaciones con bancos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.11.02",
+  "descripcion": "Gastos diferidos por obligaciones con bancos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.11.03",
+  "descripcion": "Menor Valor en Colocacion de Bonos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.11.04",
+  "descripcion": "Corrección monetaria Menor Valor Bonos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.11.05",
+  "descripcion": "Amortizacion Menor Valor Bonos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.11.06",
+  "descripcion": "Gastos diferidos por Colocacion de Bonos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.11.07",
+  "descripcion": "Corrección monetaria Gastos Diferidos por Colocacion de Bonos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.11.08",
+  "descripcion": "Amortización Gastos diferidos por Colocacion de Bonos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.11.09",
+  "descripcion": "Ajuste a Valor de Mercado por Bonos emitidos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.11.10",
+  "descripcion": "Intereses Financieros por Bonos Emitidos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.11.11",
+  "descripcion": "Intereses a Valor Tributario por Bonos Emitidos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.11.98",
+  "descripcion": "Otros agregados al resultado tributario por bonos emitidos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.11.99",
+  "descripcion": "Otros deducciones al resultado tributario por bonos emitidos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.12.00",
+  "descripcion": "Por Impuesto a la Renta e Impuesto Diferido",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.12.01",
+  "descripcion": "Provisión Impuesto Renta 1a Categoría",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.12.02",
+  "descripcion": "Provisión Impuesto Único Artículo 21 (40%)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.12.03",
+  "descripcion": "Provisión Impuesto a la actividad Minera",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.12.04",
+  "descripcion": "Provisión Impuesto Único Empresa Estatal",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.12.06",
+  "descripcion": "Impuesto Diferido",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.12.99",
+  "descripcion": "Otras Provisiones por Impuestos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.13.00",
+  "descripcion": "Por Provisiones Corrientes y No Corrientes por Beneficios a los Empleados",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.13.01",
+  "descripcion": "Provisión Vacaciones",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.13.02",
+  "descripcion": "Provisión Gratificaciones",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.13.03",
+  "descripcion": "Indemnización años de Servicios  Valor Financiero",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.13.04",
+  "descripcion": "Indemnización años de Servicios  Valor Tributario",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.13.05",
+  "descripcion": "Provisión por Bonos Metas, Bono Eficiencia, (entre otros)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.13.06",
+  "descripcion": "Pagos Basados en Acciones",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.13.98",
+  "descripcion": "Provisiones por Beneficios Definidos",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.13.99",
+  "descripcion": "Otras Provisiones por Beneficios Empleados",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.14.00",
+  "descripcion": "Por Otras Provisiones",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.14.01",
+  "descripcion": "Provisión Gastos Por Pagar",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.14.02",
+  "descripcion": "Provisión Otras Eventualidades",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.14.03",
+  "descripcion": "Provisión Juicio Laboral",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.14.04",
+  "descripcion": "Provisiones Adicionales",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.14.05",
+  "descripcion": "Provisiones Riesgo Pais",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.14.99",
+  "descripcion": "Otras Provisiones",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.15.00",
+  "descripcion": "Por Capital Propio",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.15.01",
+  "descripcion": "Corr.mon. del capital propio, Art. 41 inciso 1 N°1",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.15.02",
+  "descripcion": "Corr.mon. del capital propio, aumentos Art. 41 inciso 1 N°1",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.15.03",
+  "descripcion": "Corr.mon. del capital propio, disminuciones de capital. Art. 41 inciso 1 N°1",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.20.00",
+  "descripcion": "Por Contratos de construccion",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.01.20.01",
+  "descripcion": "Resultado por contrato de Promesa de Venta según registro contable",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.20.02",
+  "descripcion": "Resultado por contrato de Suma Alzada según registro contable",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.20.03",
+  "descripcion": "Resultado por contrato de Obra de uso público según registro contable",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.20.04",
+  "descripcion": "Resultado por contrato de Promesa de Venta a valor tributario",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.20.05",
+  "descripcion": "Resultado por contrato de Suma Alzada a valor tributario",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.20.06",
+  "descripcion": "Resultado por contrato de Obra de uso público a valor tributario",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.20.98",
+  "descripcion": "Otros agregados al resultado tributario por contratos de construcción",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.01.20.99",
+  "descripcion": "Otras deducciones al resultado tributario por contrato de construcción",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.01.00",
+  "descripcion": "Por Ingreso NO renta (INR)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.03.01.01",
+  "descripcion": "INR por enajenación de instrumentos de deuda de oferta pública Art.104 LIR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.01.02",
+  "descripcion": "INR por enajenación de valores Art.107 LIR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.01.03",
+  "descripcion": "INR provenientes de la explotación de bienes raices no agricolas D.F.L.N°2",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.01.04",
+  "descripcion": "Costo Directo INR por enajenación de instrumentos de deuda de oferta pública Art.104 LIR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.01.05",
+  "descripcion": "Costo Directo INR por enajenación de valores Art.107 LIR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.01.06",
+  "descripcion": "Costo Directo INR provenientes de la explotación de bienes raices no agricolas D.F.L.N°2",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.01.07",
+  "descripcion": "Gastos Utilización Común INR por enajenación de instrumentos de deuda de oferta pública Art.104 LIR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.01.08",
+  "descripcion": "Gastos Utilización Común INR por enajenación de valores Art.107 LIR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.01.09",
+  "descripcion": "Gastos Utilización Común INR provenientes de la explotación de bienes raices no agricolas D.F.L.N°2",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.01.10",
+  "descripcion": "Otros INR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.01.98",
+  "descripcion": "Otros Costos Directos INR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.01.99",
+  "descripcion": "Otros Gastos Utilización Común",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.02.00",
+  "descripcion": "Por Rentas exentas de primera categoría (REX)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.03.02.01",
+  "descripcion": "Rentas o ingresos exentos de primera categoría",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.02.02",
+  "descripcion": "Costos directos asociados a REX de primera categoría",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.02.03",
+  "descripcion": "Gastos Utilización Común a REX",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.00",
+  "descripcion": "Por Otros Ajustes tributarios",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.03.04.01",
+  "descripcion": "Corr.mon. de los créditos o derechos en moneda extranjera o reajustables. Art. 41 inciso 1 N°4",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.02",
+  "descripcion": "Corr.mon. de monedas extranjeras y de oro. Art. 41 inciso 1 N°5",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.03",
+  "descripcion": "Corr.mon. de deudas u obligaciones en moneda extranjera o reajustables. Art. 41 inciso 1 N°10",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.04",
+  "descripcion": "Corrección monetaria cierre de faenas mineras (Ley 20.551)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.05",
+  "descripcion": "Ingresos de explotación Artículos 15 / 29 LIR  ( Valor Tributario)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.06",
+  "descripcion": "PPUA",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.11",
+  "descripcion": "Interés Devengado Art. 20 N° 2 (Instrumentos Art.104 Lir)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.20",
+  "descripcion": "Deduccion 50% RLI (14 E)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.22",
+  "descripcion": "Deducción Gasto por pago Impuesto Voluntario Art. 14 letra A) N° 6",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.30",
+  "descripcion": "Ingreso Diferido por cambio de régimen",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.31",
+  "descripcion": "Ingresos Devengados por cambio de régimen",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.32",
+  "descripcion": "Gastos adeudados por cambio de régimen",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.40",
+  "descripcion": "Rentas Pasivas devengadas",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.98",
+  "descripcion": "Otros agregados al resultado tributario",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.04.99",
+  "descripcion": "Otras deducciones al resultado tributario",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.00",
+  "descripcion": "Por Gastos rechazados",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.03.05.01",
+  "descripcion": "Contribuciones Bienes Raices",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.02",
+  "descripcion": "Gastos No Documentados",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.04",
+  "descripcion": "Gastos por Donaciones Rechazadas",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.05",
+  "descripcion": "Gastos por Automóvil, Station Wagon y Similares",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.10",
+  "descripcion": "Gastos rechazados no afectos a la tributación del art. 21",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.13",
+  "descripcion": "Gasto por Intereses, Reajustes y Multas Fiscales",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.14",
+  "descripcion": "Gasto por 'Impuesto de Primera Categoría",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.15",
+  "descripcion": "Gasto por 'Reajustes Art.72 LIR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.16",
+  "descripcion": "Gasto por Impuesto Unico Art.21",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.17",
+  "descripcion": "Gasto por Diferencia de créditos por IDPC otorgados en forma indebida o en exceso, (art. 14 letra A) N° 7 LIR)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.18",
+  "descripcion": "Gasto por Diferencia de IA por crédito indebido por IDPC (art. 74 N° 4 inc. 3° )",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.19",
+  "descripcion": "Pago voluntario a título de IDPC, según art. 14 letra A) N° 6 LIR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.20",
+  "descripcion": "Gasto por ISFUT (art.25° Transitorio Ley N°21.210)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.21",
+  "descripcion": "Gasto por IDPC por rectificación del CPT  (art.32° Transitorio Ley 21.210)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.22",
+  "descripcion": "Gasto por Impuesto Único y Sustitutivo de 20% sobre diferencia del CPT  (art.32° Transitorio Ley 21.210)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.23",
+  "descripcion": "Gasto por Impuesto Unico 25% Retiros Desproporcionados (art.39° Transitorio Ley 21.210)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.98",
+  "descripcion": "Otras partidas  que disminuyeron la renta líquida declarada clasificados en la letra b) a g) del N°1 art 33 LIR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.03.05.99",
+  "descripcion": "Otras Partidas segun inciso 2° art 21 LIR",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.04.01.00",
+  "descripcion": "Por Pérdida Tributaria de Arrastre",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": true
+ },
+ {
+  "codigo": "5.04.01.01",
+  "descripcion": "Pérdidas de ejercicios anteriores (art. 31 N° 3 LIR)",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.04.01.10",
+  "descripcion": "Imputaciones a la pérdida Tributaria del ejercicio",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.04.01.11",
+  "descripcion": "Dividendos o retiros percibidos afectos a IGC, que absorben la pérdida tributaria.",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ },
+ {
+  "codigo": "5.04.01.12",
+  "descripcion": "Incremento de los dividendos o retiros percibidos afectos a IGC, que absorben la pérdida tributaria",
+  "grupo": "AJUSTE_TRIBUTARIO",
+  "excepcionTipoCapital": false,
+  "esEncabezado": false
+ }
+]

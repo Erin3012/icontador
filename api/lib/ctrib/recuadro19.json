@@ -1,0 +1,170 @@
+[
+ {
+  "codigo": "1445",
+  "orden": 1,
+  "glosa": "CPT o CPTS positivo inicial",
+  "signo": "POSITIVO",
+  "naturalezaConfiguracion": "AUTO_CON_OVERRIDE",
+  "nota": "AUTO = código 1545 del ejercicio anterior (Recuadro 19 FINALIZADO de la misma empresa). Instructivo 19.1: si el año anterior era 14-A, viene de 645; si era 14-D N°8, de 1581 (recuadro 23). Sin historial confiable en este mismo régimen (primer año, o cambio de régimen), ingreso manual obligatorio."
+ },
+ {
+  "codigo": "1446",
+  "orden": 2,
+  "glosa": "CPT o CPTS negativo inicial",
+  "signo": "NEGATIVO",
+  "naturalezaConfiguracion": "AUTO_CON_OVERRIDE",
+  "nota": "Misma lógica que 1445, en signo negativo (código 1546 del ejercicio anterior)."
+ },
+ {
+  "codigo": "1374",
+  "orden": 3,
+  "glosa": "Capital aportado — empresas que inician actividades",
+  "signo": "POSITIVO",
+  "naturalezaConfiguracion": "MANUAL",
+  "nota": "Instructivo 19.3: capital que los propietarios efectivamente aportaron el año comercial de inicio de actividades. No existe fuente automática."
+ },
+ {
+  "codigo": "1375",
+  "orden": 4,
+  "glosa": "Aumentos (efectivos) de capital del ejercicio",
+  "signo": "POSITIVO",
+  "naturalezaConfiguracion": "MANUAL",
+  "nota": "Instructivo 19.4: monto plano — Pro Pyme no aplica corrección monetaria (a diferencia de 14-A), no requiere fecha ni reajuste mensual."
+ },
+ {
+  "codigo": "1376",
+  "orden": 5,
+  "glosa": "Disminuciones (efectivas) de capital del ejercicio",
+  "signo": "NEGATIVO",
+  "naturalezaConfiguracion": "MANUAL",
+  "nota": "Instructivo 19.5: monto plano, sin reajuste (mismo criterio que 1375)."
+ },
+ {
+  "codigo": "1705",
+  "orden": 6,
+  "glosa": "Base imponible afecta a IDPC del ejercicio",
+  "signo": "POSITIVO",
+  "naturalezaConfiguracion": "AUTO",
+  "nota": "Instructivo 19.6: valor positivo anotado en el código 1440 del Recuadro 17 del snapshot vigente."
+ },
+ {
+  "codigo": "1706",
+  "orden": 7,
+  "glosa": "Pérdida tributaria del ejercicio al 31 de diciembre",
+  "signo": "NEGATIVO",
+  "naturalezaConfiguracion": "AUTO",
+  "nota": "Instructivo 19.7: valor negativo (absoluto) anotado en el código 1440 del Recuadro 17, si es negativo."
+ },
+ {
+  "codigo": "1707",
+  "orden": 8,
+  "glosa": "Pérdidas tributarias de ejercicios anteriores",
+  "signo": "POSITIVO",
+  "naturalezaConfiguracion": "AUTO",
+  "nota": "Instructivo 19.8: = código 1408 o 1426 del Recuadro 17 (se suman ambos por si alguno queda en 0). Se SUMA (add-back), mismo razonamiento que el 1696 de 14-A. Confirmado contra el formulario oficial (Circular N° 73/2020, recuadro N° 19, fórmula códigos 1545/1546): este código integra el grupo que se suma."
+ },
+ {
+  "codigo": "1377",
+  "orden": 9,
+  "glosa": "Rentas exentas e ingresos no renta (positivo), generados por la empresa en el ejercicio",
+  "signo": "POSITIVO",
+  "naturalezaConfiguracion": "AUTO_CON_OVERRIDE",
+  "nota": "Instructivo 19.9: diferencia positiva entre rentas exentas/INR generadas y sus costos/gastos/desembolsos asociados, incorporados en el registro REX (Recuadro 20), que aún no existe en el sistema — AUTO sugerido queda en 0, ingreso manual en la práctica mientras ese módulo no se construya."
+ },
+ {
+  "codigo": "1378",
+  "orden": 10,
+  "glosa": "Pérdida por rentas exentas e ingresos no renta del ejercicio",
+  "signo": "NEGATIVO",
+  "naturalezaConfiguracion": "AUTO_CON_OVERRIDE",
+  "nota": "Misma lógica que 1377, en signo negativo. Exclusividad de signo con 1377."
+ },
+ {
+  "codigo": "1726",
+  "orden": 11,
+  "glosa": "Retiros o dividendos percibidos en el ejercicio por participaciones en otras empresas",
+  "signo": "POSITIVO",
+  "naturalezaConfiguracion": "MANUAL",
+  "nota": "Instructivo 19.11: retiros/dividendos percibidos por participación en OTRAS empresas (no incluye utilidades de fuente extranjera, ya incluidas en la base imponible). Suma de retiro_percibido_otra_empresa (código 1726) del año tributario."
+ },
+ {
+  "codigo": "1479",
+  "orden": 12,
+  "glosa": "Remesas, retiros o dividendos repartidos en el ejercicio",
+  "signo": "NEGATIVO",
+  "naturalezaConfiguracion": "AUTO",
+  "nota": "Instructivo 19.12: = código 1704 del Recuadro 18 (RAI), a valor histórico (Pro Pyme no aplica corrección monetaria). Recuadro 18 no existe todavía en el sistema — se sustituye por totalHistorico de retirosDividendos.js para la empresa + año tributario. Confirmado con el usuario."
+ },
+ {
+  "codigo": "1708",
+  "orden": 13,
+  "glosa": "Partidas del inc. 1° no afectas al IU de tasa 40% y del inc. 2° del art. 21 LIR",
+  "signo": "NEGATIVO",
+  "naturalezaConfiguracion": "AUTO",
+  "nota": "Instructivo 19.13: = código 1422 del Recuadro 17. Confirmado contra el formulario oficial: integra el grupo que se resta."
+ },
+ {
+  "codigo": "1709",
+  "orden": 14,
+  "glosa": "Ingreso diferido imputado en el ejercicio, debidamente incrementado y reajustado cuando corresponda",
+  "signo": "NEGATIVO",
+  "naturalezaConfiguracion": "AUTO",
+  "nota": "Instructivo 19.14: = código 1404 del Recuadro 17. Confirmado contra el formulario oficial: integra el grupo que se resta."
+ },
+ {
+  "codigo": "1379",
+  "orden": 15,
+  "glosa": "Crédito total disponible imputable contra impuestos finales (IPE), del ejercicio",
+  "signo": "NEGATIVO",
+  "naturalezaConfiguracion": "AUTO",
+  "nota": "Instructivo 19.15: = código 1401 del Recuadro 17. Confirmado contra el formulario oficial: integra el grupo que se resta."
+ },
+ {
+  "codigo": "1710",
+  "orden": 16,
+  "glosa": "Incentivo al ahorro según art. 14 letra E) LIR",
+  "signo": "POSITIVO",
+  "naturalezaConfiguracion": "AUTO",
+  "nota": "Instructivo 19.16: = código 1432 del Recuadro 17. Confirmado contra el formulario oficial: integra el grupo que se suma (add-back)."
+ },
+ {
+  "codigo": "1711",
+  "orden": 17,
+  "glosa": "Base del IDPC voluntario según art. 14 letra A) N°6 LIR",
+  "signo": "POSITIVO",
+  "naturalezaConfiguracion": "AUTO",
+  "nota": "Instructivo 19.17: = código 1433 del Recuadro 17. Confirmado contra el formulario oficial (Circular N° 73/2020, recuadro N° 19, fórmula códigos 1545/1546): integra el grupo que se SUMA (add-back)."
+ },
+ {
+  "codigo": "1380",
+  "orden": 18,
+  "glosa": "Otras partidas a agregar",
+  "signo": "POSITIVO",
+  "naturalezaConfiguracion": "AUTO",
+  "nota": "Instructivo 19.18. Calculado automáticamente (PRD_Recuadro19_OtrasPartidas1380_1381.md): Cuentas de Activos − Cuentas de Pasivo (informe RLI del Recuadro 17, sin el 1422) + Otros Ingresos no incluidos en el Balance (ítems del 1588) + ítems manuales adicionales (reorganizaciones de capital, código 1814 del Recuadro 4, u otras partidas no automatizadas). Si el resultado total es positivo, va acá; si es negativo, va al 1381."
+ },
+ {
+  "codigo": "1381",
+  "orden": 19,
+  "glosa": "Otras partidas a deducir",
+  "signo": "NEGATIVO",
+  "naturalezaConfiguracion": "AUTO",
+  "nota": "Instructivo 19.19. Mismo cálculo automático que el 1380 — si el resultado total es negativo, se muestra acá en valor absoluto; si es positivo, queda en $0."
+ },
+ {
+  "codigo": "1545",
+  "orden": 20,
+  "glosa": "CPTS positivo final",
+  "signo": "POSITIVO",
+  "naturalezaConfiguracion": "RESULTADO",
+  "nota": "Instructivo 19.20: diferencia positiva entre la suma de 1445, 1374, 1375, 1705, 1707, 1377, 1726, 1710, 1711, 1380 y la suma de 1446, 1376, 1706, 1378, 1479, 1708, 1709, 1379, 1381."
+ },
+ {
+  "codigo": "1546",
+  "orden": 21,
+  "glosa": "CPTS negativo final",
+  "signo": "NEGATIVO",
+  "naturalezaConfiguracion": "RESULTADO",
+  "nota": "Instructivo 19.21: misma resta que 1545, cuando el resultado es negativo (valor absoluto)."
+ }
+]

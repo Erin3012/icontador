@@ -1,0 +1,101 @@
+[
+ {
+  "codigo": "1070",
+  "orden": 1,
+  "seccion": "ENAJENACION_ACCIONES",
+  "glosa": "IGC o IA sobre rentas percibidas, según código 1869",
+  "naturalezaConfiguracion": "MANUAL",
+  "signo": null,
+  "nota": "Mayor o menor valor percibido en la enajenación de acciones de SA, SpA o SCPA a no relacionados, gravado con IGC o IA sobre base percibida (art. 17 N°8 letra a) numeral iv) LIR), reajustado al 31.12.2025. Un menor valor se ingresa con signo negativo."
+ },
+ {
+  "codigo": "1074",
+  "orden": 2,
+  "seccion": "ENAJENACION_ACCIONES",
+  "glosa": "Opción a reliquidar el IGC sobre renta devengada, según código 1033",
+  "naturalezaConfiguracion": "MANUAL",
+  "signo": null,
+  "nota": "Solo si hubo mayor valor devengado en la enajenación de acciones durante 2025 y el contribuyente optó por reliquidar el IGC (art. 17 N°8 letra a) numeral v) LIR, línea 27 del F-22). Si en 2025 hubo menor valor, usar el código 1070."
+ },
+ {
+  "codigo": "1079",
+  "orden": 3,
+  "seccion": "ENAJENACION_DERECHOS_SOCIALES",
+  "glosa": "IGC o IA sobre rentas percibidas, según código 1869",
+  "naturalezaConfiguracion": "MANUAL",
+  "signo": null,
+  "nota": "Mismo tratamiento que el código 1070, aplicado a la enajenación de derechos sociales. Un menor valor se ingresa con signo negativo."
+ },
+ {
+  "codigo": "1083",
+  "orden": 4,
+  "seccion": "ENAJENACION_DERECHOS_SOCIALES",
+  "glosa": "Opción a reliquidar el IGC sobre renta devengada, según código 1033",
+  "naturalezaConfiguracion": "MANUAL",
+  "signo": null,
+  "nota": "Mismo tratamiento que el código 1074, aplicado a la enajenación de derechos sociales."
+ },
+ {
+  "codigo": "1087",
+  "orden": 5,
+  "seccion": "ENAJENACION_CUOTAS_FM_FI",
+  "glosa": "IGC o IA sobre rentas percibidas, según código 1869",
+  "naturalezaConfiguracion": "MANUAL",
+  "signo": null,
+  "nota": "Mismo tratamiento que el código 1070, aplicado a la enajenación o rescate de cuotas de fondos mutuos y/o fondos de inversión adquiridas a contar del 01.01.2017. Un menor valor se ingresa con signo negativo."
+ },
+ {
+  "codigo": "1131",
+  "orden": 6,
+  "seccion": "ENAJENACION_CUOTAS_FM_FI",
+  "glosa": "Opción a reliquidar el IGC sobre renta devengada, según código 1033",
+  "naturalezaConfiguracion": "MANUAL",
+  "signo": null,
+  "nota": "Mismo tratamiento que el código 1074, aplicado a la enajenación o rescate de cuotas de FM y/o FI."
+ },
+ {
+  "codigo": "1809",
+  "orden": 7,
+  "seccion": "ENAJENACION_INSTRUMENTOS_ART107",
+  "glosa": "Acciones",
+  "naturalezaConfiguracion": "MANUAL",
+  "signo": "POSITIVO",
+  "nota": "Suma de mayores y menores valores obtenidos en 2025 en enajenaciones de acciones de SA abiertas constituidas en Chile acogidas al art. 107 LIR, reajustados al término del año. Un valor negativo se ingresa con signo menos. Alimenta el código 1814."
+ },
+ {
+  "codigo": "1813",
+  "orden": 8,
+  "seccion": "ENAJENACION_INSTRUMENTOS_ART107",
+  "glosa": "Cuotas de fondos mutuos y/o fondos de inversión",
+  "naturalezaConfiguracion": "MANUAL",
+  "signo": "POSITIVO",
+  "nota": "Suma de mayores y menores valores obtenidos en 2025 en enajenaciones o rescates de cuotas de FM y/o FI acogidas al art. 107 LIR, reajustados al término del año. Un valor negativo se ingresa con signo menos. Alimenta el código 1814."
+ },
+ {
+  "codigo": "1814",
+  "orden": 9,
+  "seccion": "DETERMINACION_RESULTADO",
+  "glosa": "Resultado neto de las operaciones del ejercicio",
+  "naturalezaConfiguracion": "CALCULADO",
+  "signo": "POSITIVO",
+  "nota": "= código 1809 + código 1813. El mayor valor (si es positivo) se traslada al código 1740 del recuadro N°15 (14-A) o al código 1762 del recuadro N°20 (Pro Pyme). El menor valor (si es negativo) se traslada al código 1738 (14-A) o 1760 (Pro Pyme)."
+ },
+ {
+  "codigo": "1815",
+  "orden": 10,
+  "seccion": "DETERMINACION_RESULTADO",
+  "glosa": "Pérdida de arrastre del ejercicio anterior actualizada",
+  "naturalezaConfiguracion": "CALCULADO",
+  "signo": "POSITIVO",
+  "nota": "Valor negativo anotado en el código 1816 del año tributario anterior, reajustado. Se calcula automáticamente a partir de la última declaración finalizada de este mismo recuadro; si no hay una declaración anterior finalizada, o su código 1816 no fue negativo, este código queda en 0."
+ },
+ {
+  "codigo": "1816",
+  "orden": 11,
+  "seccion": "DETERMINACION_RESULTADO",
+  "glosa": "Base imponible o pérdida del ejercicio",
+  "naturalezaConfiguracion": "CALCULADO",
+  "signo": "IGUAL",
+  "nota": "= código 1814 + código 1815. Si el resultado es una renta (positivo), se traslada al código 1829 de la línea 66 del F-22. Este mismo valor, si es negativo, será la base del código 1815 del año tributario siguiente."
+ }
+]

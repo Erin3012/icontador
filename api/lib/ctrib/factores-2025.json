@@ -1,0 +1,96 @@
+{
+ "anioComercial": 2025,
+ "utmDiciembre": 69542,
+ "uta": 834504,
+ "uf31Diciembre": 39727.96,
+ "fuente": "sii_scraping",
+ "estado": "OK",
+ "errores": [],
+ "provisoria": false,
+ "ufProvisoriaFecha": null,
+ "utmProvisoriaMes": null,
+ "mensajeProvisorio": null,
+ "anioEnCurso": false,
+ "fechaSync": "2026-07-28T21:55:01.084Z",
+ "fechaUltimoIntento": "2026-07-28T21:55:00.834Z",
+ "correccionMonetaria": [
+  {
+   "mesOrigen": "CAPITAL_INICIAL",
+   "porcentajePublicado": 3.4,
+   "porcentajeAplicado": 3.4,
+   "factorActualizacion": 1.034
+  },
+  {
+   "mesOrigen": "ENERO",
+   "porcentajePublicado": 3.6,
+   "porcentajeAplicado": 3.6,
+   "factorActualizacion": 1.036
+  },
+  {
+   "mesOrigen": "FEBRERO",
+   "porcentajePublicado": 2.6,
+   "porcentajeAplicado": 2.6,
+   "factorActualizacion": 1.026
+  },
+  {
+   "mesOrigen": "MARZO",
+   "porcentajePublicado": 2.2,
+   "porcentajeAplicado": 2.2,
+   "factorActualizacion": 1.022
+  },
+  {
+   "mesOrigen": "ABRIL",
+   "porcentajePublicado": 1.6,
+   "porcentajeAplicado": 1.6,
+   "factorActualizacion": 1.016
+  },
+  {
+   "mesOrigen": "MAYO",
+   "porcentajePublicado": 1.4,
+   "porcentajeAplicado": 1.4,
+   "factorActualizacion": 1.014
+  },
+  {
+   "mesOrigen": "JUNIO",
+   "porcentajePublicado": 1.2,
+   "porcentajeAplicado": 1.2,
+   "factorActualizacion": 1.012
+  },
+  {
+   "mesOrigen": "JULIO",
+   "porcentajePublicado": 1.7,
+   "porcentajeAplicado": 1.7,
+   "factorActualizacion": 1.017
+  },
+  {
+   "mesOrigen": "AGOSTO",
+   "porcentajePublicado": 0.8,
+   "porcentajeAplicado": 0.8,
+   "factorActualizacion": 1.008
+  },
+  {
+   "mesOrigen": "SEPTIEMBRE",
+   "porcentajePublicado": 0.7,
+   "porcentajeAplicado": 0.7,
+   "factorActualizacion": 1.007
+  },
+  {
+   "mesOrigen": "OCTUBRE",
+   "porcentajePublicado": 0.3,
+   "porcentajeAplicado": 0.3,
+   "factorActualizacion": 1.003
+  },
+  {
+   "mesOrigen": "NOVIEMBRE",
+   "porcentajePublicado": 0.3,
+   "porcentajeAplicado": 0.3,
+   "factorActualizacion": 1.003
+  },
+  {
+   "mesOrigen": "DICIEMBRE",
+   "porcentajePublicado": 0,
+   "porcentajeAplicado": 0,
+   "factorActualizacion": 1
+  }
+ ]
+}

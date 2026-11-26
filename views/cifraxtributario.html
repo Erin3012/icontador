@@ -56,7 +56,7 @@
         }
         nombre.textContent = empresa.razon_social || ('Empresa ' + empresa.id);
         rut.textContent = empresa.rut ? 'RUT ' + empresa.rut : '';
-        document.getElementById('ct-marco').src = '../views/itributario.html?empresa_id=' + encodeURIComponent(empresa.id);
+        document.getElementById('ct-marco').src = '../views/itributario.html?v=3&empresa_id=' + encodeURIComponent(empresa.id);
     })();
 </script>
 </body>

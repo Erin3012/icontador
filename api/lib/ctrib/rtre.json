@@ -1,0 +1,2418 @@
+[
+ {
+  "codigoFila": "1.1",
+  "bloque": 1,
+  "orden": 1,
+  "glosaCorta": "Saldos iniciales o remanentes de utilidades y créditos del ejercicio anterior",
+  "naturalezaConfiguracion": "AUTO_CON_OVERRIDE",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "INR",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "RAI",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "1.2",
+  "bloque": 1,
+  "orden": 2,
+  "glosaCorta": "Incorporación de rentas y créditos por cambio de régimen",
+  "naturalezaConfiguracion": "MANUAL",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "INR",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "RAI",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "1.3",
+  "bloque": 1,
+  "orden": 3,
+  "glosaCorta": "Incorporación de rentas y créditos por conversión, división o fusión por creación",
+  "naturalezaConfiguracion": "MANUAL",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "INR",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "RAI",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "1.4",
+  "bloque": 1,
+  "orden": 4,
+  "glosaCorta": "Reajuste VIPC de los saldos iniciales y del cambio de régimen (1.1 + 1.2)",
+  "naturalezaConfiguracion": "AUTO",
+  "auxiliarRai": false,
+  "celdas": []
+ },
+ {
+  "codigoFila": "2.1",
+  "bloque": 2,
+  "orden": 5,
+  "glosaCorta": "Reclasificación por Impuesto Sustitutivo al FUT (ISFUT)",
+  "naturalezaConfiguracion": "MANUAL",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "RAI",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_NEGATIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "2.2",
+  "bloque": 2,
+  "orden": 6,
+  "glosaCorta": "Imputación de partidas del art. 21 inciso 2° de regímenes anteriores",
+  "naturalezaConfiguracion": "MANUAL",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "SOLO_NEGATIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "2.3",
+  "bloque": 2,
+  "orden": 7,
+  "glosaCorta": "Incorporación de rentas y créditos de bienes adjudicados por término de giro",
+  "naturalezaConfiguracion": "MANUAL",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "RAI",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "INR",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "SOLO_POSITIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "3.1",
+  "bloque": 3,
+  "orden": 8,
+  "glosaCorta": "Reorganización: fusión por incorporación y disolución",
+  "naturalezaConfiguracion": "MANUAL",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "RAI",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "INR",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "SOLO_POSITIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "3.2",
+  "bloque": 3,
+  "orden": 9,
+  "glosaCorta": "Reorganización: división de sociedades",
+  "naturalezaConfiguracion": "MANUAL",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "RAI",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "INR",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "SOLO_NEGATIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "4.1",
+  "bloque": 4,
+  "orden": 10,
+  "glosaCorta": "Reverso del subtotal N°3 del registro RAI",
+  "naturalezaConfiguracion": "AUTO",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "RAI",
+    "signo": "SOLO_NEGATIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "4.2",
+  "bloque": 4,
+  "orden": 11,
+  "glosaCorta": "RAI del ejercicio",
+  "naturalezaConfiguracion": "AUTO",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "RAI",
+    "signo": "SOLO_POSITIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "4.3",
+  "bloque": 4,
+  "orden": 12,
+  "glosaCorta": "DDAN del ejercicio (solo régimen 14 A)",
+  "naturalezaConfiguracion": "AUTO_CON_OVERRIDE",
+  "auxiliarRai": false,
+  "celdas": []
+ },
+ {
+  "codigoFila": "4.4",
+  "bloque": 4,
+  "orden": 13,
+  "glosaCorta": "REX / INR del ejercicio",
+  "naturalezaConfiguracion": "AUTO_CON_OVERRIDE",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "INR",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "LIBRE"
+   }
+  ]
+ },
+ {
+  "codigoFila": "4.5",
+  "bloque": 4,
+  "orden": 14,
+  "glosaCorta": "Créditos SAC del ejercicio",
+  "naturalezaConfiguracion": "AUTO",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IDPC_VOLUNTARIO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "5.1",
+  "bloque": 5,
+  "orden": 15,
+  "glosaCorta": "Créditos devueltos por retiros o distribuciones desproporcionados",
+  "naturalezaConfiguracion": "MANUAL",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_POSITIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "5.2",
+  "bloque": 5,
+  "orden": 16,
+  "glosaCorta": "Créditos en exceso (N°7 letra A) art. 14 LIR)",
+  "naturalezaConfiguracion": "MANUAL",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "5.3",
+  "bloque": 5,
+  "orden": 17,
+  "glosaCorta": "Reclasificaciones por rectificatoria del Capital Propio Tributario",
+  "naturalezaConfiguracion": "MANUAL",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "INR",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "5.4",
+  "bloque": 5,
+  "orden": 18,
+  "glosaCorta": "Crédito por IDPC por mayor retención (art. 74 N°4 inciso 4°)",
+  "naturalezaConfiguracion": "MANUAL",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "SOLO_POSITIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_POSITIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "6.1",
+  "bloque": 6,
+  "orden": 19,
+  "glosaCorta": "Retiros, remesas o dividendos del ejercicio",
+  "naturalezaConfiguracion": "AUTO",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "INR",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "RAI",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_IDPC_VOLUNTARIO",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "6.2",
+  "bloque": 6,
+  "orden": 20,
+  "glosaCorta": "Retiros en exceso al 31.12.2014, pendientes de imputación",
+  "naturalezaConfiguracion": "AUTO_CON_OVERRIDE",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "INR",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "RAI",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_NEGATIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "6.3",
+  "bloque": 6,
+  "orden": 21,
+  "glosaCorta": "Devolución formal de capital",
+  "naturalezaConfiguracion": "MANUAL",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "RAI",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "INR",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "6.4",
+  "bloque": 6,
+  "orden": 22,
+  "glosaCorta": "Crédito por partidas del art. 21 (inciso 1° no afecto al 40% e inciso 2°)",
+  "naturalezaConfiguracion": "AUTO_CON_OVERRIDE",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "SOLO_NEGATIVO"
+   }
+  ]
+ },
+ {
+  "codigoFila": "SUBTOTAL_1",
+  "bloque": 0,
+  "orden": 1101,
+  "glosaCorta": "Sub total N°1",
+  "naturalezaConfiguracion": "RESULTADO",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "RAI",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "INR",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IDPC_VOLUNTARIO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   }
+  ]
+ },
+ {
+  "codigoFila": "SUBTOTAL_2",
+  "bloque": 0,
+  "orden": 1102,
+  "glosaCorta": "Sub total N°2",
+  "naturalezaConfiguracion": "RESULTADO",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "RAI",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IDPC_VOLUNTARIO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "INR",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "LIBRE"
+   }
+  ]
+ },
+ {
+  "codigoFila": "SUBTOTAL_3",
+  "bloque": 0,
+  "orden": 1103,
+  "glosaCorta": "Sub total N°3",
+  "naturalezaConfiguracion": "RESULTADO",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "RAI",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "INR",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IDPC_VOLUNTARIO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   }
+  ]
+ },
+ {
+  "codigoFila": "SUBTOTAL_5",
+  "bloque": 0,
+  "orden": 1104,
+  "glosaCorta": "Sub total N°5",
+  "naturalezaConfiguracion": "RESULTADO",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "RAI",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "INR",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IDPC_VOLUNTARIO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "LIBRE"
+   }
+  ]
+ },
+ {
+  "codigoFila": "REMANENTE_FINAL",
+  "bloque": 0,
+  "orden": 1105,
+  "glosaCorta": "Remanente para el ejercicio siguiente",
+  "naturalezaConfiguracion": "RESULTADO",
+  "auxiliarRai": false,
+  "celdas": [
+   {
+    "columna": "RAI",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IDPC_VOLUNTARIO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_HASTA_2019_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IPE_DESDE_2017",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_CON_PRIORIDAD",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_RENTA_PRESUNTA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_AFECTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_HASTA_2016_EXENTAS_CON_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_IPE_HASTA_2016",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "CREDITO_ART21_IF",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_SIN_PRIORIDAD_IUSCAPT",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_EXCESO_N9",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_PRE_1984",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY20780",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_DISTRIBUIBLE_ISFUT_LEY21210",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_IGC_O_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "SAC_RESTITUCION_EXENTAS_SIN_DEVOLUCION",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "STUT_AFECTAS",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "STUT_EXENTAS",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "REX_EXENTA_AFECTA_IA",
+    "signo": "LIBRE"
+   },
+   {
+    "columna": "INR",
+    "signo": "LIBRE"
+   }
+  ]
+ }
+]
