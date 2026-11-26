@@ -8,6 +8,7 @@ const os = require('node:os');
 const { cargarEnv, actualizarEnv } = require('./env');
 const { crearServidor, emparejarAgente } = require('./api');
 const { descargarLibro, consultarEmpresa, explorarSii } = require('./sii');
+const { consultarF22, consultarDdjj } = require('./sii-renta'); // funcionalidad extra: F22 y declaraciones juradas
 const { parseRcv } = require('../../assets/rcv-import.js');
 
 /** "76.000.000-0" -> "76000000-0" (la forma en que se busca la clave). */
@@ -51,12 +52,41 @@ async function procesarConsultaEmpresa({ servidor, tarea, claves, consultar, log
   }
 }
 
+const NOMBRES_CONSULTA = { f22: 'del Formulario 22', ddjj: 'de las declaraciones juradas' };
+
+/** Consulta de solo lectura (F22 o declaraciones juradas) del año tributario que viene en el período de la tarea. */
+async function procesarConsulta({ servidor, tarea, claves, consultas, log = console.log }) {
+  const rut = normalizarRut(tarea.rut);
+  const clave = tarea.clave || claves[rut];
+  const anio = Number(tarea.periodo);
+  const nombre = NOMBRES_CONSULTA[tarea.tipo];
+  let mensaje = '';
+  if (!rut) mensaje = 'La empresa no tiene RUT en Cifrax.';
+  else if (!clave) mensaje = `Falta la clave del SII para el RUT ${rut}. Guárdala en Cifrax.`;
+  else if (!Number.isInteger(anio) || anio < 2000) mensaje = 'La consulta no trae un año tributario válido.';
+  if (!mensaje) {
+    try {
+      const resultado = await consultas[tarea.tipo]({ rut, clave, anio });
+      await servidor.resultadoConsulta(tarea.id, resultado);
+      log(`Consulta ${tarea.id}: resultado ${nombre} AT ${anio} enviado (${resultado.estado}).`);
+      return { ok: true, resultado };
+    } catch (e) {
+      mensaje = `Falló la consulta ${nombre} en el SII: ${e.message}`;
+    }
+  }
+  log(`Consulta ${tarea.id}: ${mensaje}`);
+  await servidor.fallar(tarea.id, mensaje).catch(() => {});
+  return { ok: false, mensaje };
+}
+
 /**
  * Ejecuta una tarea: descarga el libro, lo valida con el mismo lector del navegador (assets/rcv-import.js)
  * y lo envía a Cifrax. Los fallos locales se informan a la tarea; los que rechaza el servidor ya quedan registrados allí.
  */
-async function procesarTarea({ servidor, tarea, claves, descargar, consultar = consultarEmpresa, carpeta, conservar, log = console.log }) {
+async function procesarTarea({ servidor, tarea, claves, descargar, consultar = consultarEmpresa,
+  consultas = { f22: consultarF22, ddjj: consultarDdjj }, carpeta, conservar, log = console.log }) {
   if (tarea.tipo === 'datos_empresa') return procesarConsultaEmpresa({ servidor, tarea, claves, consultar, log });
+  if (NOMBRES_CONSULTA[tarea.tipo]) return procesarConsulta({ servidor, tarea, claves, consultas, log });
   const rut = normalizarRut(tarea.rut);
   if (!rut) return servidor.fallar(tarea.id, 'La empresa no tiene RUT en Cifrax.');
   const clave = tarea.clave || claves[rut];
@@ -108,17 +138,24 @@ function configurar(env) {
     intervaloMs: Math.max(15, Number(env.SII_INTERVALO_SEG || 60)) * 1000,
     carpeta: path.resolve(__dirname, '..', env.SII_CARPETA || 'descargas'),
     conservar: String(env.SII_CONSERVAR ?? 'false').toLowerCase() === 'true',
+    // Funcionalidad extra (F22 y declaraciones juradas). Con SII_CONSULTAS_RENTA=false este PC solo hace RCV.
+    funciones: String(env.SII_CONSULTAS_RENTA ?? 'true').toLowerCase() === 'false' ? [] : Object.keys(NOMBRES_CONSULTA),
   };
 }
 
 /** Una vuelta: reclama las tareas pendientes y las procesa una por una. */
-async function revisar({ servidor, config, descargar = descargarLibro, consultar = consultarEmpresa, log }) {
+async function revisar({ servidor, config, descargar = descargarLibro, consultar = consultarEmpresa,
+  consultas = { f22: consultarF22, ddjj: consultarDdjj }, log }) {
   const tareas = await servidor.pendientes();
   for (const tarea of tareas) {
     await procesarTarea({
       servidor, tarea, claves: config.claves, carpeta: config.carpeta, conservar: config.conservar, log,
       descargar: (opciones) => descargar({ ...opciones, headless: config.headless }),
       consultar: (opciones) => consultar({ ...opciones, headless: config.headless }),
+      consultas: {
+        f22: (opciones) => consultas.f22({ ...opciones, headless: config.headless }),
+        ddjj: (opciones) => consultas.ddjj({ ...opciones, headless: config.headless }),
+      },
     });
   }
   return tareas.length;
@@ -166,7 +203,7 @@ async function main() {
     log('PC emparejado con Cifrax. El código ya no está en .env.');
   }
   const config = configurar(env);
-  const servidor = crearServidor({ url: config.url, token: config.token });
+  const servidor = crearServidor({ url: config.url, token: config.token, funciones: config.funciones });
   if (process.argv.includes('--una-vez')) {
     const n = await revisar({ servidor, config, log });
     log(n ? `${n} tarea(s) revisadas.` : 'No hay tareas pendientes.');

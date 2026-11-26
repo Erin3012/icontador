@@ -2,10 +2,12 @@
 // Endpoints del agente local de sii-agent/ (Playwright en el PC). No usan sesión: exigen el token del agente
 // (propio, emparejado con un código) o el sii_agente_token compartido de instalaciones anteriores.
 //   POST api/sii-agente.php?accion=canjear  {codigo, nombre}  -> sin token: devuelve el token propio del agente
-//   GET  api/sii-agente.php?accion=pendientes                -> reclama hasta 3 tareas (RUT, período, libro)
+//   GET  api/sii-agente.php?accion=pendientes                -> reclama hasta 3 tareas (RUT, período, libro).
+//        Cabecera opcional X-Agente-Funciones: f22,ddjj para recibir también las consultas de renta (extra).
 //   POST api/sii-agente.php?accion=importar  {tarea_id, kind, period, fileName, rutEmpresa, docs}
 //   POST api/sii-agente.php?accion=error     {tarea_id, mensaje}
 //   POST api/sii-agente.php?accion=resultado_empresa  {tarea_id, razon_social, giro}  (consulta de datos de empresa)
+//   POST api/sii-agente.php?accion=resultado_consulta {tarea_id, resultado}           (Formulario 22 o declaraciones juradas)
 declare(strict_types=1);
 require __DIR__ . '/db.php';
 require __DIR__ . '/lib/sii.php';
@@ -34,7 +36,16 @@ try {
     }
     sii_autorizar_agente($db);
     if ($metodo === 'GET' && $accion === 'pendientes') {
-        responder(200, ['tareas' => sii_reclamar($db)]);
+        // Funcionalidades extra que declara el agente (por ejemplo "f22,ddjj"). Sin la cabecera: solo RCV y datos de empresa.
+        $funciones = array_filter(array_map('trim', explode(',', (string) ($_SERVER['HTTP_X_AGENTE_FUNCIONES'] ?? ''))));
+        responder(200, ['tareas' => sii_reclamar($db, 3, $funciones)]);
+    }
+    if ($metodo === 'POST' && $accion === 'resultado_consulta') {
+        $datos = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($datos) || !is_int($datos['tarea_id'] ?? null) || !is_array($datos['resultado'] ?? null)) {
+            responder(400, ['error' => 'Falta tarea_id o resultado.']);
+        }
+        responder(200, sii_resultado_consulta($db, $datos['tarea_id'], $datos['resultado']));
     }
     if ($metodo === 'POST' && $accion === 'resultado_empresa') {
         $datos = json_decode(file_get_contents('php://input'), true);

@@ -206,4 +206,6 @@ async function explorarSii({ rut, clave, carpeta, headless = true, esperar = fal
   }
 }
 
-module.exports = { descargarLibro, consultarEmpresa, explorarSii, periodoSii, rutParaFormulario, SII };
+// iniciarSesion, cerrarSesionSii, lanzarNavegador y trazar los usa la funcionalidad extra de sii-renta.js.
+module.exports = { descargarLibro, consultarEmpresa, explorarSii, periodoSii, rutParaFormulario,
+  iniciarSesion, cerrarSesionSii, lanzarNavegador, trazar, SII };

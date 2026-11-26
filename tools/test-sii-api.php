@@ -125,8 +125,12 @@ check(sii_clave_descifrar($db, $empresa) === $secreta, 'descifra la misma clave'
 try { sii_clave_guardar($db, $empresa, str_repeat('x', 300)); check(false, 'rechaza una clave demasiado larga'); } catch (SiiError) {}
 check(sii_clave_descifrar($db, $empresa) === $secreta, 'una clave rechazada no borra la anterior');
 putenv('ICONTADOR_SII_CLAVE_CIFRADO=');
-try { sii_clave_guardar($db, $empresa, 'otra'); check(false, 'sin llave no debe guardar'); } catch (SiiError) {}
-check(sii_clave_guardada($db, $empresa), 'sin llave no se borra la clave guardada');
+// Si este equipo tiene la llave en api/config.php (como indica el README del agente), "sin llave" no se puede simular.
+$configLocal = is_file(dirname(__DIR__) . '/api/config.php') ? require dirname(__DIR__) . '/api/config.php' : [];
+if (empty($configLocal['sii_clave_cifrado'])) {
+    try { sii_clave_guardar($db, $empresa, 'otra'); check(false, 'sin llave no debe guardar'); } catch (SiiError) {}
+    check(sii_clave_guardada($db, $empresa), 'sin llave no se borra la clave guardada');
+}
 putenv("ICONTADOR_SII_CLAVE_CIFRADO=$llave");
 sii_clave_guardar($db, $empresa, '');
 check(!sii_clave_guardada($db, $empresa), 'una clave vacía borra la guardada');
@@ -136,4 +140,58 @@ $reclamadas = sii_reclamar($db, 50);
 $propia = array_values(array_filter($reclamadas, fn($t) => $t['periodo'] === '2026-09' && $t['libro'] === 'ventas'));
 check(count($propia) === 1 && $propia[0]['clave'] === $secreta, 'el agente recibe la clave de la empresa al reclamar');
 
-echo "SII: crear, reclamar, importar, fallar, reclamo vencido y token verificados\n";
+// 11. Consultas de solo lectura (F22 y declaraciones juradas): clave, resultado, cambios y empresa.
+foreach ([['otro', 2026], ['f22', 1999], ['f22', 'x']] as [$tipo, $anio]) {
+    try { sii_crear_consulta($db, $empresa, 1, $tipo, $anio); check(false, "consulta inválida $tipo $anio"); } catch (SiiError) {}
+}
+try { sii_crear_consulta($db, $empresaSinRut, 1, 'f22', 2026); check(false, 'consulta sin RUT'); } catch (SiiError) {}
+$db->prepare('INSERT INTO empresas (origen_id, razon_social, datos_json, actualizado) VALUES (?, ?, ?, ?)')
+    ->execute(['t3', 'SIN CLAVE', json_encode(['rut' => '77.000.001-1']), '2026-11-01']);
+$sinClave = (int) $db->lastInsertId();
+try { sii_crear_consulta($db, $sinClave, 1, 'f22', 2026); check(false, 'consulta sin clave'); } catch (SiiError $e) { check(str_contains($e->getMessage(), 'clave'), 'pide la clave'); }
+sii_reclamar($db, 50); // vacía la cola anterior
+$f22 = sii_crear_consulta($db, $empresa, 1, 'f22', 2026);
+check(sii_crear_consulta($db, $empresa, 1, 'f22', 2026) === ['id' => $f22['id'], 'ya_en_cola' => true], 'no duplica la consulta en cola');
+check(sii_consulta_estado($db, $empresa, 'f22', 2026)['tarea']['estado'] === 'pendiente', 'estado: pendiente');
+// Funcionalidad extra: un agente que no la declara no recibe F22 ni DJ, y el RCV sigue igual y va primero.
+sii_crear($db, $empresa, 1, '2026-07', ['compras']);
+$antiguo = sii_reclamar($db, 50);
+check(array_column($antiguo, 'tipo') === ['rcv'], 'un agente sin la funcionalidad solo recibe RCV');
+check(sii_tarea($db, $f22['id'])['estado'] === 'pendiente', 'la consulta de F22 queda en cola para un agente que la sepa hacer');
+sii_crear($db, $empresa, 1, '2026-06', ['compras']);
+$t = sii_reclamar($db, 50, ['f22', 'ddjj']);
+check(array_column($t, 'tipo') === ['rcv', 'f22'], 'el RCV se entrega primero aunque se haya pedido después');
+check($t[1]['periodo'] === '2026' && $t[1]['clave'] === $secreta, 'el agente recibe la consulta con el año y la clave');
+try { sii_resultado_consulta($db, $f22['id'], ['codigos' => []]); check(false, 'resultado sin estado'); } catch (SiiError) {}
+check(sii_tarea($db, $f22['id'])['estado'] === 'error', 'resultado incompleto deja la tarea en error');
+
+$pedir = function (string $tipo, array $resultado) use ($db, $empresa) {
+    $c = sii_crear_consulta($db, $empresa, 1, $tipo, 2026);
+    sii_reclamar($db, 50, ['f22', 'ddjj']);
+    return sii_resultado_consulta($db, $c['id'], $resultado);
+};
+$pedir('f22', ['estado' => 'En proceso', 'situacion' => 'En revisión', 'folio' => 123, 'eventos' => [['fecha' => '29/04/2026', 'descripcion' => 'Recibida']]]);
+$pedir('f22', ['estado' => 'Aceptada', 'folio' => '123', 'resultado' => ['devolucion' => 5000, 'pago' => null], 'basura' => 'x',
+    'codigos' => [['codigo' => 1600, 'glosa' => 'Ingresos', 'valor' => '1.000'], 'no es fila']]);
+$v = sii_consulta_estado($db, $empresa, 'f22', 2026);
+check($v['ultima']['estado'] === 'Aceptada' && $v['ultima']['datos']['folio'] === 123 && $v['ultima']['datos']['resultado']['devolucion'] === 5000, 'guarda el F22');
+check(!isset($v['ultima']['datos']['basura']) && count($v['ultima']['datos']['codigos']) === 1, 'solo los campos esperados');
+check($v['cambio']['antes'] === 'En proceso' && $v['tarea']['estado'] === 'completada', 'marca el cambio respecto de la consulta anterior');
+$pedir('ddjj', ['estado' => 'Todas aceptadas', 'declaraciones' => [['formulario' => 1879, 'estado' => 'Aceptada', 'folio' => 31, 'presentada' => '11/02/2026',
+    'observaciones' => [['codigo' => 'R000', 'descripcion' => 'Diferencia', 'motivo' => str_repeat('m', 2000), 'orientacion' => 'Revise', 'otro' => 'x']]]]]);
+$v = sii_consulta_estado($db, $empresa, 'ddjj', 2026);
+check($v['ultima']['datos']['declaraciones'][0]['formulario'] === 1879 && $v['cambio'] === null, 'guarda las declaraciones juradas');
+$o = $v['ultima']['datos']['declaraciones'][0]['observaciones'][0];
+check($o['codigo'] === 'R000' && strlen($o['motivo']) === 1500 && !isset($o['otro']), 'guarda el código y el motivo de la observación, acotados');
+check(sii_consulta_estado($db, $sinClave, 'f22', 2026)['ultima'] === null, 'otra empresa no ve los resultados');
+check(sii_consulta_estado($db, $empresa, 'f22', 2025)['ultima'] === null, 'otro año no tiene resultados');
+try { sii_resultado_consulta($db, $f22['id'], ['estado' => 'Aceptada']); check(false, 'una tarea cerrada no recibe resultados'); } catch (SiiError) {}
+
+// 12. Una clave ilegible deja en error solo su tarea: las demás se entregan.
+$db->prepare('INSERT INTO sii_claves (empresa_id, clave_cifrada, actualizado_en) VALUES (?, ?, ?)')->execute([$sinClave, base64_encode(random_bytes(40)), sii_ahora()]);
+$mala = sii_crear_consulta($db, $sinClave, 1, 'f22', 2026);
+$buena = sii_crear_consulta($db, $empresa, 1, 'ddjj', 2025);
+$t = sii_reclamar($db, 50, ['f22', 'ddjj']);
+check(array_column($t, 'id') === [$buena['id']] && sii_tarea($db, $mala['id'])['estado'] === 'error', 'la clave ilegible no bloquea las demás tareas');
+
+echo "SII: crear, reclamar, importar, fallar, reclamo vencido, token, consultas F22 y DDJJ verificados\n";

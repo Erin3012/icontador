@@ -4,7 +4,8 @@ Cifrax corre en un hosting compartido (cPanel, PHP y MySQL) donde no se puede in
 
 - La **clave tributaria se guarda cifrada en el servidor**, por empresa. Se escribe en RCV, en *Clave tributaria del SII*. El servidor la entrega al agente solo al reclamar una tarea de esa empresa, y el agente no la escribe en disco ni en el registro.
 - El agente solo ve las tareas de las empresas a las que tienes acceso en Cifrax (el servidor filtra por empresa y rol).
-- Hoy sincroniza **RCV de compras y ventas**. Honorarios queda para después.
+- Sincroniza el **RCV de compras y ventas**. Honorarios queda para después.
+- **Funcionalidad extra (Cifrax Tributario):** consulta, **solo en lectura**, el estado del **Formulario 22** (historial, observaciones y códigos declarados) y las **declaraciones juradas anuales** con sus observaciones. Vive aparte en `src/sii-renta.js` y nunca pulsa Anular ni Rectificar. Un agente instalado antes de esta función sigue haciendo solo RCV: Cifrax no le entrega consultas que no declara. Para desactivarla en un PC: `SII_CONSULTAS_RENTA=false`.
 
 ## Cómo funciona
 
