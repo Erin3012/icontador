@@ -59,6 +59,14 @@ check(str_contains($rli, ctrib_pesos($final)), 'RLI final = resultado del balanc
 check($final === (int) $r17['totales']['1440'] ? str_contains($rli, 'cuadra con el código 1440') : str_contains($rli, 'NO CUADRA con el código 1440'), 'RLI: observación frente al 1440');
 // El R4 sin finalizar lleva marca BORRADOR; el balance (reporte) no.
 check(!str_contains(ctrib_documento_html($pdo, $empresa, 2026, 'BALANCE'), 'class="agua"'), 'el balance no lleva marca de agua');
+// El R18 muestra todo lo que resta la fórmula del RAI: saldo REX positivo (1493) y sobreprecio de acciones.
+ctrib_r20_guardar_celda($pdo, $empresa, 2026, '1.1', 'REX_CON_PRIORIDAD', 1000000, 'prueba');
+ctrib_r20_guardar_parametro($pdo, $empresa, 2026, 'SOBR', 250000, 'prueba');
+$f = ctrib_r20($pdo, $empresa, 2026)['formulaRai'];
+$r18 = ctrib_documento_html($pdo, $empresa, 2026, 'R18');
+check($f['rexPositivoPrevio'] === 1000000 && preg_match('/<td class="cod">1493<\/td><td class="mon">1\.000\.000</', $r18) === 1, 'R18: el 1493 muestra el saldo REX que se resta');
+check($f['rai'] === $f['subtotalRai'] - 1000000 - 250000 && str_contains($r18, 'Sobreprecio en colocación de acciones') && str_contains($r18, '250.000'), 'R18: el sobreprecio aparece y las líneas suman el RAI');
+check(!str_contains($r18, 'se toman como cero'), 'R18: sin la nota antigua');
 // En régimen 14 D N°8 el título del recuadro cambia a N° 8.
 ctrib_empresa_config_guardar($pdo, $empresa, 'EIRL', '14D8', 'prueba');
 check(str_contains(ctrib_documento_html($pdo, $empresa, 2026, 'R17'), '(art. 14 letra D) N° 8 LIR)'), 'título del R17 en 14 D N°8');
