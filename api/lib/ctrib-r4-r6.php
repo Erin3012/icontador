@@ -152,7 +152,7 @@ function ctrib_r6(PDO $pdo, int $empresa, int $anio): array
     $pasivo = (int) ($balance['totales']['pasivo'] ?? 0);
     $manuales = ctrib_valores_manuales($pdo, $empresa, $anio, 'R6');
     $r20 = ctrib_r20($pdo, $empresa, $anio);
-    $retirosExcedentes = max(0, ctrib_retiros_del_anio($pdo, $empresa, $anio)['total'] - (int) $r20['retirosImputadosRai']);
+    $retirosExcedentes = max(0, (int) $r20['retirosNoImputados']); // retiros que no caben en el RAI ni en el REX
 
     $montos = [];
     $origen = [];
@@ -217,4 +217,14 @@ function ctrib_r6_reabrir(PDO $pdo, int $empresa, int $anio, string $usuario, st
     }
     ctrib_recuadro_reabrir($pdo, $empresa, $anio, 'R6', $usuario, $motivo);
     return ctrib_r6($pdo, $empresa, $anio);
+}
+
+/** Parámetros del RAI del RTRE escritos a mano (capital aportado 1494, saldo FUR 1725, sobreprecio). Null = cero. */
+function ctrib_r20_guardar_parametro(PDO $pdo, int $empresa, int $anio, string $codigo, mixed $monto, string $usuario): array
+{
+    if (is_int($monto) && $monto < 0 || is_string($monto) && str_starts_with(trim($monto), '-')) {
+        throw new CtribError('El monto no puede ser negativo.');
+    }
+    ctrib_guardar_valor_manual($pdo, $empresa, $anio, 'R20', $codigo, $monto === '' ? null : $monto, $usuario, array_map('strval', array_keys(CTRIB_RTRE_PARAMETROS)));
+    return ctrib_r20($pdo, $empresa, $anio);
 }

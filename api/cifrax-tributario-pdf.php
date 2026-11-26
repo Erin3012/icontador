@@ -19,7 +19,10 @@ try {
     if ($anio < 2000 || $anio > 2100) {
         throw new CtribError('Indique el año tributario (AAAA).');
     }
-    echo ctrib_documento_html($pdo, $empresa, $anio, strtoupper((string) ($_GET['doc'] ?? '')));
+    $doc = strtoupper((string) ($_GET['doc'] ?? ''));
+    // Informe SII: hojas foliadas (folio_desde, folio_hasta y orientacion H o V).
+    $folio = isset($_GET['folio_desde']) ? ctrib_opciones_folio($doc, $_GET['folio_desde'], $_GET['folio_hasta'] ?? null, $_GET['orientacion'] ?? 'H') : null;
+    echo ctrib_documento_html($pdo, $empresa, $anio, $doc, $folio);
 } catch (CtribError | EmpresaError $e) {
     http_response_code(422);
     echo '<!doctype html><meta charset="utf-8"><title>Cifrax Tributario</title><p style="font-family:sans-serif">' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . '</p>';
