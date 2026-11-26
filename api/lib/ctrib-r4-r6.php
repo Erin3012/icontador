@@ -35,6 +35,10 @@ function ctrib_guardar_valor_manual(PDO $pdo, int $empresa, int $anio, string $r
         throw new CtribError("El código $codigo no se ingresa a mano en el $recuadro.");
     }
     ctrib_recuadro_no_finalizado($pdo, $empresa, $anio, $recuadro);
+    $esEntero = is_int($monto) || (is_string($monto) && preg_match('/^-?\d+$/', trim($monto)));
+    if ($monto !== null && !$esEntero) {
+        throw new CtribError('El monto debe ser un número entero.'); // antes de borrar el valor guardado
+    }
     $anterior = ctrib_valores_manuales($pdo, $empresa, $anio, $recuadro)[$codigo] ?? null;
     $pdo->prepare('DELETE FROM ctrib_valores WHERE empresa_id = ? AND anio = ? AND recuadro = ? AND codigo = ?')->execute([$empresa, $anio, $recuadro, $codigo]);
     if ($monto === null) {
@@ -42,10 +46,6 @@ function ctrib_guardar_valor_manual(PDO $pdo, int $empresa, int $anio, string $r
             ctrib_registrar_historial($pdo, $empresa, $anio, 'recuadro', "$recuadro $codigo", (string) $anterior, 'automático', 'Valor manual quitado', $usuario);
         }
         return;
-    }
-    $esEntero = is_int($monto) || (is_string($monto) && preg_match('/^-?\d+$/', trim($monto)));
-    if (!$esEntero) {
-        throw new CtribError('El monto debe ser un número entero.');
     }
     $valor = (int) $monto;
     $pdo->prepare('INSERT INTO ctrib_valores (empresa_id, anio, recuadro, codigo, monto, usuario, actualizado) VALUES (?, ?, ?, ?, ?, ?, ?)')

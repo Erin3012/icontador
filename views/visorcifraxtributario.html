@@ -1285,7 +1285,7 @@
         html += '<table class="cv-modal-tabla"><thead><tr><th>Código</th><th>Recuadro</th><th>Estado</th></tr></thead><tbody>' +
             c.recuadros.map(function (x) {
                 return '<tr><td>' + esc(x.codigo) + '</td><td>' + esc(x.nombre) + '</td><td>' +
-                    (x.estado === 'FINALIZADO' ? '<span class="cv-estado ok">FINALIZADO</span>' : '<span class="cv-estado pend">PENDIENTE</span>') + '</td></tr>';
+                    (x.desactualizado ? '<span class="cv-estado pend">DESACTUALIZADO</span>' : x.estado === 'FINALIZADO' ? '<span class="cv-estado ok">FINALIZADO</span>' : '<span class="cv-estado pend">PENDIENTE</span>') + '</td></tr>';
             }).join('') + '</tbody></table>';
         html += '<p class="cv-texto" style="margin-top:10px;font-size:12px">' + esc(c.nota) + '</p>';
         cuerpo.innerHTML = html;
@@ -1462,7 +1462,7 @@
                 var texto = c.cerrado
                     ? 'Año cerrado' + (c.cerradoEn ? ' el ' + c.cerradoEn.slice(0, 10) : '') + '.'
                     : (c.completo ? 'Todos los recuadros están finalizados: puede cerrar el año.'
-                        : 'Faltan recuadros por finalizar: ' + c.pendientes.map(function (p) { return nombres[p] || p; }).join(', ') + '.');
+                        : 'Faltan recuadros por finalizar o actualizar: ' + c.pendientes.map(function (p) { return nombres[p] || p; }).join(', ') + '.');
                 document.querySelectorAll('[data-cierre-texto]').forEach(function (p) { p.textContent = texto; });
                 ponerEstado('.cv-fila[data-abrir="CIERRE"] .cv-estado', c.cerrado ? 'CERRADO' : 'PENDIENTE', c.cerrado ? 'ok' : 'pend');
             }

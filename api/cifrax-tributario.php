@@ -41,6 +41,10 @@ ejecutar(function (PDO $pdo, int $empresa) {
                 default => responder(['errores' => ['Acción no válida.']], 404),
             };
         }
+        if ($metodo === 'POST') {
+            $enviado = $_POST ?: json_decode((string) file_get_contents('php://input'), true);
+            ctrib_exigir_cambio_permitido($pdo, $empresa, $accion, is_array($enviado) ? $enviado : []);
+        }
         if ($metodo === 'POST' && $accion === 'mapeo_guardar') {
             $datos = cuerpoJson();
             return ['mapeo' => ctrib_mapeo_guardar($pdo, $empresa, is_array($datos['mapeo'] ?? null) ? $datos['mapeo'] : [], $usuario)];

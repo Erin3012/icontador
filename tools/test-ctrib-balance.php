@@ -126,4 +126,13 @@ falla(fn() => ctrib_cuentas_desde_archivo($sinEncabezado, 'csv'), 'encabezados',
 array_map('unlink', glob($carpeta . '/*'));
 rmdir($carpeta);
 
+// --- Montos con decimales: la coma es decimal y el punto separa miles ---
+foreach (['1000,00' => 1000, '1000.50' => 1001, '1.234.567,40' => 1234567, '$ 5.315.000.-' => 5315000,
+    '1,234,567.00' => 1234567, '(1.500)' => -1500, '5315000.0000000009' => 5315000, '1.000' => 1000] as $texto => $esperado) {
+    check(ctrib_monto_texto((string) $texto) === $esperado, "monto '$texto' debe ser $esperado y es " . ctrib_monto_texto((string) $texto));
+}
+check(ctrib_monto_texto(1.5E7) === 15000000 && ctrib_monto_texto(1000.5) === 1001, 'celdas numéricas del Excel');
+falla(fn() => ctrib_monto_texto('1,000'), 'no reconocido', 'monto ambiguo se rechaza');
+falla(fn() => ctrib_monto_texto('12 y 3,4,5'), 'no reconocido', 'monto ilegible se rechaza');
+
 echo "Cifrax Tributario balance: mapeo, balance ENYEL (sumas iguales 96.772.918, resultado 6.905.357), vouchers, Excel/CSV e historial verificados\n";

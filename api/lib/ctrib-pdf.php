@@ -398,6 +398,9 @@ function ctrib_documento_html(PDO $pdo, int $empresa, int $anio, string $doc): s
     }
     $ficha = ctrib_empresa_ficha($pdo, $empresa);
     $cuerpo = ctrib_documento_cuerpo($pdo, $empresa, $anio, $doc, $ficha);
+    if (isset($cuerpo['estado']) && ctrib_documento_desactualizado($pdo, $empresa, $anio, $doc)) {
+        $cuerpo['estado'] = 'BORRADOR';
+    }
     $titulo = str_replace('{N}', $ficha['regimen'] === '14D8' ? '8' : '3', CTRIB_DOCUMENTOS[$doc]);
     $horizontal = in_array($doc, CTRIB_DOC_HORIZONTAL, true);
     $borrador = isset($cuerpo['estado']) && $cuerpo['estado'] !== 'FINALIZADO';

@@ -82,4 +82,41 @@ $porRut = array_column($c['socios'], null, 'rut');
 check($porRut['12345678-5']['utilidad'] === 4143214 && $porRut['98765432-5']['utilidad'] === 2762143, 'utilidad repartida 60/40');
 check($porRut['12345678-5']['retirado'] === 600000 && $porRut['98765432-5']['retirado'] === 0 && $c['modo'] === 'importados', 'retiros por socio');
 
+// --- El cuadro no borra retiros importados que el usuario no ha tocado ---
+$nuevaBase = function () use ($semilla): PDO {
+    $p = base_prueba();
+    crearEsquema($p);
+    ctrib_schema($p);
+    ctrib_mapeo_guardar($p, 1, $semilla['mapeo'], 'prueba');
+    ctrib_balance_guardar($p, 1, 2026, 'itributario', $semilla['balance'], 'captura', 'prueba');
+    return $p;
+};
+$retiro = fn(string $rut, string $nombre, int $monto, string $fecha = '2025-04-10') => ['rut' => $rut, 'nombre' => $nombre, 'fecha' => $fecha, 'monto' => $monto, 'tipo' => 'Retiro'];
+$socio = fn(string $rut, string $nombre, int $participacion, int $monto) => ['rut' => $rut, 'nombre' => $nombre, 'participacion' => $participacion, 'monto' => $monto];
+
+$p = $nuevaBase();
+ctrib_retiros_importar($p, 1, 2026, [$retiro('11.111.111-1', 'Socio Uno', 2000000)], 'r.csv', 'prueba');
+check(ctrib_retiros_listar($p, 1, 2026)[0]['rut'] === '11111111-1', 'el RUT importado se guarda normalizado');
+$c = ctrib_composicion_retiros($p, 1, 2026);
+check(count(array_filter($c['avisos'], fn($a) => str_contains($a, 'no está en el cuadro'))) === 1, 'aviso de retiros fuera del cuadro');
+$c = ctrib_composicion_guardar($p, 1, 2026, 'SPA', '14D3', [$socio('11.111.111-1', 'Socio Uno', 100, 0)], false, 'prueba');
+check($c['totalRetirado'] === 2000000 && $c['socios'][0]['retirado'] === 2000000, 'un socio nuevo con monto cero no borra sus retiros');
+check(ctrib_retiros_listar($p, 1, 2026)[0]['fecha'] === '2025-04-10', 'se conserva la fecha importada');
+$c = ctrib_composicion_guardar($p, 1, 2026, 'SPA', '14D3', [$socio('11111111-1', 'Socio Uno', 100, 0)], false, 'prueba');
+check($c['totalRetirado'] === 0, 'poner cero a un socio que ya estaba en el cuadro sí borra sus retiros');
+
+$p = $nuevaBase();
+ctrib_retiros_importar($p, 1, 2026, [$retiro('11111111-1', 'Socio Uno', 700000), $retiro('22222222-2', 'Socio Dos', 300000)], 'r.csv', 'prueba');
+$c = ctrib_composicion_guardar($p, 1, 2026, 'SPA', '14D3', [$socio('11111111-1', 'Socio Uno', 100, 700000)], false, 'prueba');
+check($c['totalRetirado'] === 1000000, 'los retiros de quien nunca estuvo en el cuadro se conservan');
+ctrib_composicion_guardar($p, 1, 2026, 'SPA', '14D3', [$socio('11111111-1', 'Socio Uno', 60, 700000), $socio('22222222-2', 'Socio Dos', 40, 300000)], false, 'prueba');
+$c = ctrib_composicion_guardar($p, 1, 2026, 'SPA', '14D3', [$socio('11111111-1', 'Socio Uno', 100, 700000)], false, 'prueba');
+check($c['totalRetirado'] === 700000, 'quitar un socio del cuadro borra sus retiros');
+
+$p = $nuevaBase();
+ctrib_composicion_guardar($p, 1, 2026, 'EIRL', '14D3', [$socio('', 'Titular Prueba', 100, 0)], false, 'prueba');
+ctrib_retiros_importar($p, 1, 2026, [$retiro('', 'titular prueba', 400000), $retiro('', 'Titular Prueba', 600000, '2025-09-10')], 'r.csv', 'prueba');
+$c = ctrib_composicion_guardar($p, 1, 2026, 'EIRL', '14D3', [$socio('11111111-1', 'Titular Prueba', 100, 1000000)], false, 'prueba');
+check($c['totalRetirado'] === 1000000 && count(ctrib_retiros_listar($p, 1, 2026)) === 2, 'al agregar el RUT, los retiros sin RUT se asignan y conservan sus fechas');
+
 echo "Cifrax Tributario composición y retiros: EIRL con titular única, sociedades, sin retiros y 14 D N°8 verificados\n";

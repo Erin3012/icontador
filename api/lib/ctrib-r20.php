@@ -351,6 +351,9 @@ function ctrib_r20(PDO $pdo, int $empresa, int $anio): array
     if (ctrib_estado_recuadro($pdo, $empresa, $anio, 'R19')['estado'] !== 'FINALIZADO') {
         $bloqueos[] = 'Finalice el Recuadro 19 antes de finalizar el RTRE (sus valores alimentan el RAI).';
     }
+    if ($r17['desactualizado'] || $r19['desactualizado']) {
+        $bloqueos[] = 'El Recuadro 17 o el 19 cambió después de finalizarlo: reábralo y finalícelo nuevamente.';
+    }
 
     $pendientes = [
         'Capital aportado (1494), saldo FUR y sobreprecio de acciones: se toman como cero en el RAI (4.2).',
@@ -417,6 +420,15 @@ function ctrib_r20_guardar_celda(PDO $pdo, int $empresa, int $anio, string $fila
         throw new CtribError('El RTRE está finalizado. Reábralo para modificarlo.');
     }
     $clave = "$fila::$columna";
+    // Se valida antes de borrar la celda guardada.
+    if ($monto !== null) {
+        if (!(is_int($monto) || (is_string($monto) && preg_match('/^-?\d+$/', trim($monto))))) {
+            throw new CtribError('El monto debe ser un número entero.');
+        }
+        if ($celda['signo'] === 'SOLO_POSITIVO' && (int) $monto < 0) {
+            throw new CtribError("La celda $clave solo admite valores positivos.");
+        }
+    }
     $anterior = ctrib_rtre_celdas_manuales($pdo, $empresa, $anio)[$clave] ?? null;
     $pdo->prepare('DELETE FROM ctrib_rtre_celdas WHERE empresa_id = ? AND anio = ? AND fila = ? AND columna = ?')->execute([$empresa, $anio, $fila, $columna]);
     if ($monto === null) {
@@ -425,14 +437,7 @@ function ctrib_r20_guardar_celda(PDO $pdo, int $empresa, int $anio, string $fila
         }
         return ctrib_r20($pdo, $empresa, $anio);
     }
-    $esEntero = is_int($monto) || (is_string($monto) && preg_match('/^-?\d+$/', trim($monto)));
-    if (!$esEntero) {
-        throw new CtribError('El monto debe ser un número entero.');
-    }
     $valor = (int) $monto;
-    if ($celda['signo'] === 'SOLO_POSITIVO' && $valor < 0) {
-        throw new CtribError("La celda $clave solo admite valores positivos.");
-    }
     $pdo->prepare('INSERT INTO ctrib_rtre_celdas (empresa_id, anio, fila, columna, monto, usuario, actualizado) VALUES (?, ?, ?, ?, ?, ?, ?)')
         ->execute([$empresa, $anio, $fila, $columna, $valor, $usuario, ctrib_ahora()]);
     if ($anterior !== $valor) {
@@ -485,10 +490,16 @@ function ctrib_r21(PDO $pdo, int $empresa, int $anio): array
     ];
 }
 
+/** El RTRE sirve para certificar solo si está finalizado y no cambió desde entonces. */
+function ctrib_rtre_vigente(PDO $pdo, int $empresa, int $anio): bool
+{
+    return ctrib_estado_recuadro($pdo, $empresa, $anio, 'R20')['estado'] === 'FINALIZADO'
+        && !ctrib_r20($pdo, $empresa, $anio)['desactualizado'];
+}
+
 /** DJ 1948 y Certificado 70: paso 1 exige el RTRE finalizado. Socios con retiros del año y su certificado. */
 function ctrib_dj1948(PDO $pdo, int $empresa, int $anio): array
 {
-    $rtre = ctrib_estado_recuadro($pdo, $empresa, $anio, 'R20');
     $efectivos = ctrib_retiros_del_anio($pdo, $empresa, $anio);
     $agrupados = [];
     foreach ($efectivos['retiros'] as $r) {
@@ -514,10 +525,10 @@ function ctrib_dj1948(PDO $pdo, int $empresa, int $anio): array
         $filas[] = ['rut' => $s['rut'], 'nombre' => $s['nombre'], 'cantidad' => (int) $s['cantidad'], 'total' => (int) $s['total'],
             'primera' => $s['primera'], 'ultima' => $s['ultima'], 'certificado' => $cert ? (int) $cert['numero'] : null, 'emitido' => $cert['emitido'] ?? null];
     }
-    $paso1 = $rtre['estado'] === 'FINALIZADO';
+    $paso1 = ctrib_rtre_vigente($pdo, $empresa, $anio);
     return [
         'anio' => $anio, 'anioComercial' => ctrib_anio_comercial($anio),
-        'paso1' => ['listo' => $paso1, 'mensaje' => $paso1 ? 'RTRE finalizado: puede emitir certificados.' : 'Paso 1 · Certificado 70: el RTRE (R20) debe estar finalizado antes de emitir certificados o la DJ 1948.'],
+        'paso1' => ['listo' => $paso1, 'mensaje' => $paso1 ? 'RTRE finalizado: puede emitir certificados.' : 'Paso 1 · Certificado 70: el RTRE (R20) debe estar finalizado y al día antes de emitir certificados o la DJ 1948.'],
         'socios' => $filas,
         'modo' => $efectivos['modo'],
         'total' => $efectivos['total'],
@@ -530,12 +541,12 @@ function ctrib_dj1948(PDO $pdo, int $empresa, int $anio): array
 /** Emite el Certificado 70 de un socio (número correlativo por año). Si ya existe, devuelve el mismo número. */
 function ctrib_certificado_emitir(PDO $pdo, int $empresa, int $anio, string $rut, string $usuario): array
 {
-    $rut = trim($rut);
+    $rut = ctrib_rut($rut);
     if ($rut === '') {
         throw new CtribError('Falta el RUT del socio o titular: ingréselo en "Composición y retiros del año" y guarde antes de emitir el certificado.');
     }
-    if (ctrib_estado_recuadro($pdo, $empresa, $anio, 'R20')['estado'] !== 'FINALIZADO') {
-        throw new CtribError('El RTRE (R20) debe estar finalizado antes de emitir certificados.');
+    if (!ctrib_rtre_vigente($pdo, $empresa, $anio)) {
+        throw new CtribError('El RTRE (R20) debe estar finalizado y al día antes de emitir certificados: si cambió, reábralo y finalícelo nuevamente.');
     }
     $existe = $pdo->prepare('SELECT numero, emitido FROM ctrib_certificados WHERE empresa_id = ? AND anio = ? AND rut = ?');
     $existe->execute([$empresa, $anio, $rut]);

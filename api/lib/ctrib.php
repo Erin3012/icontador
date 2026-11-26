@@ -158,7 +158,7 @@ function ctrib_schema(PDO $pdo): void
         empresa_id INT NOT NULL DEFAULT 0,
         anio INT NOT NULL,
         entidad VARCHAR(20) NOT NULL,
-        referencia VARCHAR(40) NOT NULL,
+        referencia VARCHAR(100) NOT NULL,
         antes VARCHAR(255) NOT NULL DEFAULT '',
         despues VARCHAR(255) NOT NULL DEFAULT '',
         motivo VARCHAR(255) NOT NULL DEFAULT '',
@@ -254,7 +254,9 @@ function ctrib_mapeo_guardar(PDO $pdo, int $empresa, array $nuevo, string $usuar
 function ctrib_registrar_historial(PDO $pdo, int $empresa, int $anio, string $entidad, string $referencia, string $antes, string $despues, string $motivo, string $usuario): void
 {
     $pdo->prepare('INSERT INTO ctrib_historial (empresa_id, anio, entidad, referencia, antes, despues, motivo, usuario, creado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-        ->execute([$empresa, $anio, $entidad, $referencia, $antes, $despues, $motivo, $usuario, ctrib_ahora()]);
+        // Se recorta al tamaño de cada columna: MySQL en modo estricto rechaza los textos más largos.
+        ->execute([$empresa, $anio, $entidad, mb_substr($referencia, 0, 100), mb_substr($antes, 0, 255), mb_substr($despues, 0, 255),
+            mb_substr($motivo, 0, 255), $usuario, ctrib_ahora()]);
 }
 
 function ctrib_historial_listar(PDO $pdo, int $empresa, int $anio, string $entidad = '', int $limite = 50): array
@@ -451,6 +453,8 @@ function ctrib_leer_xlsx(string $ruta): array
                 $valor = $v ? (string) $v[0] : '';
                 if ($tipo === 's') {
                     $valor = $compartidas[(int) $valor] ?? '';
+                } elseif (($tipo === '' || $tipo === 'n') && is_numeric($valor) && !preg_match('/^-?\d+$/', $valor)) {
+                    $valor = (float) $valor; // decimales o notación científica: el punto no es separador de miles
                 }
             }
             $celdas[$columna] = $valor;
@@ -503,19 +507,41 @@ function ctrib_normalizar_encabezado(string $texto): string
     return strtr($texto, ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ñ' => 'n']);
 }
 
-/** Convierte texto de monto ("5.315.000", "$ 5315000", "-12") a entero. Vacío = 0. */
+/**
+ * Convierte un monto ("5.315.000", "$ 5315000", "1000,50", "-12") a pesos enteros. Vacío o sin cifras = 0.
+ * La coma es decimal y el punto separa miles (formato chileno). Un texto ambiguo o no reconocido se rechaza.
+ */
 function ctrib_monto_texto(mixed $valor): int
 {
+    if (is_int($valor)) {
+        return $valor;
+    }
+    if (is_float($valor)) {
+        return (int) round($valor);
+    }
     $texto = trim((string) $valor);
-    if ($texto === '') {
+    $limpio = preg_replace(['/[\s$]|\xC2\xA0/', '/\.-$/'], '', $texto) ?? '';
+    if (!preg_match('/\d/', $limpio)) {
         return 0;
     }
-    $negativo = str_starts_with($texto, '-') || str_starts_with($texto, '(');
-    $solo = preg_replace('/[^0-9]/', '', $texto);
-    if ($solo === '') {
-        return 0;
+    $negativo = false;
+    if (preg_match('/^\((.*)\)$/', $limpio, $m)) {
+        [$negativo, $limpio] = [true, $m[1]];
+    } elseif (str_starts_with($limpio, '-')) {
+        [$negativo, $limpio] = [true, substr($limpio, 1)];
     }
-    return ($negativo ? -1 : 1) * (int) $solo;
+    if (preg_match('/^\d+$/', $limpio)) {
+        $numero = (int) $limpio;
+    } elseif (preg_match('/^[1-9]\d{0,2}(\.\d{3})+(,\d+)?$/', $limpio)) {                  // 1.234.567,50
+        $numero = (int) round((float) str_replace(['.', ','], ['', '.'], $limpio));
+    } elseif (preg_match('/^[1-9]\d{0,2}((,\d{3}){2,}(\.\d+)?|,\d{3}\.\d+)$/', $limpio)) { // 1,234,567.50
+        $numero = (int) round((float) str_replace(',', '', $limpio));
+    } elseif (preg_match('/^(\d+[.,](\d{1,2}|\d{4,})|(0|\d{4,})[.,]\d{3})$/', $limpio)) {  // 1000,50 o 1000.5
+        $numero = (int) round((float) str_replace(',', '.', $limpio));
+    } else {
+        throw new CtribError("Monto no reconocido: \"$texto\". Escríbalo como 1.234.567 o 1234567,50.");
+    }
+    return $negativo ? -$numero : $numero;
 }
 
 /**
@@ -578,6 +604,13 @@ function ctrib_cuentas_desde_archivo(string $ruta, string $extension): array
 }
 
 // ---------- Retiros y dividendos (base del 1479 del R19 y del tope del incentivo 1432) ----------
+
+/** RUT en una sola forma (12345678-5) para comparar retiros y socios. Si no es válido se deja como vino. */
+function ctrib_rut(string $rut): string
+{
+    $rut = trim($rut);
+    return normalizarRut($rut) ?? $rut;
+}
 
 // Tipo de contribuyente y régimen de la empresa: definen las reglas del cuadro de retiros
 // (EIRL: un solo titular con el 100%; 14 D N°8: se atribuye y retira la totalidad).
@@ -653,7 +686,7 @@ function ctrib_retiros_modo_guardar(PDO $pdo, int $empresa, int $anio, string $m
     if ($modo === 'totalidad') {
         $suma = 0.0;
         foreach ($socios as $i => $s) {
-            $rut = trim((string) ($s['rut'] ?? ''));
+            $rut = ctrib_rut((string) ($s['rut'] ?? ''));
             $p = $s['participacion'] ?? null;
             if ($rut === '' && trim((string) ($s['nombre'] ?? '')) === '' && ($p === null || $p === '')) {
                 continue; // fila vacía del formulario
@@ -791,7 +824,7 @@ function ctrib_retiros_desde_archivo(string $ruta, string $extension): array
     $retiros = [];
     foreach (array_slice($filas, $cab['fila'] + 1, null, true) as $n => $fila) {
         $celdas = array_values(is_array($fila) ? $fila : []);
-        $rut = trim((string) ($celdas[$ix['rut']] ?? ''));
+        $rut = ctrib_rut((string) ($celdas[$ix['rut']] ?? ''));
         $monto = ctrib_monto_texto($celdas[$ix['monto']] ?? '');
         $fecha = ctrib_fecha_texto($celdas[$ix['fecha']] ?? '');
         if ($rut === '' && $monto === 0 && trim((string) ($celdas[$ix['fecha']] ?? '')) === '') {
@@ -828,7 +861,7 @@ function ctrib_retiros_importar(PDO $pdo, int $empresa, int $anio, array $retiro
         $pdo->prepare('DELETE FROM ctrib_retiros WHERE empresa_id = ? AND anio = ?')->execute([$empresa, $anio]);
         $insertar = $pdo->prepare('INSERT INTO ctrib_retiros (empresa_id, anio, rut, nombre, fecha, monto, tipo) VALUES (?, ?, ?, ?, ?, ?, ?)');
         foreach ($retiros as $r) {
-            $insertar->execute([$empresa, $anio, $r['rut'], $r['nombre'], $r['fecha'], $r['monto'], $r['tipo']]);
+            $insertar->execute([$empresa, $anio, ctrib_rut($r['rut']), $r['nombre'], $r['fecha'], $r['monto'], $r['tipo']]);
         }
         ctrib_registrar_historial($pdo, $empresa, $anio, 'retiros', $archivo !== '' ? $archivo : 'retiros', (string) $anterior, (string) ctrib_retiros_total($pdo, $empresa, $anio), 'Importación de retiros', $usuario);
         ctrib_retiros_modo_fijar($pdo, $empresa, $anio, 'importados', $usuario); // importar vuelve al modo de retiros importados
