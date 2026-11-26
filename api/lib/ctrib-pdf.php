@@ -326,13 +326,17 @@ function ctrib_documento_cuerpo(PDO $pdo, int $empresa, int $anio, string $doc, 
                 ['glosa' => 'Saldo negativo del registro REX al término del ejercicio', 'codigo' => '1492', 'monto' => $f['rexNegativoAbs'], 'signo' => '+'],
                 ['glosa' => 'Remesas, retiros o dividendos repartidos en el ejercicio, históricos', 'codigo' => '1704', 'monto' => $f['retirosEjercicio'], 'signo' => '+'],
                 ['glosa' => 'Subtotal', 'codigo' => '1720', 'monto' => $f['subtotalRai'], 'signo' => '='],
-                ['glosa' => 'Saldo positivo del registro REX antes de imputaciones', 'codigo' => '1493', 'monto' => 0, 'signo' => '-'],
+                ['glosa' => 'Saldo positivo del registro REX antes de imputaciones', 'codigo' => '1493', 'monto' => $f['rexPositivoPrevio'], 'signo' => '-'],
                 ['glosa' => 'Capital aportado efectivamente, más sus aumentos y menos sus disminuciones, históricos', 'codigo' => '1494', 'monto' => $f['capitalAportado'], 'signo' => '-'],
                 ['glosa' => 'Saldo FUR', 'codigo' => '1725', 'monto' => $f['saldoFur'], 'signo' => '-'],
-                ['glosa' => 'Rentas afectas a impuestos (RAI)', 'codigo' => '1721', 'monto' => $f['rai'], 'signo' => '='],
             ];
-            return ['estado' => $r['estado'], 'numero' => '18', 'html' => ctrib_pdf_recuadro('18', $lineas)
-                . ctrib_pdf_notas(['El R18 se arma con la fórmula del RAI del RTRE (4.2); capital aportado, FUR y REX se toman como cero en esta versión.'])];
+            $notas = ['El R18 se arma con la fórmula del RAI del RTRE (4.2).'];
+            if ($f['sobreprecioAcciones'] > 0) {
+                $lineas[] = ['glosa' => 'Sobreprecio en colocación de acciones', 'codigo' => '', 'monto' => $f['sobreprecioAcciones'], 'signo' => '-'];
+                $notas[] = 'El sobreprecio en colocación de acciones se muestra sin código: falta confirmar en cuál se declara.';
+            }
+            $lineas[] = ['glosa' => 'Rentas afectas a impuestos (RAI)', 'codigo' => '1721', 'monto' => $f['rai'], 'signo' => '='];
+            return ['estado' => $r['estado'], 'numero' => '18', 'html' => ctrib_pdf_recuadro('18', $lineas) . ctrib_pdf_notas($notas)];
 
         case 'R19':
             $r = ctrib_r19($pdo, $empresa, $anio);
