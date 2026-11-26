@@ -175,6 +175,10 @@ function ctrib_r17(PDO $pdo, int $empresa, int $anio): array
         $bloqueos[] = "Hay {$homologacion['alertas']} cuenta(s) con código incompatible: corríjalas en la homologación.";
     }
     $confirmado = $incentivo['elegibilidad'] && $incentivo['limiteIngresos'] && $incentivo['limiteRentasPasivas'];
+    if ($m1432 > 0 && $uf === null && $estado['estado'] !== 'FINALIZADO') {
+        $bloqueos[] = 'No se puede comprobar el tope de ' . number_format(CTRIB_R17_TOPE_UF, 0, ',', '.') . ' UF del incentivo al ahorro: falta la UF al 31-12-'
+            . ($anio - 1) . ' (archivo factores-' . ($anio - 1) . '.json). Cárguela o declare monto 0 en el código 1432.';
+    }
     if ($m1432 > 0 && !$confirmado && $estado['estado'] !== 'FINALIZADO') {
         $bloqueos[] = 'No se puede finalizar: el incentivo al ahorro (código 1432) se está aplicando sin confirmar los requisitos. '
             . 'En el código 1432 declare la elegibilidad, confirme que el promedio anual de ingresos del giro de los tres años comerciales '
@@ -348,10 +352,70 @@ function ctrib_composicion_retiros(PDO $pdo, int $empresa, int $anio): array
     if (array_filter($socios, fn($s) => $s['rut'] === '')) {
         $avisos[] = 'Falta el RUT de un socio o titular: es necesario para la DJ 1948 y el Certificado 70.';
     }
+    $enCuadro = array_column($socios, 'rut');
+    $fuera = [];
+    foreach ($efectivos['retiros'] as $r) {
+        if (!in_array($r['rut'], $enCuadro, true)) {
+            $quien = trim($r['rut'] . ' ' . $r['nombre']);
+            $fuera[$quien] = "Hay retiros de $quien, que no está en el cuadro: agréguelo como socio o corrija el archivo de retiros.";
+        }
+    }
+    $avisos = array_merge($avisos, array_values($fuera));
     return [
         'tipo' => $config['tipo'], 'regimen' => $config['regimen'], 'modo' => $efectivos['modo'],
         'utilidad' => $utilidad, 'socios' => $filas, 'totalRetirado' => $efectivos['total'], 'avisos' => $avisos,
     ];
+}
+
+/**
+ * Aplica los montos del cuadro a los retiros del año, socio por socio. Solo se reemplaza lo que el usuario cambió:
+ * si el total coincide se conservan las fechas importadas; un socio nuevo en el cuadro con monto cero no borra
+ * sus retiros; los de personas que nunca estuvieron en el cuadro se conservan; quitar un socio borra los suyos.
+ */
+function ctrib_composicion_retiros_guardar(PDO $pdo, int $empresa, int $anio, array $socios, array $previos, string $fecha, string $usuario): void
+{
+    $ruts = array_column($socios, 'rut');
+    $totalAntes = ctrib_retiros_total($pdo, $empresa, $anio);
+    // Retiros cargados sin RUT: pasan al socio del mismo nombre cuando este ya tiene RUT.
+    if (!in_array('', $ruts, true)) {
+        $sinRut = $pdo->prepare("SELECT id, nombre FROM ctrib_retiros WHERE empresa_id = ? AND anio = ? AND rut = ''");
+        $sinRut->execute([$empresa, $anio]);
+        $asignar = $pdo->prepare('UPDATE ctrib_retiros SET rut = ? WHERE id = ?');
+        foreach ($sinRut->fetchAll() as $r) {
+            foreach ($socios as $s) {
+                if (mb_strtolower(trim($s['nombre'])) === mb_strtolower(trim($r['nombre']))) {
+                    $asignar->execute([$s['rut'], $r['id']]);
+                    $previos[] = $s['rut'];
+                    break;
+                }
+            }
+        }
+    }
+    $actuales = [];
+    foreach (ctrib_retiros_listar($pdo, $empresa, $anio) as $r) {
+        $actuales[$r['rut']] = ($actuales[$r['rut']] ?? 0) + (int) $r['monto'];
+    }
+    $borrar = $pdo->prepare('DELETE FROM ctrib_retiros WHERE empresa_id = ? AND anio = ? AND rut = ?');
+    $insertar = $pdo->prepare('INSERT INTO ctrib_retiros (empresa_id, anio, rut, nombre, fecha, monto, tipo) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    $cambio = false;
+    foreach ($socios as $s) {
+        $antes = $actuales[$s['rut']] ?? 0;
+        if ($antes === $s['monto'] || ($s['monto'] === 0 && !in_array($s['rut'], $previos, true))) {
+            continue;
+        }
+        $borrar->execute([$empresa, $anio, $s['rut']]);
+        if ($s['monto'] > 0) {
+            $insertar->execute([$empresa, $anio, $s['rut'], $s['nombre'], $fecha, $s['monto'], 'Retiro']);
+        }
+        $cambio = true;
+    }
+    foreach (array_diff(array_unique($previos), $ruts) as $quitado) {
+        $borrar->execute([$empresa, $anio, $quitado]);
+        $cambio = $cambio || $borrar->rowCount() > 0;
+    }
+    if ($cambio) {
+        ctrib_registrar_historial($pdo, $empresa, $anio, 'retiros', 'cuadro', (string) $totalAntes, (string) ctrib_retiros_total($pdo, $empresa, $anio), 'Retiros por socio desde el visor', $usuario);
+    }
 }
 
 /**
@@ -408,6 +472,7 @@ function ctrib_composicion_guardar(PDO $pdo, int $empresa, int $anio, string $ti
         throw new CtribError('Una EIRL tiene un solo titular con el 100% de participación.');
     }
     $ac = ctrib_anio_comercial($anio);
+    $previos = array_column(ctrib_socios($pdo, $empresa, $anio), 'rut'); // socios del cuadro antes de este guardado
     $pdo->beginTransaction();
     try {
         ctrib_empresa_config_guardar($pdo, $empresa, $tipo, $regimen, $usuario);
@@ -422,24 +487,7 @@ function ctrib_composicion_guardar(PDO $pdo, int $empresa, int $anio, string $ti
         } elseif ($regimen === '14D8') {
             ctrib_retiros_modo_fijar($pdo, $empresa, $anio, 'totalidad', $usuario);
         } else {
-            // Solo se reemplazan los retiros si los montos por socio cambiaron.
-            $actuales = [];
-            foreach (ctrib_retiros_listar($pdo, $empresa, $anio) as $r) {
-                $actuales[$r['rut']] = ($actuales[$r['rut']] ?? 0) + (int) $r['monto'];
-            }
-            $nuevos = array_filter(array_column($limpios, 'monto', 'rut'));
-            ksort($actuales);
-            ksort($nuevos);
-            if ($actuales !== $nuevos) {
-                $pdo->prepare('DELETE FROM ctrib_retiros WHERE empresa_id = ? AND anio = ?')->execute([$empresa, $anio]);
-                $ins = $pdo->prepare('INSERT INTO ctrib_retiros (empresa_id, anio, rut, nombre, fecha, monto, tipo) VALUES (?, ?, ?, ?, ?, ?, ?)');
-                foreach ($limpios as $s) {
-                    if ($s['monto'] > 0) {
-                        $ins->execute([$empresa, $anio, $s['rut'], $s['nombre'], "$ac-12-31", $s['monto'], 'Retiro']);
-                    }
-                }
-                ctrib_registrar_historial($pdo, $empresa, $anio, 'retiros', 'cuadro', (string) array_sum($actuales), (string) array_sum($nuevos), 'Retiros por socio desde el visor', $usuario);
-            }
+            ctrib_composicion_retiros_guardar($pdo, $empresa, $anio, array_values($limpios), $previos, "$ac-12-31", $usuario);
             ctrib_retiros_modo_fijar($pdo, $empresa, $anio, 'importados', $usuario);
         }
         $pdo->commit();

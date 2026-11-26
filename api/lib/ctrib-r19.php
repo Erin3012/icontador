@@ -138,15 +138,15 @@ function ctrib_r19_guardar_valor(PDO $pdo, int $empresa, int $anio, string $codi
     if (ctrib_estado_recuadro($pdo, $empresa, $anio, 'R19')['estado'] === 'FINALIZADO') {
         throw new CtribError('El Recuadro 19 está finalizado. Reábralo para modificarlo.');
     }
+    $esEntero = is_int($monto) || (is_string($monto) && preg_match('/^\d+$/', trim($monto)));
+    if ($monto !== null && (!$esEntero || (int) $monto < 0)) {
+        throw new CtribError('El monto debe ser un número entero mayor o igual a cero.'); // antes de borrar el valor guardado
+    }
     $anterior = ctrib_valores_manuales($pdo, $empresa, $anio, 'R19');
     $pdo->prepare('DELETE FROM ctrib_valores WHERE empresa_id = ? AND anio = ? AND recuadro = ? AND codigo = ?')->execute([$empresa, $anio, 'R19', $codigo]);
     if ($monto === null) {
         ctrib_registrar_historial($pdo, $empresa, $anio, 'recuadro', "R19 $codigo", (string) ($anterior[$codigo] ?? ''), 'automático', 'Sobrescritura quitada', $usuario);
         return ctrib_r19($pdo, $empresa, $anio);
-    }
-    $esEntero = is_int($monto) || (is_string($monto) && preg_match('/^\d+$/', trim($monto)));
-    if (!$esEntero || (int) $monto < 0) {
-        throw new CtribError('El monto debe ser un número entero mayor o igual a cero.');
     }
     $valor = (int) $monto;
     $pdo->prepare('INSERT INTO ctrib_valores (empresa_id, anio, recuadro, codigo, monto, usuario, actualizado) VALUES (?, ?, ?, ?, ?, ?, ?)')

@@ -113,4 +113,74 @@ ctrib_r4_reabrir($b, 1, 2026, 'prueba', 'Ajuste');
 $cierre = ctrib_cierre($b, 1, 2026);
 check($cierre['cerrado'] === true && $cierre['pendientes'] === ['R4'] && count($cierre['avisos']) === 1, 'aviso si un recuadro se reabre con el año cerrado');
 
+// --- Un valor inválido no borra el guardado ---
+$d = preparar(true);
+ctrib_r19_guardar_valor($d, 1, 2026, '1374', 500000, 'prueba');
+falla(fn() => ctrib_r19_guardar_valor($d, 1, 2026, '1374', -5, 'prueba'), 'entero', 'R19 rechaza un negativo');
+check(ctrib_valores_manuales($d, 1, 2026, 'R19')['1374'] === 500000, 'R19 conserva el valor anterior');
+ctrib_r4_guardar_valor($d, 1, 2026, '1070', 700000, 'prueba');
+falla(fn() => ctrib_r4_guardar_valor($d, 1, 2026, '1070', 'abc', 'prueba'), 'entero', 'R4 rechaza texto');
+check(ctrib_valores_manuales($d, 1, 2026, 'R4')['1070'] === 700000, 'R4 conserva el valor anterior');
+$filaLarga = null;
+foreach (ctrib_rtre_catalogo() as $fila => $f) {
+    foreach ($f['celdas'] as $ce) {
+        if (in_array($f['naturalezaConfiguracion'], ['MANUAL', 'AUTO_CON_OVERRIDE'], true) && strlen("R20 $fila::{$ce['columna']}") > 40) {
+            $filaLarga ??= [(string) $fila, $ce['columna']];
+        }
+    }
+}
+ctrib_r20_guardar_celda($d, 1, 2026, $filaLarga[0], $filaLarga[1], 123, 'prueba');
+falla(fn() => ctrib_r20_guardar_celda($d, 1, 2026, $filaLarga[0], $filaLarga[1], 'abc', 'prueba'), 'entero', 'RTRE rechaza texto');
+check(ctrib_rtre_celdas_manuales($d, 1, 2026)[$filaLarga[0] . '::' . $filaLarga[1]] === 123, 'RTRE conserva la celda anterior');
+ctrib_registrar_historial($d, 1, 2026, 'retiros', str_repeat('a', 300), str_repeat('b', 300), '', '', 'prueba');
+$h = ctrib_historial_listar($d, 1, 2026, 'retiros')[0];
+check(mb_strlen($h['referencia']) === 100 && mb_strlen($h['antes']) === 255, 'el historial recorta al tamaño de las columnas');
+
+// --- Recuadros desactualizados y año cerrado ---
+$e = preparar(true);
+ctrib_r4_finalizar($e, 1, 2026, 'prueba');
+ctrib_r6_finalizar($e, 1, 2026, 'prueba');
+ctrib_incentivo_guardar($e, 1, 2026, true, true, true, null, 'prueba');
+ctrib_r17_finalizar($e, 1, 2026, 'prueba');
+ctrib_r19_finalizar($e, 1, 2026, 'prueba');
+ctrib_r20_finalizar($e, 1, 2026, 'prueba');
+ctrib_cierre_sellar($e, 1, 2026, 'prueba');
+foreach (['balance_desde_vouchers', 'balance_importar', 'homologacion_asignar', 'retiros_importar', 'composicion_guardar', 'r4_reabrir', 'accion_futura'] as $accion) {
+    falla(fn() => ctrib_exigir_cambio_permitido($e, 1, $accion, ['anio' => '2026']), 'está cerrado', "año cerrado: $accion se rechaza");
+}
+ctrib_exigir_cambio_permitido($e, 1, 'cierre_reabrir', ['anio' => 2026]);
+ctrib_exigir_cambio_permitido($e, 1, 'certificado_emitir', ['anio' => 2026]);
+ctrib_exigir_cambio_permitido($e, 1, 'balance_importar', ['anio' => 2027]);
+ctrib_exigir_cambio_permitido($e, 2, 'balance_importar', ['anio' => 2026]);
+$mapeo = ctrib_mapeo($e, 1);
+ctrib_exigir_cambio_permitido($e, 1, 'mapeo_guardar', ['mapeo' => $mapeo + ['9' => 'ACTIVO']]);
+falla(fn() => ctrib_exigir_cambio_permitido($e, 1, 'mapeo_guardar', ['mapeo' => ['1' => 'PASIVO'] + $mapeo]), 'años cerrados', 'no se cambia el mapeo con un año cerrado');
+
+// Un cambio en los datos (por fuera de la API) deja los recuadros desactualizados.
+ctrib_cierre_reabrir($e, 1, 2026, 'prueba', 'Cambio');
+ctrib_retiros_importar($e, 1, 2026, [['rut' => '12345678-5', 'nombre' => 'X', 'fecha' => '2025-05-05', 'monto' => 1000000, 'tipo' => 'Retiro']], 'r.csv', 'prueba');
+$cierre = ctrib_cierre($e, 1, 2026);
+check(!$cierre['completo'] && in_array('R19', $cierre['pendientes'], true), 'un recuadro desactualizado cuenta como pendiente');
+falla(fn() => ctrib_cierre_sellar($e, 1, 2026, 'prueba'), 'actualizar', 'no se cierra con recuadros desactualizados');
+falla(fn() => ctrib_certificado_emitir($e, 1, 2026, '12345678-5', 'prueba'), 'al día', 'no se certifica con el RTRE desactualizado');
+check(ctrib_dj1948($e, 1, 2026)['paso1']['listo'] === false, 'DJ 1948 no está lista con el RTRE desactualizado');
+check(ctrib_documento_desactualizado($e, 1, 2026, 'R19') && !ctrib_documento_desactualizado($e, 1, 2026, 'BALANCE'), 'el PDF del R19 sale como borrador');
+ctrib_r20_reabrir($e, 1, 2026, 'prueba', '');
+falla(fn() => ctrib_r20_finalizar($e, 1, 2026, 'prueba'), 'cambió después', 'el RTRE no se finaliza sobre un R19 desactualizado');
+
+// --- Sin la UF del año no se finaliza un R17 con incentivo ---
+$u = preparar(true);
+$balance = ctrib_balance_guardado($u, 1, 2026);
+ctrib_balance_guardar($u, 1, 2027, 'csv', $balance['cuentas'], '', 'prueba');
+ctrib_homologacion_importar($u, 1, 2027, array_reduce(ctrib_homologacion($u, 1, 2026)['codigos'], function ($m, $c) {
+    if ($c['cuentas']) { $m[$c['codigo']] = array_column($c['cuentas'], 'cuenta'); }
+    return $m;
+}, []), 'prueba');
+ctrib_incentivo_guardar($u, 1, 2027, true, true, true, null, 'prueba');
+$r17 = ctrib_r17($u, 1, 2027);
+check($r17['totales']['1432'] > 0 && !$r17['puedeFinalizar'], 'sin UF y con incentivo no se puede finalizar');
+falla(fn() => ctrib_r17_finalizar($u, 1, 2027, 'prueba'), 'falta la UF', 'aviso del tope de 5.000 UF');
+ctrib_incentivo_guardar($u, 1, 2027, true, true, true, 0, 'prueba');
+check(ctrib_r17($u, 1, 2027)['puedeFinalizar'], 'con monto 0 en el 1432 se puede finalizar');
+
 echo "Cifrax Tributario R4, R6 y cierre: R6 capturado reproducido (122, 123, 102, 843), R4 con pérdida de arrastre, cierre con recuadros pendientes, sellado y reapertura verificados\n";

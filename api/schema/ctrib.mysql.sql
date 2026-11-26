@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS ctrib_historial (
     empresa_id INT NOT NULL DEFAULT 0,
     anio INT NOT NULL,
     entidad VARCHAR(20) NOT NULL,
-    referencia VARCHAR(40) NOT NULL,
+    referencia VARCHAR(100) NOT NULL,
     antes VARCHAR(255) NOT NULL DEFAULT '',
     despues VARCHAR(255) NOT NULL DEFAULT '',
     motivo VARCHAR(255) NOT NULL DEFAULT '',
