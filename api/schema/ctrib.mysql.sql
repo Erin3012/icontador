@@ -160,3 +160,29 @@ CREATE TABLE IF NOT EXISTS ctrib_historial (
     usuario VARCHAR(120) NOT NULL DEFAULT '',
     creado VARCHAR(25) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ctrib_ajuste_cuentas (
+    empresa_id INT NOT NULL DEFAULT 0,
+    anio INT NOT NULL,
+    cuenta VARCHAR(20) NOT NULL,
+    codigo CHAR(4) NOT NULL,
+    PRIMARY KEY (empresa_id, anio, cuenta)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ctrib_ajuste_saldos (
+    empresa_id INT NOT NULL DEFAULT 0,
+    anio INT NOT NULL,
+    codigo CHAR(4) NOT NULL,
+    saldo_inicial BIGINT NULL,
+    saldo_final BIGINT NULL,
+    PRIMARY KEY (empresa_id, anio, codigo)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ctrib_rli_partidas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    empresa_id INT NOT NULL DEFAULT 0,
+    anio INT NOT NULL,
+    tipo VARCHAR(10) NOT NULL,
+    glosa VARCHAR(160) NOT NULL,
+    monto BIGINT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

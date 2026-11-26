@@ -53,7 +53,7 @@ foreach ($capturadas as $clave => $valor) {
 }
 check($r['rai'] === 7384509 && $r['idpc'] === 461532, 'RAI 7.384.509 e IDPC 461.532 como iTributario');
 check($r['formulaRai']['subtotalRai'] === 7384509 && $r['formulaSac']['tasaIdpc'] === 12.5, 'fórmula del RAI y tasa Pro Pyme 12,5%');
-check(in_array('Saldos iniciales (1.1): sin RTRE del año anterior finalizado, quedan en cero.', $r['pendientesDeCalculo'], true), 'saldos iniciales marcados como pendientes');
+check(in_array(true, array_map(fn($p) => str_starts_with($p, 'Saldos iniciales (1.1)'), $r['pendientesDeCalculo']), true), 'saldos iniciales: aviso para escribirlos a mano en la fila 1.1');
 falla(fn() => ctrib_r20_finalizar($a, 1, 2026, 'prueba'), 'Recuadro 19', 'no se finaliza el RTRE sin R19 finalizado');
 falla(fn() => ctrib_certificado_emitir($a, 1, 2026, '12345678-9', 'prueba'), 'debe estar finalizado', 'no se emiten certificados sin RTRE finalizado');
 

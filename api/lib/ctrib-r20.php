@@ -69,6 +69,25 @@ function ctrib_rtre_anterior(PDO $pdo, int $empresa, int $anio): ?array
 
 // ---------- Vista del RTRE agrupada (RAI, REX, SAC, STUT) y formularios R20 y R21 ----------
 
+// Orden de imputación de los retiros que exceden el RAI dentro del registro REX (rentas exentas e INR).
+const CTRIB_RTRE_ORDEN_REX = [
+    'REX_CON_PRIORIDAD', 'REX_SIN_PRIORIDAD_RENTA_PRESUNTA', 'REX_DISTRIBUIBLE_ISFUT_LEY20780', 'REX_DISTRIBUIBLE_ISFUT_LEY21210',
+    'REX_SIN_PRIORIDAD_ISFUT_DESPROPORCIONADO', 'REX_DISTRIBUIBLE_PRE_1984', 'REX_DISTRIBUIBLE_EXCESO_N9', 'REX_SIN_PRIORIDAD_IUSCAPT',
+    'REX_EXENTA_IGC_O_IA', 'REX_EXENTA_AFECTA_IA', 'INR',
+];
+// Parámetros del RAI que se escriben a mano (en ctrib_valores, recuadro R20): capital aportado, saldo FUR y sobreprecio.
+const CTRIB_RTRE_PARAMETROS = ['1494' => 'Capital aportado efectivamente, con aumentos y disminuciones (histórico)', '1725' => 'Saldo FUR', 'SOBR' => 'Sobreprecio en colocación de acciones'];
+
+function ctrib_rtre_parametros(PDO $pdo, int $empresa, int $anio): array
+{
+    $manuales = ctrib_valores_manuales($pdo, $empresa, $anio, 'R20');
+    $salida = [];
+    foreach (CTRIB_RTRE_PARAMETROS as $codigo => $_) {
+        $salida[(string) $codigo] = (int) ($manuales[(string) $codigo] ?? 0);
+    }
+    return $salida;
+}
+
 const CTRIB_RTRE_SECCIONES = [
     1 => 'Saldos iniciales o remanentes', 2 => 'Reclasificaciones del ejercicio', 3 => 'Reorganizaciones a la fecha del evento',
     4 => 'Determinación del año comercial', 5 => 'Otras reclasificaciones', 6 => 'Imputación de retiros',
@@ -239,16 +258,14 @@ function ctrib_r20(PDO $pdo, int $empresa, int $anio): array
     $anterior = ctrib_rtre_anterior($pdo, $empresa, $anio - 1);
     $retiros = ctrib_retiros_del_anio($pdo, $empresa, $anio)['total'];
 
-    // Fórmula del RAI (4.2): capital propio tributario simplificado + retiros del ejercicio + saldo negativo REX, menos lo que corresponda.
+    // Fórmula del RAI (4.2): CPTS + retiros del ejercicio + saldo negativo REX − saldo positivo REX − capital aportado
+    // − saldo FUR − sobreprecio. Capital, FUR y sobreprecio se escriben a mano (parámetros del RTRE); el REX sale del registro.
     $cptPositivo = (int) $r19['totales']['1545'];
     $cptNegativo = (int) $r19['totales']['1546'];
-    $rexNegativoAbs = 0;        // REX negativo: pendiente
-    $rexPositivoPrevio = 0;     // pendiente
-    $capitalAportado = 0;       // pendiente (1494 y variaciones)
-    $saldoFur = 0;              // pendiente
-    $sobreprecio = 0;           // pendiente
-    $subtotalRai = $cptPositivo - $cptNegativo + $retiros + $rexNegativoAbs;
-    $rai = max(0, $subtotalRai - $rexPositivoPrevio - $capitalAportado - $saldoFur - $sobreprecio);
+    $parametros = ctrib_rtre_parametros($pdo, $empresa, $anio);
+    $capitalAportado = $parametros['1494'];
+    $saldoFur = $parametros['1725'];
+    $sobreprecio = $parametros['SOBR'];
 
     // IDPC del ejercicio (4.5): tasa Pro Pyme sobre la base imponible del 1440 del R17.
     $rli = max(0, (int) $r17['totales']['1440']);
@@ -268,7 +285,7 @@ function ctrib_r20(PDO $pdo, int $empresa, int $anio): array
                 $monto = (int) ($anterior["REMANENTE_FINAL::$col"] ?? 0);
                 $origen = $anterior !== null ? 'AÑO_ANTERIOR' : 'SIN_ANTERIOR_FINALIZADO';
             } elseif ($clave === '4.2::RAI') {
-                $monto = $rai;
+                $monto = 0; // se calcula después, con el REX del registro
                 $origen = 'AUTO';
             } elseif ($clave === '4.5::' . CTRIB_RTRE_COLUMNA_IDPC) {
                 $monto = $idpc;
@@ -294,6 +311,17 @@ function ctrib_r20(PDO $pdo, int $empresa, int $anio): array
         return $total;
     };
 
+    // Saldo del registro REX antes de imputaciones (bloques 1 a 5): el positivo se resta y el negativo se suma en el RAI.
+    $rexAntes = 0;
+    foreach (CTRIB_RTRE_ORDEN_REX as $col) {
+        $rexAntes += $suma([1, 2, 3, 4, 5], $col);
+    }
+    $rexPositivoPrevio = max(0, $rexAntes);
+    $rexNegativoAbs = max(0, -$rexAntes);
+    $subtotalRai = $cptPositivo - $cptNegativo + $retiros + $rexNegativoAbs;
+    $rai = max(0, $subtotalRai - $rexPositivoPrevio - $capitalAportado - $saldoFur - $sobreprecio);
+    $celdas['4.2']['RAI'] = ['monto' => $rai, 'origen' => 'AUTO'];
+
     // Reverso del subtotal N°3 (4.1): si el RAI del subtotal 3 es positivo, se reversa.
     $s3Rai = $suma([1, 2, 3], 'RAI');
     $celdas['4.1']['RAI'] = ['monto' => -max(0, $s3Rai), 'origen' => 'AUTO'];
@@ -302,7 +330,19 @@ function ctrib_r20(PDO $pdo, int $empresa, int $anio): array
     $s5Rai = $suma([1, 2, 3, 4, 5], 'RAI');
     $retirosRai = min($retiros, max(0, $s5Rai));
     $celdas['6.1']['RAI'] = ['monto' => $retirosRai, 'origen' => 'AUTO'];
-    $retirosNoImputados = $retiros - $retirosRai;
+    // El exceso sobre el RAI se imputa a las rentas exentas e ingresos no renta (REX), en el orden del registro.
+    $resto = $retiros - $retirosRai;
+    $retirosRex = 0;
+    foreach (CTRIB_RTRE_ORDEN_REX as $col) {
+        if (!isset($celdas['6.1'][$col])) {
+            continue;
+        }
+        $imputado = min($resto, max(0, $suma([1, 2, 3, 4, 5], $col)));
+        $celdas['6.1'][$col] = ['monto' => $imputado, 'origen' => 'AUTO'];
+        $resto -= $imputado;
+        $retirosRex += $imputado;
+    }
+    $retirosNoImputados = $resto;
 
     // Crédito SAC asignado a los retiros (6.1): retiro × tasa / (100 − tasa), hasta el SAC disponible (como iTributario).
     $factorSac = round($tasa / (100 - $tasa), 6);
@@ -353,14 +393,13 @@ function ctrib_r20(PDO $pdo, int $empresa, int $anio): array
     }
 
     $pendientes = [
-        'Capital aportado (1494), saldo FUR y sobreprecio de acciones: se toman como cero en el RAI (4.2).',
         'DDAN, REX/INR del ejercicio y créditos de IDPC voluntario (4.3 a 4.5): cero hasta cargarlos a mano.',
     ];
     if ($anterior === null) {
-        $pendientes[] = 'Saldos iniciales (1.1): sin RTRE del año anterior finalizado, quedan en cero.';
+        $pendientes[] = 'Saldos iniciales (1.1): no hay RTRE del año anterior finalizado; escríbalos a mano en la fila 1.1 si corresponde.';
     }
     if ($retirosNoImputados > 0) {
-        $pendientes[] = 'Retiros por ' . number_format($retirosNoImputados, 0, ',', '.') . ' que exceden el RAI: su imputación a REX y SAC aún no se calcula.';
+        $pendientes[] = 'Retiros por ' . number_format($retirosNoImputados, 0, ',', '.') . ' exceden el RAI y el REX: no se imputan a los registros y se informan en el código 1193 del R6.';
     }
 
     return [
@@ -371,7 +410,7 @@ function ctrib_r20(PDO $pdo, int $empresa, int $anio): array
         'remanenteSac' => $celdas['REMANENTE_FINAL'][CTRIB_RTRE_COLUMNA_IDPC]['monto'] ?? 0,
         'formulaRai' => [
             'cptPositivo' => $cptPositivo, 'cptNegativo' => $cptNegativo, 'retirosEjercicio' => $retiros,
-            'rexNegativoAbs' => $rexNegativoAbs, 'subtotalRai' => $subtotalRai, 'capitalAportado' => $capitalAportado,
+            'rexNegativoAbs' => $rexNegativoAbs, 'rexPositivoPrevio' => $rexPositivoPrevio, 'subtotalRai' => $subtotalRai, 'capitalAportado' => $capitalAportado,
             'saldoFur' => $saldoFur, 'sobreprecioAcciones' => $sobreprecio, 'rai' => $rai,
         ],
         'formulaSac' => [
@@ -379,6 +418,9 @@ function ctrib_r20(PDO $pdo, int $empresa, int $anio): array
             'factorSac' => $factorSac, 'creditoRetiros' => $creditoSac,
         ],
         'retirosImputadosRai' => $retirosRai,
+        'retirosImputadosRex' => $retirosRex,
+        'retirosNoImputados' => $retirosNoImputados,
+        'parametros' => $parametros,
         'retirosEjercicio' => $retiros,
         'resumen' => ctrib_rtre_resumen($celdas),
         'secciones' => ctrib_rtre_secciones($catalogo, $celdas),

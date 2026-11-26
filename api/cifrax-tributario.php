@@ -13,6 +13,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/lib/sesion.php';
 require __DIR__ . '/lib/ctrib-cierre.php';
 require_once __DIR__ . '/lib/ctrib-cpt.php';
+require_once __DIR__ . '/lib/ctrib-pdf.php';
 
 ejecutar(function (PDO $pdo, int $empresa) {
     ctrib_schema($pdo);
@@ -37,6 +38,9 @@ ejecutar(function (PDO $pdo, int $empresa) {
                 'r6' => ctrib_r6($pdo, $empresa, $anio),
                 'cierre' => ctrib_cierre($pdo, $empresa, $anio),
                 'cpt' => ctrib_cpt($pdo, $empresa, $anio),
+                'ajustes' => ['ajustes' => array_values(ctrib_r17_ajustes($pdo, $empresa, $anio)), 'cuentas' => ctrib_ajuste_cuentas_disponibles($pdo, $empresa, $anio)],
+                'rli' => ctrib_rli($pdo, $empresa, $anio),
+                'empresa' => ctrib_empresa_ficha($pdo, $empresa),
                 'retiros' => ctrib_retiros_del_anio($pdo, $empresa, $anio) + ['socios' => ctrib_socios($pdo, $empresa, $anio)],
                 default => responder(['errores' => ['Acción no válida.']], 404),
             };
@@ -176,6 +180,27 @@ ejecutar(function (PDO $pdo, int $empresa) {
         if ($metodo === 'POST' && $accion === 'r17_reabrir') {
             $datos = cuerpoJson();
             return ctrib_r17_reabrir($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), $usuario, mb_substr(trim((string) ($datos['motivo'] ?? '')), 0, 255));
+        }
+        if ($metodo === 'POST' && $accion === 'ajuste_guardar') {
+            $datos = cuerpoJson();
+            $anio = ctrib_anio_desde($datos['anio'] ?? null);
+            ctrib_ajuste_guardar($pdo, $empresa, $anio, (string) ($datos['codigo'] ?? ''), is_array($datos['cuentas'] ?? null) ? $datos['cuentas'] : [],
+                $datos['saldoInicial'] ?? null, $datos['saldoFinal'] ?? null, $usuario);
+            return ctrib_r17($pdo, $empresa, $anio);
+        }
+        if ($metodo === 'POST' && $accion === 'rli_partida_agregar') {
+            $datos = cuerpoJson();
+            return ctrib_rli_partida_agregar($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), (string) ($datos['tipo'] ?? ''),
+                (string) ($datos['glosa'] ?? ''), $datos['monto'] ?? null, $usuario);
+        }
+        if ($metodo === 'POST' && $accion === 'rli_partida_quitar') {
+            $datos = cuerpoJson();
+            return ctrib_rli_partida_quitar($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), (int) ($datos['id'] ?? 0), $usuario);
+        }
+        if ($metodo === 'POST' && $accion === 'rtre_parametro') {
+            $datos = cuerpoJson();
+            return ctrib_r20_respuesta(ctrib_r20_guardar_parametro($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null),
+                (string) ($datos['codigo'] ?? ''), $datos['monto'] ?? null, $usuario));
         }
         responder(['errores' => ['Acción no válida.']], 404);
     } catch (CtribError $e) {

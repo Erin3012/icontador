@@ -3,15 +3,12 @@
 // finalizar y reabrir. Reglas según el catálogo y el cálculo de iTributario (ENYEL AT 2026, ver itributario_inventario.md).
 declare(strict_types=1);
 
-require_once __DIR__ . '/ctrib.php';
+require_once __DIR__ . '/ctrib-ajustes.php';
 
 const CTRIB_R17_MANUALES = ['1404', '1405', '1406', '1407', '1408', '1426', '1433'];
 const CTRIB_R17_TOPE_UF = 5000; // tope del incentivo al ahorro (art. 14 E LIR) en UF
 const CTRIB_R17_PENDIENTES = [
-    '1400' => 'cuentas de ajuste CXC (saldo inicial y final)',
-    '1409' => 'cuentas de ajuste CXP y existencias',
-    '1817' => 'reparto de cobros de ejercicios anteriores',
-    '1818' => 'reparto FIFO de pagos de ejercicios anteriores',
+    '1409' => 'variación de cuentas de existencias en el 1409',
 ];
 
 /** Valores manuales del recuadro: código => monto (magnitud positiva; el signo lo da el catálogo). */
@@ -107,6 +104,40 @@ function ctrib_r17(PDO $pdo, int $empresa, int $anio): array
         }
         $montos[$codigo] = $linea['monto'];
         $lineas[$codigo] = $linea;
+    }
+
+    // Cuentas de ajuste CXC / CXP: de devengado a percibido o pagado, y reparto FIFO al 1817 y al 1818.
+    $devengados = [];
+    foreach ($lineas as $codigo => $l) {
+        if ($l['origen'] === 'CUENTAS') {
+            $devengados[(string) $codigo] = array_sum(array_column($l['cuentas'], 'saldo'));
+        }
+    }
+    $ajustes = ctrib_ajustes($pdo, $empresa, $anio, $devengados);
+    $reparto = ['1817' => 0, '1818' => 0];
+    foreach ($ajustes as $codigo => $a) {
+        if (!$a['configurado'] || !isset($lineas[$codigo])) {
+            continue;
+        }
+        $lineas[$codigo]['monto'] = $a['montoCodigo'];
+        $lineas[$codigo]['huboPisoEnCero'] = $a['huboPisoEnCero'];
+        $lineas[$codigo]['origen'] = 'CUENTAS_AJUSTADAS';
+        $montos[$codigo] = $a['montoCodigo'];
+        if ($a['destinoReparto'] !== null) {
+            $reparto[$a['destinoReparto']] += $a['repartoAnioAnterior'];
+        }
+    }
+    foreach ($reparto as $codigo => $monto) {
+        if (isset($lineas[$codigo])) {
+            $montos[$codigo] = $monto;
+            $lineas[$codigo]['monto'] = $monto;
+            $lineas[$codigo]['origen'] = 'REPARTO_FIFO';
+        }
+    }
+    foreach ($ajustes as $codigo => $a) {
+        if (isset($lineas[$codigo])) {
+            $lineas[$codigo]['ajuste'] = $a;
+        }
     }
 
     // Códigos calculados a partir de otros.
@@ -448,4 +479,104 @@ function ctrib_composicion_guardar(PDO $pdo, int $empresa, int $anio, string $ti
         throw $e;
     }
     return ctrib_composicion_retiros($pdo, $empresa, $anio);
+}
+
+// ---------- Informe de Renta Líquida Imponible (RLI) ----------
+const CTRIB_RLI_TIPOS = ['AGREGADO' => 'Agregado', 'DEDUCIDO' => 'Deducido'];
+
+function ctrib_rli_partidas(PDO $pdo, int $empresa, int $anio): array
+{
+    $st = $pdo->prepare('SELECT id, tipo, glosa, monto FROM ctrib_rli_partidas WHERE empresa_id = ? AND anio = ? ORDER BY id');
+    $st->execute([$empresa, $anio]);
+    return array_map(fn($f) => ['id' => (int) $f['id'], 'tipo' => $f['tipo'], 'glosa' => $f['glosa'], 'monto' => (int) $f['monto']], $st->fetchAll());
+}
+
+/** Informe RLI como iTributario: resultado del balance + agregados − deducidos − 1432, comparado con el 1440 del R17. */
+function ctrib_rli(PDO $pdo, int $empresa, int $anio): array
+{
+    $balance = ctrib_balance_guardado($pdo, $empresa, $anio);
+    $r17 = ctrib_r17($pdo, $empresa, $anio);
+    $partidas = ctrib_rli_partidas($pdo, $empresa, $anio);
+    $agregados = array_values(array_filter($partidas, fn($p) => $p['tipo'] === 'AGREGADO'));
+    $deducidos = array_values(array_filter($partidas, fn($p) => $p['tipo'] === 'DEDUCIDO'));
+    $resultado = (int) ($balance['resultado'] ?? 0);
+    $determinada = $resultado + array_sum(array_column($agregados, 'monto')) - array_sum(array_column($deducidos, 'monto'));
+    $incentivo = (int) $r17['totales']['1432'];
+    $final = $determinada - $incentivo;
+    $codigo1440 = (int) $r17['totales']['1440'];
+    return [
+        'anio' => $anio, 'anioComercial' => ctrib_anio_comercial($anio), 'hayBalance' => $balance !== null,
+        'resultado' => $resultado, 'agregados' => $agregados, 'deducidos' => $deducidos,
+        'totalAgregados' => array_sum(array_column($agregados, 'monto')), 'totalDeducidos' => array_sum(array_column($deducidos, 'monto')),
+        'determinada' => $determinada, 'incentivo' => $incentivo, 'final' => $final,
+        'codigo1440' => $codigo1440, 'diferencia' => $final - $codigo1440, 'cuadra' => $final === $codigo1440,
+        'estadoR17' => $r17['estado'],
+    ];
+}
+
+function ctrib_rli_partida_agregar(PDO $pdo, int $empresa, int $anio, string $tipo, string $glosa, mixed $monto, string $usuario): array
+{
+    $tipo = strtoupper(trim($tipo));
+    $glosa = trim($glosa);
+    if (!isset(CTRIB_RLI_TIPOS[$tipo])) {
+        throw new CtribError('Indique si la partida es un agregado o un deducido.');
+    }
+    if ($glosa === '' || mb_strlen($glosa) > 160) {
+        throw new CtribError('Escriba el concepto de la partida (hasta 160 caracteres).');
+    }
+    if (!(is_int($monto) || (is_string($monto) && preg_match('/^\d+$/', trim($monto)))) || (int) $monto <= 0) {
+        throw new CtribError('El monto de la partida debe ser un número entero mayor que cero.');
+    }
+    $pdo->prepare('INSERT INTO ctrib_rli_partidas (empresa_id, anio, tipo, glosa, monto) VALUES (?, ?, ?, ?, ?)')
+        ->execute([$empresa, $anio, $tipo, $glosa, (int) $monto]);
+    ctrib_registrar_historial($pdo, $empresa, $anio, 'rli', $tipo, '', $glosa . ' ' . (int) $monto, 'Partida del informe RLI', $usuario);
+    return ctrib_rli($pdo, $empresa, $anio);
+}
+
+function ctrib_rli_partida_quitar(PDO $pdo, int $empresa, int $anio, int $id, string $usuario): array
+{
+    $st = $pdo->prepare('SELECT tipo, glosa, monto FROM ctrib_rli_partidas WHERE id = ? AND empresa_id = ? AND anio = ?');
+    $st->execute([$id, $empresa, $anio]);
+    $f = $st->fetch();
+    if (!$f) {
+        throw new CtribError('La partida no existe.');
+    }
+    $pdo->prepare('DELETE FROM ctrib_rli_partidas WHERE id = ?')->execute([$id]);
+    ctrib_registrar_historial($pdo, $empresa, $anio, 'rli', $f['tipo'], $f['glosa'] . ' ' . $f['monto'], '', 'Partida del informe RLI quitada', $usuario);
+    return ctrib_rli($pdo, $empresa, $anio);
+}
+
+// ---------- Factores de actualización (corrección monetaria) del año comercial ----------
+const CTRIB_MESES = [1 => 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+
+/** Factor de actualización al 31 de diciembre por mes (1 a 12), o null si no está la tabla del año. */
+function ctrib_factores_mes(int $anioComercial): ?array
+{
+    $ruta = __DIR__ . '/ctrib/factores-' . $anioComercial . '.json';
+    if (!is_file($ruta)) {
+        return null;
+    }
+    $datos = json_decode((string) file_get_contents($ruta), true);
+    $porMes = array_column($datos['correccionMonetaria'] ?? [], 'factorActualizacion', 'mesOrigen');
+    $salida = [];
+    foreach (CTRIB_MESES as $n => $nombre) {
+        if (!isset($porMes[$nombre])) {
+            return null;
+        }
+        $salida[$n] = (float) $porMes[$nombre];
+    }
+    return $salida;
+}
+
+/** Ajustes CXC / CXP con el devengado de las cuentas homologadas de cada código (para la ventana de ajustes). */
+function ctrib_r17_ajustes(PDO $pdo, int $empresa, int $anio): array
+{
+    $r17 = ctrib_r17($pdo, $empresa, $anio);
+    $salida = [];
+    foreach ($r17['lineas'] as $l) {
+        if (isset($l['ajuste'])) {
+            $salida[$l['codigo']] = $l['ajuste'];
+        }
+    }
+    return $salida;
 }

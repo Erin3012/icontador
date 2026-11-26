@@ -21,6 +21,31 @@ function ctrib_schema(PDO $pdo): void
     $mysql = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
     $motor = $mysql ? ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4' : '';
     $id = $mysql ? 'INT AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
+    // Cuentas de ajuste (CXC / CXP) de los códigos del R17 y sus saldos inicial y final escritos a mano.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_ajuste_cuentas (
+        empresa_id INT NOT NULL DEFAULT 0,
+        anio INT NOT NULL,
+        cuenta VARCHAR(20) NOT NULL,
+        codigo CHAR(4) NOT NULL,
+        PRIMARY KEY (empresa_id, anio, cuenta)
+    )$motor");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_ajuste_saldos (
+        empresa_id INT NOT NULL DEFAULT 0,
+        anio INT NOT NULL,
+        codigo CHAR(4) NOT NULL,
+        saldo_inicial BIGINT NULL,
+        saldo_final BIGINT NULL,
+        PRIMARY KEY (empresa_id, anio, codigo)
+    )$motor");
+    // Partidas agregadas o deducidas del resultado del balance en el informe de RLI.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_rli_partidas (
+        id $id,
+        empresa_id INT NOT NULL DEFAULT 0,
+        anio INT NOT NULL,
+        tipo VARCHAR(10) NOT NULL,
+        glosa VARCHAR(160) NOT NULL,
+        monto BIGINT NOT NULL DEFAULT 0
+    )$motor");
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_mapeo_digitos (
         empresa_id INT NOT NULL DEFAULT 0,
         digito CHAR(1) NOT NULL,

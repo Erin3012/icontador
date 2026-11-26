@@ -206,6 +206,12 @@ function ctrib_documento_cuerpo(PDO $pdo, int $empresa, int $anio, string $doc, 
                 return ['html' => '<p>Aún no hay balance para este año.</p>'];
             }
             $asignadas = ctrib_asignaciones($pdo, $empresa, $anio);
+            $ajusteDe = [];
+            foreach (ctrib_ajustes($pdo, $empresa, $anio) as $a) {
+                foreach ($a['cuentas'] as $c) {
+                    $ajusteDe[$c['cuenta']] = $a['tipo'] . ' ' . $a['codigo'];
+                }
+            }
             $filas = [];
             $resultado = 0;
             $configuradas = 0;
@@ -218,7 +224,7 @@ function ctrib_documento_cuerpo(PDO $pdo, int $empresa, int $anio, string $doc, 
                     $configuradas += $codigo !== '' ? 1 : 0;
                 }
                 $estado = !$esResultado ? 'No aplica' : ($codigo !== '' ? 'Configurada' : 'Sin configurar');
-                $filas[] = [ctrib_h($c['codigo']), ctrib_h($c['nombre']), $esResultado ? 'RESULTADO' : ctrib_h($c['tipo']), $saldo, ctrib_h($codigo), '', $estado];
+                $filas[] = [ctrib_h($c['codigo']), ctrib_h($c['nombre']), $esResultado ? 'RESULTADO' : ctrib_h($c['tipo']), $saldo, ctrib_h($codigo), ctrib_h($ajusteDe[$c['codigo']] ?? ''), $estado];
             }
             $avance = $resultado ? (int) floor($configuradas * 100 / $resultado) : 100;
             $resumen = '<p class="resumen"><strong>Régimen:</strong> ' . ctrib_h($ficha['regimenTexto']) . ' — <strong>Avance:</strong> ' . $avance . '% (' . $configuradas . ' de ' . $resultado
@@ -227,23 +233,30 @@ function ctrib_documento_cuerpo(PDO $pdo, int $empresa, int $anio, string $doc, 
 
         case 'RETIROS':
             $efectivos = ctrib_retiros_del_anio($pdo, $empresa, $anio);
+            $factores = ctrib_factores_mes(ctrib_anio_comercial($anio));
             $socios = [];
             foreach ($efectivos['retiros'] as $r) {
-                $s = $socios[$r['rut']] ?? ['rut' => $r['rut'], 'nombre' => $r['nombre'], 'meses' => array_fill(1, 12, 0), 'total' => 0];
+                $s = $socios[$r['rut']] ?? ['rut' => $r['rut'], 'nombre' => $r['nombre'], 'meses' => array_fill(1, 12, 0), 'total' => 0, 'reajustado' => 0.0];
                 $mes = (int) substr((string) $r['fecha'], 5, 2);
                 if ($mes >= 1 && $mes <= 12) {
                     $s['meses'][$mes] += (int) $r['monto'];
                 }
                 $s['total'] += (int) $r['monto'];
+                $s['reajustado'] += (int) $r['monto'] * ($factores[$mes] ?? 1.0);
                 $socios[$r['rut']] = $s;
             }
+            foreach ($socios as &$s) {
+                $s['reajustado'] = (int) round($s['reajustado'], 0, PHP_ROUND_HALF_UP);
+            }
+            unset($s);
             $total = array_sum(array_column($socios, 'total'));
+            $totalReajustado = array_sum(array_column($socios, 'reajustado'));
             $meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
             $cols = array_merge([['RUT', 'c'], ['Socio', '']], array_map(fn($m) => [$m, 'num'], $meses), [['Total histórico', 'num'], ['Total reajustado', 'num'], ['%', 'num']]);
             $filas = [];
             foreach ($socios as $s) {
                 $filas[] = array_merge([ctrib_h(ctrib_rut_formato($s['rut'])), ctrib_h($s['nombre'])], array_map(fn($v) => ctrib_num($v), array_values($s['meses'])),
-                    [ctrib_num($s['total'], false), ctrib_num($s['total'], false), $total ? number_format($s['total'] * 100 / $total, 1, ',', '.') . '%' : '']);
+                    [ctrib_num($s['total'], false), ctrib_num($s['reajustado'], false), $total ?number_format($s['total'] * 100 / $total, 1, ',', '.') . '%' : '']);
             }
             $porMes = array_fill(1, 12, 0);
             foreach ($socios as $s) {
@@ -251,11 +264,12 @@ function ctrib_documento_cuerpo(PDO $pdo, int $empresa, int $anio, string $doc, 
                     $porMes[$m] += $v;
                 }
             }
-            $filas[] = array_merge(['<strong>Total</strong>', ''], array_map(fn($v) => ctrib_num($v), array_values($porMes)), [ctrib_num($total, false), ctrib_num($total, false), '']);
+            $filas[] = array_merge(['<strong>Total</strong>', ''], array_map(fn($v) => ctrib_num($v), array_values($porMes)), [ctrib_num($total, false), ctrib_num($totalReajustado, false), '']);
             $modo = ['sin_retiros' => ' Se declaró que no hubo retiros en el año.', 'totalidad' => ' Régimen con retiro de la totalidad de la base imponible.'][$efectivos['modo']] ?? '';
             return ['html' => '<p class="resumen">Año comercial ' . ctrib_anio_comercial($anio) . '. Montos históricos por mes; el total reajustado aplica el Factor de Actualización de cada mes.' . ctrib_h($modo) . '</p>'
                 . ctrib_pdf_tabla($cols, $filas, [count($filas) - 1 => 'total'])
-                . ctrib_pdf_notas(['Factores de actualización por mes: aún no se cargan en Cifrax; el total reajustado se muestra igual al histórico.'])];
+                . ($factores === null ? ctrib_pdf_notas(['No están los factores de actualización del año comercial: el total reajustado se muestra igual al histórico.'])
+                    : '<p class="nota-pie">Factores de actualización al 31 de diciembre: ' . implode(' · ', array_map(fn($n, $f) => mb_substr(ucfirst(mb_strtolower(CTRIB_MESES[$n])), 0, 3) . ' ' . str_replace('.', ',', (string) $f), array_keys($factores), $factores)) . '.</p>')];
 
         case 'R4':
             $r = ctrib_r4($pdo, $empresa, $anio);
@@ -272,20 +286,22 @@ function ctrib_documento_cuerpo(PDO $pdo, int $empresa, int $anio, string $doc, 
 
         case 'R17':
             $r = ctrib_r17($pdo, $empresa, $anio);
-            return ['estado' => $r['estado'], 'numero' => '17', 'html' => ctrib_pdf_recuadro('17', $r['lineas'], null, 'Percibido o pagado') . ctrib_pdf_notas($r['pendientesDeCalculo'])];
+            $lineas = array_map(function (array $l) {
+                $a = $l['ajuste'] ?? null;
+                if ($a && $a['configurado']) {
+                    $l['detalle'] = ctrib_h('Devengado ' . ctrib_pesos($a['devengado']) . ' + saldo inicial ' . $a['tipo'] . ' ' . ctrib_pesos($a['saldoInicial'])
+                        . ' − saldo final ' . ctrib_pesos($a['saldoFinal']) . ($a['repartoAnioAnterior'] ? ' · ' . ctrib_pesos($a['repartoAnioAnterior']) . ' al ' . $a['destinoReparto'] : ''));
+                }
+                return $l;
+            }, $r['lineas']);
+            return ['estado' => $r['estado'], 'numero' => '17', 'html' => ctrib_pdf_recuadro('17', $lineas, null, 'Percibido o pagado') . ctrib_pdf_notas($r['pendientesDeCalculo'])];
 
         case 'RLI':
             // Informe de RLI como iTributario: resultado del balance ± agregados y deducidos, menos el incentivo (1432),
             // y una observación si no cuadra con el código 1440 del recuadro.
-            $b = ctrib_balance_guardado($pdo, $empresa, $anio);
-            $r = ctrib_r17($pdo, $empresa, $anio);
-            $resultado = (int) ($b['resultado'] ?? 0);
-            $agregados = [];
-            $deducidos = [];
-            $determinada = $resultado + array_sum(array_column($agregados, 'monto')) - array_sum(array_column($deducidos, 'monto'));
-            $incentivo = (int) $r['totales']['1432'];
-            $final = $determinada - $incentivo;
-            $codigo1440 = (int) $r['totales']['1440'];
+            $rli = ctrib_rli($pdo, $empresa, $anio);
+            ['resultado' => $resultado, 'agregados' => $agregados, 'deducidos' => $deducidos, 'determinada' => $determinada,
+                'incentivo' => $incentivo, 'final' => $final, 'codigo1440' => $codigo1440] = $rli;
             $lista = fn(array $partidas) => $partidas
                 ? '<table class="rli">' . implode('', array_map(fn($p) => '<tr><td>' . ctrib_h($p['glosa']) . '</td><td class="num">' . ctrib_pesos($p['monto']) . '</td></tr>', $partidas)) . '</table>'
                 : '<p class="vacio">Sin partidas.</p>';
@@ -390,8 +406,32 @@ function ctrib_documento_cuerpo(PDO $pdo, int $empresa, int $anio, string $doc, 
     throw new CtribError('Documento no válido.');
 }
 
-/** Documento HTML completo, listo para imprimir o guardar como PDF. */
-function ctrib_documento_html(PDO $pdo, int $empresa, int $anio, string $doc): string
+// Documentos que se imprimen como "Informe SII" en hojas foliadas (como iTributario).
+const CTRIB_DOC_INFORME_SII = ['BALANCE', 'RTRE', 'RLI', 'R19'];
+
+/** Valida las opciones del Informe SII: folio desde y hasta (hasta 999 hojas) y orientación H o V. */
+function ctrib_opciones_folio(string $doc, mixed $desde, mixed $hasta, mixed $orientacion): array
+{
+    if (!in_array($doc, CTRIB_DOC_INFORME_SII, true)) {
+        throw new CtribError('Este documento no tiene Informe SII foliado.');
+    }
+    $d = filter_var($desde, FILTER_VALIDATE_INT);
+    $h = filter_var($hasta, FILTER_VALIDATE_INT);
+    if ($d === false || $h === false || $d < 1 || $h < $d) {
+        throw new CtribError('Indique folio desde y folio hasta (enteros, hasta mayor o igual que desde).');
+    }
+    if ($h - $d > 998) {
+        throw new CtribError('El rango de folios no puede superar 999 hojas.');
+    }
+    $o = strtoupper((string) ($orientacion ?: 'H'));
+    if (!in_array($o, ['H', 'V'], true)) {
+        throw new CtribError('Elija impresión horizontal o vertical.');
+    }
+    return ['folioDesde' => $d, 'folioHasta' => $h, 'orientacion' => $o];
+}
+
+/** Documento HTML completo, listo para imprimir o guardar como PDF. Con $folio, Informe SII en hojas foliadas. */
+function ctrib_documento_html(PDO $pdo, int $empresa, int $anio, string $doc, ?array $folio = null): string
 {
     if (!isset(CTRIB_DOCUMENTOS[$doc])) {
         throw new CtribError('Documento no válido.');
@@ -399,7 +439,7 @@ function ctrib_documento_html(PDO $pdo, int $empresa, int $anio, string $doc): s
     $ficha = ctrib_empresa_ficha($pdo, $empresa);
     $cuerpo = ctrib_documento_cuerpo($pdo, $empresa, $anio, $doc, $ficha);
     $titulo = str_replace('{N}', $ficha['regimen'] === '14D8' ? '8' : '3', CTRIB_DOCUMENTOS[$doc]);
-    $horizontal = in_array($doc, CTRIB_DOC_HORIZONTAL, true);
+    $horizontal = $folio !== null ? $folio['orientacion'] === 'H' : in_array($doc, CTRIB_DOC_HORIZONTAL, true);
     $borrador = isset($cuerpo['estado']) && $cuerpo['estado'] !== 'FINALIZADO';
     $hoy = (new DateTimeImmutable('now', new DateTimeZone('America/Santiago')))->format('d-m-Y');
 
@@ -414,7 +454,8 @@ function ctrib_documento_html(PDO $pdo, int $empresa, int $anio, string $doc): s
     if (!empty($cuerpo['estadoTexto'])) {
         $membrete .= '<p><strong>Estado:</strong> ' . ($borrador ? 'Borrador (cálculo con datos vigentes)' : 'Finalizado') . '</p>';
     }
-    $membrete .= '<p><strong>Fecha de emisión:</strong> ' . $hoy . '</p>' . ($borrador ? '<span class="sello">BORRADOR</span>' : '') . '</div></div>';
+    $membrete .= '<p><strong>Fecha de emisión:</strong> ' . $hoy . '</p>'
+        . ($folio !== null ? '<p><strong>Hojas foliadas:</strong> N° ' . $folio['folioDesde'] . ' a ' . $folio['folioHasta'] . '</p>' : '') . ($borrador ? '<span class="sello">BORRADOR</span>' : '') . '</div></div>';
 
     if (isset($cuerpo['numero'])) {
         $encabezado = '<div class="titulo-num"><span>' . ctrib_h($cuerpo['numero']) . '.</span><span>' . ctrib_h($titulo) . '</span></div>';
@@ -426,7 +467,9 @@ function ctrib_documento_html(PDO $pdo, int $empresa, int $anio, string $doc): s
 
     return '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
         . '<title>' . ctrib_h($titulo . ' — ' . $ficha['razon_social'] . ' — AT ' . $anio) . '</title><style>'
-        . '@page{size:letter' . ($horizontal ? ' landscape' : '') . ';margin:12mm 14mm}'
+        . '@page{size:letter' . ($horizontal ? ' landscape' : '') . ';margin:' . ($folio !== null ? '16mm' : '12mm') . ' 14mm'
+        . ($folio !== null ? ';@top-right{content:"Folio N° " counter(page);font:700 10px Arial,sans-serif;color:#111827}' : '') . '}'
+        . ($folio !== null ? '@page:first{counter-increment:page ' . $folio['folioDesde'] . '}' : '')
         . 'body{font-family:"Noto Sans","Segoe UI",Arial,sans-serif;font-size:10.5px;color:#111827;margin:0;background:#eef1f6}'
         . '.hoja{position:relative;background:#fff;max-width:' . ($horizontal ? '1040px' : '780px') . ';margin:18px auto;padding:30px 34px;box-shadow:0 2px 12px rgba(0,0,0,.12);overflow:hidden}'
         . '.barra{position:sticky;top:0;z-index:5;background:#111827;color:#fff;padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:12px}'
@@ -460,7 +503,7 @@ function ctrib_documento_html(PDO $pdo, int $empresa, int $anio, string $doc): s
         . '.pie{margin-top:18px;font-size:9px;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:6px}'
         . '@media print{body{background:#fff}.barra{display:none}.hoja{box-shadow:none;margin:0;padding:0;max-width:none;overflow:visible}.agua{position:fixed}}'
         . '</style></head><body>'
-        . '<div class="barra"><span>' . ctrib_h($titulo) . '</span><span><button type="button" onclick="window.print()">Imprimir o guardar como PDF</button> '
+        . '<div class="barra"><span>' . ctrib_h(($folio !== null ? 'Informe SII (hojas foliadas N° ' . $folio['folioDesde'] . ' a ' . $folio['folioHasta'] . ') — ' : '') . $titulo) . '</span><span><button type="button" onclick="window.print()">Imprimir o guardar como PDF</button> '
         . '<button type="button" onclick="window.close()">Cerrar</button></span></div>'
         . '<div class="hoja">' . ($borrador ? '<div class="agua" aria-hidden="true">BORRADOR</div>' : '')
         . $membrete . $encabezado . $cuerpo['html']
