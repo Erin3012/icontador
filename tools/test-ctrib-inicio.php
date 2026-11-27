@@ -95,9 +95,11 @@ check(fila($i, 'Balance')['ayuda'] !== '', 'cada fila trae su explicación');
 // 10. Persona: el paso siguiente es consultar el F22; después de la consulta ya no hay nada que se pueda hacer hoy.
 check(ctrib_inicio($pdo, $persona, 2026)['siguiente'] === null, 'persona con F22 consultado: no hay paso pendiente que se pueda hacer hoy');
 
-// 11. Régimen 14 G (fundación): se guarda en la configuración; aún no tiene inicio propio.
+// 11. Régimen 14 G (fundación): tiene inicio propio con R4, R6, R12, R14 y cierre sin R13/R15/R16.
 ctrib_empresa_config_guardar($pdo, $pyme, 'OTRO', '14G', 'prueba');
-check(ctrib_empresa_config($pdo, $pyme)['regimen'] === '14G' && ctrib_inicio($pdo, $pyme, 2026)['propio'] === false, '14 G se guarda y conserva la vista de fundación');
+$i14g = ctrib_inicio($pdo, $pyme, 2026);
+check(ctrib_empresa_config($pdo, $pyme)['regimen'] === '14G' && $i14g['propio'] === true && $i14g['regimen'] === '14G', '14 G se guarda y tiene inicio propio');
+check($i14g['cierre'] !== null && array_column(ctrib_cierre($pdo, $pyme, 2026)['recuadros'], 'codigo') === ['R4', 'R6', 'R12', 'R14'], 'cierre 14 G exige R4, R6, R12 y R14');
 
 // 12. Cambio de régimen desde la pantalla: queda en el historial y ajusta el tipo.
 ctrib_regimen_config_cambiar($pdo, $e14, 'PERSONA', 'prueba');

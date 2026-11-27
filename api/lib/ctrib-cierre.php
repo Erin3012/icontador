@@ -18,6 +18,10 @@ const CTRIB_CIERRE_RECUADROS_14A = [
     'R4' => 'Enajenación de acciones', 'R6' => 'Datos informativos', 'R12' => 'Base imponible (RLI)',
     'R14' => 'Razonabilidad del CPT', 'R13' => 'Determinación del RAI', 'R15' => 'RTRE (14 A)', 'R16' => 'Registro SAC (14 A)',
 ];
+const CTRIB_CIERRE_RECUADROS_14G = [
+    'R4' => 'Enajenación de acciones', 'R6' => 'Datos informativos', 'R12' => 'Base imponible (RLI)',
+    'R14' => 'Razonabilidad del CPT',
+];
 
 function ctrib_cierre(PDO $pdo, int $empresa, int $anio): array
 {
@@ -28,7 +32,13 @@ function ctrib_cierre(PDO $pdo, int $empresa, int $anio): array
     $regimen = ctrib_empresa_config($pdo, $empresa)['regimen'];
     $transparente = $regimen === '14D8';
     $semiIntegrado = $regimen === '14A';
-    $lista = $transparente ? CTRIB_CIERRE_RECUADROS_14D8 : ($semiIntegrado ? CTRIB_CIERRE_RECUADROS_14A : CTRIB_CIERRE_RECUADROS);
+    $reg14G = $regimen === '14G';
+    $lista = match ($regimen) {
+        '14D8' => CTRIB_CIERRE_RECUADROS_14D8,
+        '14A' => CTRIB_CIERRE_RECUADROS_14A,
+        '14G' => CTRIB_CIERRE_RECUADROS_14G,
+        default => CTRIB_CIERRE_RECUADROS,
+    };
     $desactualizados = [];
     foreach ($lista as $codigo => $nombre) {
         $referencia = match ($codigo) { 'R21' => 'R20', 'R16' => 'R15', default => $codigo };
@@ -52,7 +62,8 @@ function ctrib_cierre(PDO $pdo, int $empresa, int $anio): array
         'avisos' => $avisos,
         'nota' => $transparente ? 'El R7 (ingreso diferido) no está en esta versión y no bloquea el cierre.'
             : ($semiIntegrado ? 'El R16 (Registro SAC) sale del RTRE (R15) y no se finaliza aparte.'
-                : 'El R18 (Determinación del RAI) sale del RTRE y no se finaliza aparte.'),
+                : ($reg14G ? 'Régimen 14 G (entidades no sujetas al Art. 14): no determina R13 (RAI) ni RTRE/SAC.'
+                    : 'El R18 (Determinación del RAI) sale del RTRE y no se finaliza aparte.')),
     ];
 }
 

@@ -31,7 +31,8 @@ function ctrib_r14(PDO $pdo, int $empresa, int $anio): array
     $m12 = array_column($r12['lineas'], 'monto', 'codigo');
     $manuales = ctrib_valores_manuales($pdo, $empresa, $anio, 'R14');
     $anterior = ctrib_estado_recuadro($pdo, $empresa, $anio - 1, 'R14');
-    $retiros = ctrib_retiros_total($pdo, $empresa, $anio);
+    $regimen = ctrib_empresa_config($pdo, $empresa)['regimen'];
+    $retiros = $regimen === '14G' ? 0 : ctrib_retiros_total($pdo, $empresa, $anio);
 
     $cptIniPos = array_key_exists('1145', $manuales) ? $manuales['1145'] : (int) ($anterior['snapshot']['645'] ?? 0);
     $cptIniNeg = array_key_exists('1146', $manuales) ? $manuales['1146'] : (int) ($anterior['snapshot']['646'] ?? 0);

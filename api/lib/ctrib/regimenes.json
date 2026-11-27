@@ -386,5 +386,80 @@
         ]
       }
     ]
+  },
+  "14G": {
+    "nombre": "Fundación o régimen especial (Art. 14 G)",
+    "cierre": true,
+    "grupos": [
+      {
+        "slot": "gestion",
+        "titulo": "Gestión General",
+        "filas": [
+          {
+            "nombre": "Balance",
+            "tipo": "Configuración",
+            "fuente": "balance",
+            "abrir": "balance",
+            "ayuda": "Balance de 8 columnas de la entidad para el año comercial. Sin balance no se calcula nada."
+          },
+          {
+            "nombre": "Homologación de cuentas",
+            "tipo": "Configuración",
+            "fuente": "homologacion",
+            "abrir": "HOM",
+            "ayuda": "Cada cuenta de resultado del balance se asigna a un código del Recuadro 12."
+          },
+          {
+            "nombre": "Consulta del Formulario 22 en el SII",
+            "tipo": "Consulta SII",
+            "fuente": "sii_consulta",
+            "consulta": "f22",
+            "ayuda": "Última consulta del F22 hecha por el agente del PC (solo lectura)."
+          }
+        ]
+      },
+      {
+        "slot": "f22",
+        "titulo": "Recuadros F22 · 14 G",
+        "filas": [
+          {
+            "codigo": "R4",
+            "nombre": "Enajenación de acciones y derechos sociales",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "R4",
+            "abrir": "R4",
+            "ayuda": "Venta de acciones, cuotas de fondos o derechos sociales. Si no hubo, queda en cero."
+          },
+          {
+            "codigo": "R6",
+            "nombre": "Datos informativos",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "R6",
+            "abrir": "R6",
+            "ayuda": "Datos de balance y antecedentes informativos de la entidad."
+          },
+          {
+            "codigo": "R12",
+            "nombre": "Base imponible de primera categoría",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "R12",
+            "abrir": "R12",
+            "ayuda": "Resultado financiero con ajustes tributarios (tasa IDPC 25% si hay base imponible)."
+          },
+          {
+            "codigo": "R14",
+            "nombre": "Razonabilidad del capital propio tributario",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "R14",
+            "abrir": "R14",
+            "ayuda": "Verifica la razonabilidad del capital propio tributario de la entidad (no determina RAI ni RTRE)."
+          }
+        ]
+      }
+    ]
   }
 }

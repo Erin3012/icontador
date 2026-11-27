@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/ctrib-r17.php';
 
 const CTRIB_TASA_SEMI_INTEGRADO_DEFECTO = 27.0;
+const CTRIB_TASA_14G_DEFECTO = 25.0;
 
 /** Códigos manuales del R12 (todos los ajustes y rebajas de RLI). */
 function ctrib_r12_manuales(): array
@@ -22,17 +23,20 @@ function ctrib_r12_manuales(): array
     return $manuales;
 }
 
-/** Tasa del IDPC Semi Integrado del año comercial (tasas-AAAA.json), o 27% por defecto. */
-function ctrib_tasa_semi_integrado(int $anioComercial): float
+/** Tasa del IDPC Semi Integrado (27%) o Art. 14 G (25%, Suplemento F22 p. 187). */
+function ctrib_tasa_semi_integrado(int $anioComercial, string $regimen = '14A'): float
 {
     $ruta = __DIR__ . '/ctrib/tasas-' . $anioComercial . '.json';
     if (is_file($ruta)) {
         $datos = json_decode((string) file_get_contents($ruta), true);
-        if (isset($datos['tasaSemiIntegrado'])) {
+        if ($regimen === '14G' && isset($datos['tasaArt14G'])) {
+            return (float) $datos['tasaArt14G'];
+        }
+        if ($regimen !== '14G' && isset($datos['tasaSemiIntegrado'])) {
             return (float) $datos['tasaSemiIntegrado'];
         }
     }
-    return CTRIB_TASA_SEMI_INTEGRADO_DEFECTO;
+    return $regimen === '14G' ? CTRIB_TASA_14G_DEFECTO : CTRIB_TASA_SEMI_INTEGRADO_DEFECTO;
 }
 
 /** Cálculo completo del R12 del año: resultado financiero, ajustes, incentivo al ahorro 14 E, RLI e IDPC estimado. */
@@ -109,9 +113,10 @@ function ctrib_r12(PDO $pdo, int $empresa, int $anio): array
         $lineas[$codigo]['monto'] = $valor;
     }
 
-    $tasa = ctrib_tasa_semi_integrado(ctrib_anio_comercial($anio));
+    $regimen = ctrib_empresa_config($pdo, $empresa)['regimen'];
+    $tasa = ctrib_tasa_semi_integrado(ctrib_anio_comercial($anio), $regimen);
     $baseIdpc = max(0, $m1690);
-    $idpcEstimado = ['tasa' => $tasa, 'base' => $baseIdpc, 'monto' => (int) round($baseIdpc * $tasa / 100, 0, PHP_ROUND_HALF_UP)];
+    $idpcEstimado = ['regimen' => $regimen === '14G' ? '14G' : '14A', 'tasa' => $tasa, 'base' => $baseIdpc, 'monto' => (int) round($baseIdpc * $tasa / 100, 0, PHP_ROUND_HALF_UP)];
 
     $estado = ctrib_estado_recuadro($pdo, $empresa, $anio, 'R12');
     $actual = array_map(fn($x) => $x['monto'], $lineas);

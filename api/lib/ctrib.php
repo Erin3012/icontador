@@ -261,10 +261,10 @@ function ctrib_catalogo_r12(): array
     return $catalogo;
 }
 
-/** Catálogo usado en la homologación de cuentas según el régimen de la empresa (R12 para 14 A, R17 para Pro Pyme). */
+/** Catálogo usado en la homologación de cuentas según el régimen de la empresa (R12 para 14 A y 14 G, R17 para Pro Pyme). */
 function ctrib_catalogo_homologacion(PDO $pdo, int $empresa): array
 {
-    return ctrib_empresa_config($pdo, $empresa)['regimen'] === '14A' ? ctrib_catalogo_r12() : ctrib_catalogo_r17();
+    return in_array(ctrib_empresa_config($pdo, $empresa)['regimen'], ['14A', '14G'], true) ? ctrib_catalogo_r12() : ctrib_catalogo_r17();
 }
 
 /** Códigos del catálogo que se alimentan con cuentas del balance (naturaleza CUENTA_DEPENDIENTE). */

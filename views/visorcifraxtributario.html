@@ -802,7 +802,7 @@
         html += '</tbody></table>';
         if ((clave === 'R17' || clave === 'R12') && r.idpcEstimado) {
             var idpc = r.idpcEstimado;
-            var labelReg = clave === 'R12' ? '14 A' : '14 D N°3';
+            var labelReg = clave === 'R12' ? (idpc.regimen === '14G' ? '14 G' : '14 A') : '14 D N°3';
             var codBase = clave === 'R12' ? '1690' : '1440';
             html += '<p class="cv-texto" data-idpc style="margin-top:10px;font-size:12.5px"><strong>IDPC estimado (' + labelReg + '):</strong> ' + fmtDec(idpc.tasa) + ' % del ' + codBase + ' ($' +
                 fmt(idpc.base) + ') = <strong>$' + fmt(idpc.monto) + '</strong> · sin PPM ni créditos.</p>';

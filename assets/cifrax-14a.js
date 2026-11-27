@@ -239,10 +239,10 @@
     function activar(regimen) {
         if (activa) return;
         activa = true;
-        // El inicio de 14 A y de persona natural lo pinta cifrax-inicio.js desde la API.
-        // Para 14 A, se reemplazan las tarjetas de reportes de Pro Pyme por los reportes de 14 A.
+        // El inicio de 14 A, 14 G y persona natural lo pinta cifrax-inicio.js desde la API.
+        // En #cv-vista-reportes se reemplazan los reportes de Pro Pyme por los del régimen activo.
         var cards = document.querySelectorAll('#cv-vista-reportes .cv-card');
-        if (regimen !== '14A') {
+        if (regimen !== '14A' && regimen !== '14G') {
             cards.forEach(function (c, i) { if (i > 0) c.hidden = true; });
             return;
         }
@@ -251,6 +251,18 @@
                 '<span class="cv-rep-nombre">' + esc(nombre) + '</span>' +
                 '<span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" data-pdf="' + esc(doc) + '"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>';
         };
+        if (regimen === '14G') {
+            if (cards[1]) cards[1].innerHTML = '<h2>Gestión General <span class="cv-count">2</span></h2>' +
+                repFila('Balance', 'Balance General importado', 'BALANCE', false) +
+                repFila('Homol.', 'Homologación de cuentas (cuenta → R12)', 'HOMOLOGACION', false);
+            if (cards[2]) cards[2].innerHTML = '<h2>Recuadros F22 · 14 G <span class="cv-count">4</span></h2>' +
+                repFila('R4', 'Enajenación de acciones y derechos sociales', 'R4', false) +
+                repFila('R6', 'Datos Informativos', 'R6', false) +
+                repFila('R12', 'Base Imponible (RLI)', 'R12', false) +
+                repFila('R14', 'Razonabilidad del Capital Propio Tributario', 'R14', false);
+            if (cards[3]) cards[3].hidden = true;
+            return;
+        }
         if (cards[1]) cards[1].innerHTML = '<h2>Gestión General <span class="cv-count">3</span></h2>' +
             repFila('Balance', 'Balance General importado', 'BALANCE', false) +
             repFila('Homol.', 'Homologación de cuentas (cuenta → R12)', 'HOMOLOGACION', false) +
@@ -325,35 +337,6 @@
         return '<div class="cv-fila" ' + atributo + '><span><span class="cv-cod' + (/^DJ/.test(cod) ? ' cv-cod-azul' : '') + '">' + cod + '</span>' + esc(nombre) +
             '</span><span class="cv-calc">SII</span><span class="cv-estado ' + clase + '">' + esc(estado) + '</span></div>';
     }
-    function pintarEspecial() {
-        var u = ultima('f22');
-        var declarados = codigosF22().map(function (c) { return c.codigo; });
-        var cuenta = function (codigos) { return codigos.filter(function (c) { return declarados.indexOf(c) >= 0; }).length; };
-        var estado = function (n) { return u ? (n ? n + ' CÓDIGOS' : 'SIN CÓDIGOS') : 'SIN CONSULTA'; };
-        var estadoSii = u ? u.estado.toUpperCase() : 'SIN CONSULTA';
-        document.getElementById('cv-card-f22').innerHTML = '<h2>Formulario 22 declarado <span class="cv-count">4</span></h2>' +
-            '<div class="cv-cabecera-fila"><span>Recuadro</span><span>Origen</span><span>Estado</span></div>' +
-            filaEspecial('data-esp-panel="p-f22"', 'F22', 'Estado de la declaración', estadoSii, u && u.estado === 'Aceptada' ? 'ok' : 'pend') +
-            filaEspecial('data-esp="R12"', 'R12', 'Base Imponible', estado(cuenta(codigosDe(R12))), u ? 'ok' : 'pend') +
-            filaEspecial('data-esp="R14"', 'R14', 'Capital propio tributario', estado(cuenta(codigosDe(R14))), u ? 'ok' : 'pend') +
-            filaEspecial('data-esp="OTROS"', 'F22', 'Otros códigos (PPM, devolución y datos)', estado(otrosCodigos().length), u ? 'ok' : 'pend');
-        var dj = ultima('ddjj') ? ultima('ddjj').datos.declaraciones || [] : null;
-        var filasDj;
-        if (dj === null) {
-            filasDj = filaEspecial('data-esp-panel="p-ddjj"', 'DJ', 'Aún no consultadas', 'SIN CONSULTA', 'pend');
-        } else {
-            filasDj = dj.map(function (x) {
-                return filaEspecial('data-esp-panel="p-ddjj"', 'DJ ' + x.formulario, x.nombre, x.estado.toUpperCase(), /aceptad/i.test(x.estado) ? 'ok' : 'pend');
-            }).join('') || filaEspecial('data-esp-panel="p-ddjj"', 'DJ', 'Sin declaraciones presentadas', 'SIN DJ', 'ok');
-        }
-        document.getElementById('cv-card-dj').innerHTML = '<h2>Declaraciones Juradas presentadas <span class="cv-count">' + (dj ? dj.length : 0) + '</span></h2>' +
-            '<div class="cv-cabecera-fila"><span>Declaración</span><span>Origen</span><span>Estado</span></div>' + filasDj;
-        var resumen = function (clave, n) { var s = document.querySelector('[data-ver="' + clave + '"] small'); if (s) s.textContent = n + (n === 1 ? ' proceso' : ' procesos'); };
-        resumen('cv-card-f22', 4);
-        resumen('cv-card-dj', dj ? dj.length : 0);
-        var banner = document.querySelector('[data-maqueta-banner]');
-        if (banner) banner.innerHTML = '<strong>Fundación / régimen especial (AT ' + anioElegido() + ').</strong> Muestra lo que declaró ante el SII según la última consulta. Cifrax todavía no calcula sus recuadros.';
-    }
     function cargarEspecial() {
         var anio = anioElegido();
         Promise.all([consultaGuardada('f22', anio), consultaGuardada('ddjj', anio)]).then(function (r) {
@@ -365,9 +348,7 @@
     function activarEspecial() {
         if (especial) return;
         especial = true;
-        // El cierre y los reportes actuales son de Pro Pyme.
-        document.querySelectorAll('.cv-cierre').forEach(function (c) { c.style.display = 'none'; });
-        document.querySelectorAll('#cv-vista-reportes .cv-card').forEach(function (c, i) { if (i > 0) c.hidden = true; });
+        activar('14G');
         var banner = document.createElement('div');
         banner.className = 'cv-maqueta-aviso';
         banner.setAttribute('data-maqueta-banner', '');
@@ -376,9 +357,22 @@
         cargarEspecial();
         var anioSelector = document.getElementById('cf-anio');
         if (anioSelector) anioSelector.addEventListener('change', cargarEspecial);
-        // Al volver a Inicio después de consultar en los paneles del SII, se actualiza.
         var pasoInicio = document.querySelector('.cf-paso[data-panel="p-home"]');
         if (pasoInicio) pasoInicio.addEventListener('click', cargarEspecial);
+    }
+
+    function pintarEspecial() {
+        var u = ultima('f22');
+        var banner = document.querySelector('[data-maqueta-banner]');
+        if (!banner) return;
+        if (!u) {
+            banner.innerHTML = '<strong>Fundación / régimen 14 G (AT ' + anioElegido() + ').</strong> Cifrax calcula R4, R6, R12 y R14. Aún no hay consulta del F22 en el SII para comparar.';
+            return;
+        }
+        banner.innerHTML = '<strong>Fundación / régimen 14 G (AT ' + anioElegido() + ').</strong> F22 SII folio ' + esc(u.datos.folio || '—') +
+            ' (' + esc(u.estado) + ') · <button type="button" class="cv-btn-pdf" data-esp="R12" style="padding:2px 8px">Comparar R12 SII</button> ' +
+            '<button type="button" class="cv-btn-pdf" data-esp="R14" style="padding:2px 8px">Comparar R14 SII</button> ' +
+            '<button type="button" class="cv-btn-pdf" data-esp="OTROS" style="padding:2px 8px">Otros códigos SII</button>';
     }
 
     // 14 D N°8: en Reportes, los recuadros de Pro Pyme General se reemplazan por el R22, el R23 y la DJ 1947.

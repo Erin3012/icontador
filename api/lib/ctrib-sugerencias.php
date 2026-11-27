@@ -136,12 +136,12 @@ function ctrib_sugerencia_masiva(array $cuenta): bool
 /** Homologación del año con la sugerencia de cada cuenta de resultado. */
 function ctrib_homologacion_con_sugerencias(PDO $pdo, int $empresa, int $anio): array
 {
-    $es14A = ctrib_empresa_config($pdo, $empresa)['regimen'] === '14A';
+    $esR12 = in_array(ctrib_empresa_config($pdo, $empresa)['regimen'], ['14A', '14G'], true);
     $h = ctrib_homologacion($pdo, $empresa, $anio);
     $aplicables = 0;
     foreach ($h['cuentasResultado'] as $i => $c) {
         $s = ctrib_sugerencia((string) $c['nombre'], (string) $c['tipo']);
-        if ($es14A) {
+        if ($esR12) {
             $s = ctrib_sugerencia_para_14a($s, (string) $c['nombre'], (string) $c['tipo']);
         }
         $h['cuentasResultado'][$i]['sugerencia'] = $s;
