@@ -97,6 +97,12 @@ function ctrib_exigir_cambio_permitido(PDO $pdo, int $empresa, string $accion, a
         }
         return;
     }
+    if (in_array($accion, ['regimen_config', 'composicion_guardar'], true)) {
+        $actual = ctrib_empresa_config($pdo, $empresa)['regimen'];
+        if ($actual !== '' && (string) ($datos['regimen'] ?? '') !== $actual) {
+            throw new CtribError('Hay años cerrados (AT ' . implode(', ', $cerrados) . '): reabra sus cierres antes de cambiar el régimen de la empresa.');
+        }
+    }
     $anio = (int) (is_numeric($datos['anio'] ?? null) ? $datos['anio'] : 0);
     if (in_array($anio, $cerrados, true)) {
         throw new CtribError("El año tributario $anio está cerrado. Reabra el cierre para modificarlo.");

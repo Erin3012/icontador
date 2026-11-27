@@ -754,6 +754,9 @@
         var html = '';
         (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
         if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: reábralo y finalícelo nuevamente.</div>';
+        if (clave === 'R22' && r.confirmar1618 !== null && r.estado !== 'FINALIZADO') {
+            html += '<p style="margin:0 0 8px"><button type="button" class="cv-btn-pdf" data-confirmar-1618="' + esc(r.confirmar1618) + '" style="cursor:pointer">Confirmar el 1618 en $' + fmt(r.confirmar1618) + '</button></p>';
+        }
         if (clave === 'R22' || clave === 'R23') {
             (r.avisos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
             html += '<p class="cv-texto" style="font-size:12.5px;margin:0 0 8px">Los montos con casilla se pueden corregir; si borra una casilla vuelve el valor automático.' +
@@ -1153,8 +1156,8 @@
 
     // Composición y retiros del año: titular, socios o accionistas con su participación, la utilidad que les
     // corresponde y lo retirado en el año. EIRL: un solo titular con el 100%. 14 D N°8: se retira la totalidad.
-    var TIPOS_CONTRIBUYENTE = [['EIRL', 'EIRL (un solo titular)'], ['SPA', 'SpA'], ['LTDA', 'Sociedad de responsabilidad limitada'], ['SA', 'Sociedad anónima'], ['OTRO', 'Otro']];
-    var REGIMENES = [['14D3', 'Pro Pyme General (14 D N°3)'], ['14D8', 'Pro Pyme Transparente (14 D N°8)'], ['14A', 'Régimen general (14 A)']];
+    var TIPOS_CONTRIBUYENTE = [['EIRL', 'EIRL (un solo titular)'], ['SPA', 'SpA'], ['LTDA', 'Sociedad de responsabilidad limitada'], ['SA', 'Sociedad anónima'], ['PERSONA_NATURAL', 'Persona natural'], ['OTRO', 'Otro']];
+    var REGIMENES = [['14D3', 'Pro Pyme General (14 D N°3)'], ['14D8', 'Pro Pyme Transparente (14 D N°8)'], ['14A', 'Régimen general (14 A)'], ['14G', '14 G (fundaciones y corporaciones)'], ['PERSONA', 'Persona natural (honorarios)']];
     var ESTILO_CAMPO = 'style="width:100%;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font:inherit"';
 
     function opcionesSelect(lista, actual) {
@@ -1397,6 +1400,15 @@
             .catch(function (err) { cargarRecuadro(clave).then(function () { mostrarError(err.message); }); });
     });
 
+    cuerpo.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('[data-confirmar-1618]') : null;
+        if (!b) return;
+        b.disabled = true;
+        enviar('r22_guardar_manual', { codigo: '1618', monto: Number(b.getAttribute('data-confirmar-1618')) })
+            .then(function (r) { pintarSegun('R22', r); })
+            .catch(function (err) { cargarRecuadro('R22').then(function () { mostrarError(err.message); }); });
+    });
+
     // ---------- Homologación de cuentas (cuenta de resultado → código del R17) ----------
     function opcionesCodigo(codigos, tipo, actual) {
         var seccion = tipo === 'GANANCIA' ? 'INGRESOS' : 'EGRESOS';
@@ -1449,7 +1461,7 @@
     function pintarHomologacion(h) {
         recuadroActual = null;
         acc.innerHTML = '<span class="cv-pill ' + (h.pendientes || h.alertas ? 'cv-borr' : 'cv-disp') + '">Pendientes: ' + h.pendientes + ' · Alertas: ' + h.alertas + '</span>' +
-            (h.sugerenciasAplicables ? ' <button type="button" class="cv-btn-fin" data-aplicar-sugerencias style="cursor:pointer;opacity:1">Usar sugerencias en cuentas sin código (' + h.sugerenciasAplicables + ')</button>' : '');
+            (h.sugerenciasAplicables ? ' <button type="button" class="cv-btn-fin" data-aplicar-sugerencias style="cursor:pointer;opacity:1">Usar sugerencias de confianza alta o media (' + h.sugerenciasAplicables + ')</button>' : '');
         var html = '';
         if (h.alertas) {
             html += '<div class="cv-aviso-ok">Hay ' + h.alertas + ' cuenta(s) asignada(s) a un código de la sección contraria (ingreso o gasto). Corríjalas: el Recuadro 17 no se finaliza mientras existan.</div>';
@@ -1576,7 +1588,8 @@
             }
             var hayBalance = !!(res[4] && res[4].cuentas && res[4].cuentas.length);
             ponerEstado('.cv-fila[data-estado="balance"] .cv-estado', hayBalance ? 'COMPLETADO' : 'PENDIENTE', hayBalance ? 'ok' : 'pend');
-            var hayRetiros = !!(res[5] && (res[5].modo === 'sin_retiros' || (res[5].retiros && res[5].retiros.length)));
+            var hayRetiros = !!(res[5] && (res[5].modo === 'sin_retiros' || (res[5].retiros && res[5].retiros.length) ||
+                (res[5].modo === 'totalidad' && res[5].socios && res[5].socios.length)));
             ponerEstado('.cv-fila[data-estado="retiros"] .cv-estado', hayRetiros ? 'COMPLETADO' : 'PENDIENTE', hayRetiros ? 'ok' : 'pend');
             reporteDisponible(['Balance', 'Homol.', 'RLI', 'CPT'], hayBalance);
             reporteDisponible(['Retiros'], hayRetiros);

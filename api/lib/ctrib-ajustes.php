@@ -220,6 +220,16 @@ function ctrib_existencias(PDO $pdo, int $empresa, int $anio): array
     ];
 }
 
+/** Motivo que impide finalizar: sin balance anterior ni saldo escrito, la existencia inicial no se conoce. */
+function ctrib_existencias_bloqueo(PDO $pdo, int $empresa, int $anio): ?string
+{
+    $e = ctrib_existencias($pdo, $empresa, $anio);
+    if ($e['cuentas'] === [] || $e['saldoInicialManual'] !== null || ctrib_balance_guardado($pdo, $empresa, $anio - 1) !== null) {
+        return null;
+    }
+    return 'No hay balance del año anterior: escriba la existencia inicial del 1409 (0 si no había) o importe ese balance.';
+}
+
 /** Guarda las cuentas de existencias del 1409 (de activo, que no sean cuentas de ajuste CXC) y sus saldos manuales. */
 function ctrib_existencias_guardar(PDO $pdo, int $empresa, int $anio, array $cuentas, mixed $saldoInicial, mixed $saldoFinal, string $usuario): void
 {

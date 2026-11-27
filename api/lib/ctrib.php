@@ -689,6 +689,9 @@ function ctrib_empresa_config_guardar(PDO $pdo, int $empresa, string $tipo, stri
     $pdo->prepare('DELETE FROM ctrib_empresa_config WHERE empresa_id = ?')->execute([$empresa]);
     $pdo->prepare('INSERT INTO ctrib_empresa_config (empresa_id, tipo, regimen, usuario, actualizado) VALUES (?, ?, ?, ?, ?)')
         ->execute([$empresa, $tipo, $regimen, $usuario, ctrib_ahora()]);
+    if (($antes['regimen'] === '14D8') !== ($regimen === '14D8')) {
+        ctrib_retiros_modo_reiniciar($pdo, $empresa, $usuario);
+    }
     if ($antes['tipo'] !== $tipo || $antes['regimen'] !== $regimen) {
         ctrib_registrar_historial($pdo, $empresa, 0, 'empresa', 'tipo y régimen', trim($antes['tipo'] . ' ' . $antes['regimen']), "$tipo $regimen", 'Configuración tributaria de la empresa', $usuario);
     }
@@ -703,7 +706,25 @@ function ctrib_retiros_modo(PDO $pdo, int $empresa, int $anio): string
     $st = $pdo->prepare('SELECT modo FROM ctrib_retiros_config WHERE empresa_id = ? AND anio = ?');
     $st->execute([$empresa, $anio]);
     $modo = $st->fetchColumn();
-    return in_array($modo, CTRIB_MODOS_RETIROS, true) ? $modo : 'importados';
+    if (in_array($modo, CTRIB_MODOS_RETIROS, true)) {
+        return $modo;
+    }
+    // Sin elección guardada: en 14 D N°8 se atribuye la totalidad; en los demás valen los retiros importados.
+    return ctrib_empresa_config($pdo, $empresa)['regimen'] === '14D8' ? 'totalidad' : 'importados';
+}
+
+/** Al entrar o salir del 14 D N°8 los años vuelven al modo propio del régimen. La declaración "sin retiros" se conserva. */
+function ctrib_retiros_modo_reiniciar(PDO $pdo, int $empresa, string $usuario): void
+{
+    $st = $pdo->prepare("SELECT anio, modo FROM ctrib_retiros_config WHERE empresa_id = ? AND modo <> 'sin_retiros' ORDER BY anio");
+    $st->execute([$empresa]);
+    foreach ($st->fetchAll() as $f) {
+        $pdo->prepare('DELETE FROM ctrib_retiros_config WHERE empresa_id = ? AND anio = ?')->execute([$empresa, (int) $f['anio']]);
+        $nuevo = ctrib_retiros_modo($pdo, $empresa, (int) $f['anio']);
+        if ($nuevo !== $f['modo']) {
+            ctrib_registrar_historial($pdo, $empresa, (int) $f['anio'], 'retiros', 'modo', $f['modo'], $nuevo, 'Cambio de régimen de la empresa', $usuario);
+        }
+    }
 }
 
 /** Socios con su participación (%), usados en el modo 'totalidad'. */

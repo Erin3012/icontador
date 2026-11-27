@@ -104,6 +104,8 @@ check($previa['vistaPrevia'] && $previa['regimen'] === '14D3' && $previa['regime
 check(array_column(ctrib_cierre($pdo, $e, 2026)['recuadros'], 'codigo') === ['R4', 'R6', 'R22', 'R23'], 'el cierre exige los recuadros del régimen');
 ctrib_r4_finalizar($pdo, $e, 2026, 'prueba');
 ctrib_r6_finalizar($pdo, $e, 2026, 'prueba');
+falla(fn() => ctrib_r22_finalizar($pdo, $e, 2026, 'prueba'), '1618', 'sin balance anterior hay que confirmar el 1618');
+ctrib_r22_guardar_valor($pdo, $e, 2026, '1618', 2000000, 'prueba');
 ctrib_r22_finalizar($pdo, $e, 2026, 'prueba');
 ctrib_r23_finalizar($pdo, $e, 2026, 'prueba');
 check(ctrib_cierre($pdo, $e, 2026)['completo'] === true, 'con los cuatro finalizados se puede cerrar');
@@ -129,6 +131,7 @@ $r = ctrib_r22($pdo, $perdida, 2026);
 check($r['totales']['1630'] === -3000000, 'pérdida tributaria');
 $r23 = ctrib_r23($pdo, $perdida, 2026);
 check(montos($r23)['1713'] === 3000000 && $r23['totales'] === ['1581' => 0, '1583' => 3000000], 'R23 con pérdida: CPTS negativo');
+ctrib_r22_guardar_valor($pdo, $perdida, 2026, '1618', 1000000, 'prueba'); // sin balance anterior
 ctrib_r22_finalizar($pdo, $perdida, 2026, 'prueba');
 ctrib_r23_finalizar($pdo, $perdida, 2026, 'prueba');
 ctrib_balance_guardar($pdo, $perdida, 2027, 'prueba', [
