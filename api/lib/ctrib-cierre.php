@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/ctrib-r4-r6.php';
 require_once __DIR__ . '/ctrib-r23.php';
+require_once __DIR__ . '/ctrib-r13-r14.php';
 
 const CTRIB_CIERRE_RECUADROS = [
     'R4' => 'Enajenación de acciones', 'R6' => 'Datos informativos', 'R17' => 'Base imponible',
@@ -13,16 +14,23 @@ const CTRIB_CIERRE_RECUADROS = [
 const CTRIB_CIERRE_RECUADROS_14D8 = [
     'R4' => 'Enajenación de acciones', 'R6' => 'Datos informativos', 'R22' => 'Base imponible', 'R23' => 'CPTS transparencia',
 ];
+const CTRIB_CIERRE_RECUADROS_14A = [
+    'R4' => 'Enajenación de acciones', 'R6' => 'Datos informativos', 'R12' => 'Base imponible (RLI)',
+    'R14' => 'Razonabilidad del CPT', 'R13' => 'Determinación del RAI',
+];
 
 function ctrib_cierre(PDO $pdo, int $empresa, int $anio): array
 {
     $recuadros = [];
     $pendientes = [];
     $calculos = ['R4' => 'ctrib_r4', 'R6' => 'ctrib_r6', 'R17' => 'ctrib_r17', 'R19' => 'ctrib_r19', 'R20' => 'ctrib_r20',
-        'R22' => 'ctrib_r22', 'R23' => 'ctrib_r23'];
-    $transparente = ctrib_empresa_config($pdo, $empresa)['regimen'] === '14D8';
+        'R22' => 'ctrib_r22', 'R23' => 'ctrib_r23', 'R12' => 'ctrib_r12', 'R13' => 'ctrib_r13', 'R14' => 'ctrib_r14'];
+    $regimen = ctrib_empresa_config($pdo, $empresa)['regimen'];
+    $transparente = $regimen === '14D8';
+    $semiIntegrado = $regimen === '14A';
+    $lista = $transparente ? CTRIB_CIERRE_RECUADROS_14D8 : ($semiIntegrado ? CTRIB_CIERRE_RECUADROS_14A : CTRIB_CIERRE_RECUADROS);
     $desactualizados = [];
-    foreach ($transparente ? CTRIB_CIERRE_RECUADROS_14D8 : CTRIB_CIERRE_RECUADROS as $codigo => $nombre) {
+    foreach ($lista as $codigo => $nombre) {
         $referencia = $codigo === 'R21' ? 'R20' : $codigo; // el R21 sigue al RTRE
         $finalizado = ctrib_estado_recuadro($pdo, $empresa, $anio, $referencia)['estado'] === 'FINALIZADO';
         $desactualizado = $finalizado && ($desactualizados[$referencia] ??= $calculos[$referencia]($pdo, $empresa, $anio)['desactualizado']);
@@ -43,7 +51,8 @@ function ctrib_cierre(PDO $pdo, int $empresa, int $anio): array
         'cerrado' => $cerrado, 'cerradoEn' => $cierre['finalizado'], 'usuario' => $cierre['usuario'],
         'avisos' => $avisos,
         'nota' => $transparente ? 'El R7 (ingreso diferido) no está en esta versión y no bloquea el cierre.'
-            : 'El R18 (Determinación del RAI) sale del RTRE y no se finaliza aparte.',
+            : ($semiIntegrado ? 'R15 y R16 (RTRE y SAC de 14 A) están en preparación y no bloquean el cierre.'
+                : 'El R18 (Determinación del RAI) sale del RTRE y no se finaliza aparte.'),
     ];
 }
 
@@ -110,6 +119,7 @@ function ctrib_documento_desactualizado(PDO $pdo, int $empresa, int $anio, strin
         'R4' => 'ctrib_r4', 'R6' => 'ctrib_r6', 'R17' => 'ctrib_r17', 'R19' => 'ctrib_r19',
         'R18', 'R20', 'R21', 'RTRE' => 'ctrib_r20',
         'R22', 'DJ1947' => 'ctrib_r22', 'R23' => 'ctrib_r23',
+        'R12' => 'ctrib_r12', 'R13' => 'ctrib_r13', 'R14' => 'ctrib_r14',
         default => null,
     };
     return $calculo !== null && $calculo($pdo, $empresa, $anio)['desactualizado'];

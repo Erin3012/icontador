@@ -1,7 +1,7 @@
 <?php
 /* Documentos imprimibles de Cifrax Tributario (se guardan como PDF desde el navegador).
    GET api/cifrax-tributario-pdf.php?doc=R17&anio=2026&empresa_id=1
-   doc: BALANCE, HOMOLOGACION, RETIROS, R4, R6, R17, RLI, R18, R19, CPT, R20, RTRE, R21, DJ1948, R22, R23, DJ1947 */
+   doc: BALANCE, HOMOLOGACION, RETIROS, R4, R6, R12, R13, R14, R17, RLI, R18, R19, CPT, R20, RTRE, R21, DJ1948, R22, R23, DJ1947 */
 declare(strict_types=1);
 require_once __DIR__ . '/lib/sesion.php';
 require_once __DIR__ . '/db.php';

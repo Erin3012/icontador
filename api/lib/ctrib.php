@@ -240,10 +240,30 @@ function ctrib_catalogo_r17(): array
     return $catalogo;
 }
 
-/** Códigos del R17 que se alimentan con cuentas del balance (naturaleza CUENTA_DEPENDIENTE). */
-function ctrib_codigos_dependientes(): array
+/** Catálogo de códigos del Recuadro 12 (14 A), indexado por código. */
+function ctrib_catalogo_r12(): array
 {
-    return array_filter(ctrib_catalogo_r17(), fn($c) => $c['naturalezaConfiguracion'] === 'CUENTA_DEPENDIENTE');
+    static $catalogo = null;
+    if ($catalogo === null) {
+        $datos = json_decode((string) file_get_contents(__DIR__ . '/ctrib/recuadro12.json'), true);
+        $catalogo = [];
+        foreach ($datos ?: [] as $fila) {
+            $catalogo[(string) $fila['codigo']] = $fila;
+        }
+    }
+    return $catalogo;
+}
+
+/** Catálogo usado en la homologación de cuentas según el régimen de la empresa (R12 para 14 A, R17 para Pro Pyme). */
+function ctrib_catalogo_homologacion(PDO $pdo, int $empresa): array
+{
+    return ctrib_empresa_config($pdo, $empresa)['regimen'] === '14A' ? ctrib_catalogo_r12() : ctrib_catalogo_r17();
+}
+
+/** Códigos del catálogo que se alimentan con cuentas del balance (naturaleza CUENTA_DEPENDIENTE). */
+function ctrib_codigos_dependientes(?array $catalogo = null): array
+{
+    return array_filter($catalogo ?? ctrib_catalogo_r17(), fn($c) => $c['naturalezaConfiguracion'] === 'CUENTA_DEPENDIENTE');
 }
 
 // ---------- Mapeo de dígitos ----------
@@ -940,19 +960,21 @@ function ctrib_asignaciones(PDO $pdo, int $empresa, int $anio): array
 }
 
 /** Revisa que una cuenta de resultado sea compatible con el código: ingresos con ganancias, egresos con pérdidas. */
-function ctrib_compatible(string $tipoCuenta, string $codigo): ?string
+function ctrib_compatible(string $tipoCuenta, string $codigo, ?array $catalogo = null): ?string
 {
-    $c = ctrib_catalogo_r17()[$codigo] ?? null;
+    $catalogo ??= ctrib_catalogo_r17();
+    $c = $catalogo[$codigo] ?? null;
     if (!$c) {
-        return "El código $codigo no existe en el Recuadro 17.";
+        return "El código $codigo no existe en el recuadro de homologación.";
     }
     if ($c['naturalezaConfiguracion'] !== 'CUENTA_DEPENDIENTE') {
         return "El código $codigo se calcula solo y no admite cuentas.";
     }
-    if ($c['seccion'] === 'INGRESOS' && $tipoCuenta !== 'GANANCIA') {
+    $grupo = $c['grupo'] ?? $c['seccion'];
+    if ($grupo === 'INGRESOS' && $tipoCuenta !== 'GANANCIA') {
         return "El código $codigo es de ingresos y la cuenta no es de ingresos (ganancias).";
     }
-    if ($c['seccion'] === 'EGRESOS' && $tipoCuenta !== 'PERDIDA') {
+    if ($grupo === 'EGRESOS' && $tipoCuenta !== 'PERDIDA') {
         return "El código $codigo es de egresos y la cuenta no es de gastos (pérdidas).";
     }
     return null;
@@ -965,6 +987,7 @@ function ctrib_homologacion_cuentas(PDO $pdo, int $empresa, int $anio): array
     if (!$balance) {
         return [];
     }
+    $catalogo = ctrib_catalogo_homologacion($pdo, $empresa);
     $asignaciones = ctrib_asignaciones($pdo, $empresa, $anio);
     $salida = [];
     foreach ($balance['cuentas'] as $c) {
@@ -976,7 +999,7 @@ function ctrib_homologacion_cuentas(PDO $pdo, int $empresa, int $anio): array
             'cuenta' => $c['codigo'], 'nombre' => $c['nombre'], 'tipo' => $c['tipo'],
             'saldo' => $c['tipo'] === 'PERDIDA' ? $c['deudor'] - $c['acreedor'] : $c['acreedor'] - $c['deudor'],
             'codigo' => $codigo,
-            'alerta' => $codigo ? ctrib_compatible($c['tipo'], $codigo) : null,
+            'alerta' => $codigo ? ctrib_compatible($c['tipo'], $codigo, $catalogo) : null,
         ];
     }
     return $salida;
@@ -985,6 +1008,7 @@ function ctrib_homologacion_cuentas(PDO $pdo, int $empresa, int $anio): array
 /** Vista de la homologación: códigos dependientes con sus cuentas, cuentas de resultado y el estado general. */
 function ctrib_homologacion(PDO $pdo, int $empresa, int $anio): array
 {
+    $catalogo = ctrib_catalogo_homologacion($pdo, $empresa);
     $cuentas = ctrib_homologacion_cuentas($pdo, $empresa, $anio);
     $porCodigo = [];
     foreach ($cuentas as $c) {
@@ -993,10 +1017,10 @@ function ctrib_homologacion(PDO $pdo, int $empresa, int $anio): array
         }
     }
     $codigos = [];
-    foreach (ctrib_codigos_dependientes() as $codigo => $c) {
+    foreach (ctrib_codigos_dependientes($catalogo) as $codigo => $c) {
         $codigos[] = [
-            'codigo' => (string) $codigo, 'glosa' => $c['glosa'], 'seccion' => $c['seccion'], 'signo' => $c['signo'],
-            'requiereCuentaAjuste' => $c['requiereCuentaAjuste'], 'cuentaAjusteTipo' => $c['cuentaAjusteTipo'],
+            'codigo' => (string) $codigo, 'glosa' => $c['glosa'], 'seccion' => $c['grupo'] ?? $c['seccion'], 'signo' => $c['signo'],
+            'requiereCuentaAjuste' => $c['requiereCuentaAjuste'] ?? false, 'cuentaAjusteTipo' => $c['cuentaAjusteTipo'] ?? null,
             'cuentas' => $porCodigo[$codigo] ?? [],
         ];
     }
@@ -1006,7 +1030,7 @@ function ctrib_homologacion(PDO $pdo, int $empresa, int $anio): array
 }
 
 /**
- * Asigna una cuenta de resultado a un código dependiente del R17 (o la quita con codigo vacío).
+ * Asigna una cuenta de resultado a un código dependiente del R17 o R12 (o la quita con codigo vacío).
  * Corregir siempre está permitido; cada cambio queda en el historial (caso ENYEL 406001: 1402 → 1419).
  */
 function ctrib_homologar(PDO $pdo, int $empresa, int $anio, string $cuenta, string $codigo, string $usuario = '', string $motivo = ''): array
@@ -1026,20 +1050,21 @@ function ctrib_homologar(PDO $pdo, int $empresa, int $anio, string $cuenta, stri
         throw new CtribError("La cuenta $cuenta no está en el balance del año.");
     }
     if (!in_array($fila['tipo'], CTRIB_TIPOS_RESULTADO, true)) {
-        throw new CtribError("La cuenta $cuenta es de balance y no se homologa al Recuadro 17.");
+        throw new CtribError("La cuenta $cuenta es de balance y no se homologa a resultado.");
     }
     $codigo = trim($codigo);
+    $catalogo = ctrib_catalogo_homologacion($pdo, $empresa);
     $antes = ctrib_asignaciones($pdo, $empresa, $anio)[$cuenta] ?? '';
     if ($codigo === '') {
         $pdo->prepare('DELETE FROM ctrib_homologacion WHERE empresa_id = ? AND anio = ? AND cuenta = ?')->execute([$empresa, $anio, $cuenta]);
     } else {
-        if (!isset(ctrib_catalogo_r17()[$codigo])) {
-            throw new CtribError("El código $codigo no existe en el Recuadro 17.");
+        if (!isset($catalogo[$codigo])) {
+            throw new CtribError("El código $codigo no existe en el recuadro de homologación.");
         }
-        if (!isset(ctrib_codigos_dependientes()[$codigo])) {
+        if (!isset(ctrib_codigos_dependientes($catalogo)[$codigo])) {
             throw new CtribError("El código $codigo se calcula solo y no admite cuentas.");
         }
-        if ($error = ctrib_compatible($fila['tipo'], $codigo)) {
+        if ($error = ctrib_compatible($fila['tipo'], $codigo, $catalogo)) {
             throw new CtribError($error);
         }
         if ($antes === $codigo) {

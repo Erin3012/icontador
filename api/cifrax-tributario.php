@@ -32,6 +32,9 @@ ejecutar(function (PDO $pdo, int $empresa) {
                 'r18' => ctrib_r18($pdo, $empresa, $anio),
                 'r22' => ctrib_r22($pdo, $empresa, $anio),
                 'r23' => ctrib_r23($pdo, $empresa, $anio),
+                'r12' => ctrib_r12($pdo, $empresa, $anio),
+                'r13' => ctrib_r13($pdo, $empresa, $anio),
+                'r14' => ctrib_r14($pdo, $empresa, $anio),
                 'mapeo' => ['mapeo' => ctrib_mapeo($pdo, $empresa), 'propuesto' => CTRIB_MAPEO_PROPUESTO, 'tipos' => CTRIB_TIPOS_CUENTA],
                 'balance' => ctrib_balance_guardado($pdo, $empresa, $anio),
                 'homologacion' => ctrib_homologacion_con_sugerencias($pdo, $empresa, $anio),
@@ -158,6 +161,33 @@ ejecutar(function (PDO $pdo, int $empresa) {
         if ($metodo === 'POST' && in_array($accion, ['r22_reabrir', 'r23_reabrir'], true)) {
             $datos = cuerpoJson();
             $reabrir = $accion === 'r22_reabrir' ? 'ctrib_r22_reabrir' : 'ctrib_r23_reabrir';
+            return $reabrir($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), $usuario, mb_substr(trim((string) ($datos['motivo'] ?? '')), 0, 255));
+        }
+        if ($metodo === 'POST' && in_array($accion, ['r12_guardar_manual', 'r13_guardar_manual', 'r14_guardar_manual'], true)) {
+            $datos = cuerpoJson();
+            $guardar = match ($accion) {
+                'r12_guardar_manual' => 'ctrib_r12_guardar_valor',
+                'r13_guardar_manual' => 'ctrib_r13_guardar_valor',
+                'r14_guardar_manual' => 'ctrib_r14_guardar_valor',
+            };
+            return $guardar($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), (string) ($datos['codigo'] ?? ''), $datos['monto'] ?? null, $usuario);
+        }
+        if ($metodo === 'POST' && in_array($accion, ['r12_finalizar', 'r13_finalizar', 'r14_finalizar'], true)) {
+            $datos = cuerpoJson();
+            $finalizar = match ($accion) {
+                'r12_finalizar' => 'ctrib_r12_finalizar',
+                'r13_finalizar' => 'ctrib_r13_finalizar',
+                'r14_finalizar' => 'ctrib_r14_finalizar',
+            };
+            return $finalizar($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), $usuario);
+        }
+        if ($metodo === 'POST' && in_array($accion, ['r12_reabrir', 'r13_reabrir', 'r14_reabrir'], true)) {
+            $datos = cuerpoJson();
+            $reabrir = match ($accion) {
+                'r12_reabrir' => 'ctrib_r12_reabrir',
+                'r13_reabrir' => 'ctrib_r13_reabrir',
+                'r14_reabrir' => 'ctrib_r14_reabrir',
+            };
             return $reabrir($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), $usuario, mb_substr(trim((string) ($datos['motivo'] ?? '')), 0, 255));
         }
         if ($metodo === 'POST' && $accion === 'cierre_sellar') {

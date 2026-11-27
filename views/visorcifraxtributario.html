@@ -524,7 +524,7 @@
         var b = e.target.closest('[data-abrir]');
         if (!b || b.disabled) return;
         var clave = b.getAttribute('data-abrir');
-        if (['balance', 'R4', 'R6', 'R17', 'R18', 'R19', 'R20', 'R21', 'R22', 'R23', 'DJ1947', 'DJ1948', 'CIERRE', 'CPT', 'RLI', 'HOM', 'PLANSII'].indexOf(clave) >= 0) return; // estos se cargan desde la API (ver el script final)
+        if (['balance', 'R4', 'R6', 'R12', 'R13', 'R14', 'R17', 'R18', 'R19', 'R20', 'R21', 'R22', 'R23', 'DJ1947', 'DJ1948', 'CIERRE', 'CPT', 'RLI', 'HOM', 'PLANSII'].indexOf(clave) >= 0) return; // estos se cargan desde la API (ver el script final)
         abrirRecuadro(clave);
     });
 
@@ -586,7 +586,7 @@
         var etiquetas = {
             CUENTAS: 'Cuentas', CUENTAS_EXISTENCIAS: 'Cuentas + existencias', MANUAL: 'Manual', CALCULADO: 'Calculado', CALCULADO_CON_TOPE: 'Calculado con tope',
             COPIA_1422: 'Copia del 1422', AUTOMATICO: 'Automático', 'AÑO_ANTERIOR': 'Año anterior',
-            SIN_ANTERIOR_FINALIZADO: 'Sin R19 anterior finalizado', ACTIVO_FIJO: 'Balance (activo fijo)', R22: 'R22', R4: 'R4', RETIROS: 'Retiros', PENDIENTE: 'Pendiente de cálculo', PENDIENTE_CALCULO: 'Pendiente', RESULTADO: 'Resultado',
+            SIN_ANTERIOR_FINALIZADO: 'Sin R19 anterior finalizado', ACTIVO_FIJO: 'Balance (activo fijo)', R12: 'R12', R14: 'R14', R22: 'R22', R4: 'R4', RETIROS: 'Retiros', PENDIENTE: 'Pendiente de cálculo', PENDIENTE_CALCULO: 'Pendiente', RESULTADO: 'Resultado',
             vouchers: 'Vouchers de contabilidad', itributario: 'Captura de iTributario', excel: 'Excel', csv: 'CSV'
         };
         return etiquetas[o] || o;
@@ -644,7 +644,7 @@
 
     // ---------- Recuadro 17 y 19 ----------
     function editable(clave, l) {
-        if (clave === 'R4' || clave === 'R22' || clave === 'R23') return l.naturaleza === 'MANUAL';
+        if (clave === 'R4' || clave === 'R12' || clave === 'R13' || clave === 'R14' || clave === 'R22' || clave === 'R23') return l.naturaleza === 'MANUAL';
         if (clave === 'R6') return ['122', '123', '102', '1193'].indexOf(l.codigo) < 0;
         if (clave === 'R17') return l.naturaleza === 'MANUAL';
         return l.origen === 'MANUAL' || ['1445', '1446', '1377', '1378', '1380', '1381'].indexOf(l.codigo) >= 0;
@@ -764,7 +764,7 @@
         html += '<table class="cv-modal-tabla"><thead><tr><th>Concepto</th><th class="num">Código</th><th class="num">Valor</th><th>Origen</th></tr></thead><tbody>';
         var seccionPrevia = null;
         r.lineas.forEach(function (l) {
-            if (clave === 'R17' || clave === 'R22') {
+            if (clave === 'R17' || clave === 'R22' || clave === 'R12') {
                 var seccion = l.seccion || 'Cálculos';
                 if (seccion !== seccionPrevia) {
                     html += '<tr class="cv-seccion"><td colspan="4">▾ ' + esc(seccion) + '</td></tr>';
@@ -799,9 +799,11 @@
                 '</td><td>' + (l.origen ? '<span class="cv-chip">' + esc(origenEtiqueta(l.origen)) + '</span>' : '') + '</td></tr>';
         });
         html += '</tbody></table>';
-        if (clave === 'R17' && r.idpcEstimado) {
+        if ((clave === 'R17' || clave === 'R12') && r.idpcEstimado) {
             var idpc = r.idpcEstimado;
-            html += '<p class="cv-texto" data-idpc style="margin-top:10px;font-size:12.5px"><strong>IDPC estimado (14 D N°3):</strong> ' + fmtDec(idpc.tasa) + ' % del 1440 ($' +
+            var labelReg = clave === 'R12' ? '14 A' : '14 D N°3';
+            var codBase = clave === 'R12' ? '1690' : '1440';
+            html += '<p class="cv-texto" data-idpc style="margin-top:10px;font-size:12.5px"><strong>IDPC estimado (' + labelReg + '):</strong> ' + fmtDec(idpc.tasa) + ' % del ' + codBase + ' ($' +
                 fmt(idpc.base) + ') = <strong>$' + fmt(idpc.monto) + '</strong> · sin PPM ni créditos.</p>';
         }
         if (clave === 'R22') html += tablaPropietarios(r.propietarios);
@@ -867,6 +869,9 @@
         R6: 'Recuadro 6 — Datos Informativos (Pro Pyme)',
         CIERRE: 'Cierre anual',
         R18: 'Recuadro 18 — Determinación del RAI',
+        R12: 'Recuadro 12 — Base imponible de primera categoría (14 A)',
+        R13: 'Recuadro 13 — Determinación del RAI (14 A)',
+        R14: 'Recuadro 14 — Razonabilidad del capital propio tributario (14 A)',
         R22: 'Recuadro 22 — Base imponible del régimen de transparencia (14 D N°8)',
         R23: 'Recuadro 23 — CPTS del régimen de transparencia (14 D N°8)',
         DJ1947: 'DJ 1947 — Base imponible asignada a los propietarios'
@@ -1315,7 +1320,7 @@
         else if (clave === 'CPT') abrirCpt();
         else if (clave === 'RLI') abrirRli();
         else if (clave === 'R20' && dialogo) abrirRecuadro('R20').then(function (ok) { if (ok) abrirGrilla(dialogo); });
-        else if (['R4', 'R6', 'R17', 'R18', 'R19', 'R20', 'R21', 'R22', 'R23', 'DJ1947', 'DJ1948', 'CIERRE'].indexOf(clave) >= 0) abrirRecuadro(clave);
+        else if (['R4', 'R6', 'R12', 'R13', 'R14', 'R17', 'R18', 'R19', 'R20', 'R21', 'R22', 'R23', 'DJ1947', 'DJ1948', 'CIERRE'].indexOf(clave) >= 0) abrirRecuadro(clave);
         else if (clave === 'HOM') abrirHomologacion();
         else if (clave === 'PLANSII') abrirPlanSii();
     });
@@ -1393,8 +1398,8 @@
         if (monto !== null && !Number.isInteger(monto)) { mostrarError('El monto debe ser un número entero.'); return; }
         var datos = { codigo: campo.getAttribute('data-codigo'), monto: monto };
         if (clave === 'R17' && monto === null) datos.monto = 0;
-        var endpoint = { R4: 'r4_guardar_valor', R6: 'r6_guardar_valor', R17: 'r17_guardar_manual', R19: 'r19_guardar_manual',
-            R22: 'r22_guardar_manual', R23: 'r23_guardar_manual' }[clave];
+        var endpoint = { R4: 'r4_guardar_valor', R6: 'r6_guardar_valor', R12: 'r12_guardar_manual', R13: 'r13_guardar_manual', R14: 'r14_guardar_manual',
+            R17: 'r17_guardar_manual', R19: 'r19_guardar_manual', R22: 'r22_guardar_manual', R23: 'r23_guardar_manual' }[clave];
         enviar(endpoint, datos)
             .then(function (r) { pintarSegun(clave, r); })
             .catch(function (err) { cargarRecuadro(clave).then(function () { mostrarError(err.message); }); });
@@ -1457,7 +1462,7 @@
         if (h.alertas) {
             html += '<div class="cv-aviso-ok">Hay ' + h.alertas + ' cuenta(s) asignada(s) a un código de la sección contraria (ingreso o gasto). Corríjalas: el Recuadro 17 no se finaliza mientras existan.</div>';
         }
-        html += '<table class="cv-modal-tabla"><thead><tr><th>Cuenta</th><th>Nombre</th><th>Tipo</th><th class="num">Saldo</th><th>Código del R17</th><th>Sugerencia (plan SII)</th></tr></thead><tbody>';
+        html += '<table class="cv-modal-tabla"><thead><tr><th>Cuenta</th><th>Nombre</th><th>Tipo</th><th class="num">Saldo</th><th>Código recuadro</th><th>Sugerencia (plan SII)</th></tr></thead><tbody>';
         if (!h.cuentasResultado.length) {
             html += '<tr><td colspan="6">No hay cuentas de resultado en el balance de este año.</td></tr>';
         }

@@ -98,8 +98,8 @@
         ['Aumentos del ejercicio (propios)', [1205, 1215, null, null, 1740, 1239, 1251]],
         ['Otros aumentos del ejercicio', [1206, 1216, 1228, 1741, 1742, 1240, 1252]],
         ['Otras disminuciones del ejercicio', [1207, 1217, 1229, 1743, 1744, 1241, 1253]],
-        ['Remesas, retiros o dividendos imputados a los RTRE', ['?', '?', '?', '?', '?', '?', 1254]],
-        ['Remanente ejercicio siguiente', ['?', '?', '?', '?', '?', '?', '?']]
+        ['Remesas, retiros o dividendos imputados a los RTRE', [1208, 1218, 1230, 1745, 1746, 1242, 1254]],
+        ['Remanente ejercicio siguiente', [1210, 1220, 1232, 1749, 1750, 1244, 1256]]
     ];
     var R16_COLS = ['Desde 2017 · no sujeto a restitución, sin devolución', 'No sujeto a restitución, con devolución', 'Sujeto a restitución, sin devolución',
         'Sujeto a restitución, con devolución', 'IPE', 'Hasta 2016 · sin devolución', 'Hasta 2016 · con devolución'];
@@ -114,8 +114,8 @@
         ['Otros aumentos del ejercicio', [1274, 1283, 1294, 1307, 1318, 1329, 1340]],
         ['Otras disminuciones del ejercicio', [1275, 1284, 1295, 1308, 1319, 1330, 1341]],
         ['Asignado a remesas, retiros o dividendos efectuados en el ejercicio', [1276, 1285, 1296, 1309, 1320, 1331, 1342]],
-        ['Asignado a retiros en exceso y devoluciones de capital', ['?', '?', '?', '?', '?', '?', '?']],
-        ['Remanente ejercicio siguiente', ['?', '?', '?', '?', '?', '?', '?']]
+        ['Asignado a retiros en exceso y devoluciones de capital', [1277, 1286, 1297, 1310, 1321, 1332, 1343]],
+        ['Remanente ejercicio siguiente', [1278, 1287, 1312, 1300, 1323, 1334, 1345]]
     ];
 
     var RTRE = [

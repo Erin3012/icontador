@@ -53,7 +53,8 @@ check(fila($pyI, 'Base imponible (RLI)')['clase'] === 'pend', 'Pro Pyme: R17 pen
 $i = ctrib_inicio($pdo, $e14, 2026);
 check($i['propio'] === true && $i['regimen'] === '14A', '14 A tiene inicio propio');
 check(fila($i, 'Balance')['estado'] === 'PENDIENTE', 'balance sin importar: pendiente');
-check(fila($i, 'Base imponible de primera categoría')['estado'] === 'POR CALCULAR', 'R12 todavía no se calcula');
+check(fila($i, 'Base imponible de primera categoría')['estado'] === 'PENDIENTE', 'R12 sin finalizar: pendiente');
+check(fila($i, 'Registro tributario de rentas (RTRE) y registro SAC')['estado'] === 'POR CALCULAR', 'RTRE 14 A todavía por calcular');
 check(fila($i, 'Retiro o Dividendos')['estado'] === 'PENDIENTE', 'retiros sin importar: pendiente');
 check(fila($i, 'Enajenación de acciones y derechos sociales')['estado'] === 'PENDIENTE', 'R4 sin finalizar: pendiente');
 

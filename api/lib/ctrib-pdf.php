@@ -28,6 +28,9 @@ const CTRIB_DOCUMENTOS = [
     'R22' => 'Recuadro N° 22. Base imponible régimen de transparencia tributaria (art. 14 letra D) N° 8 LIR)',
     'R23' => 'Recuadro N° 23. CPTS régimen de transparencia tributaria (art. 14 letra D) N° 8 LIR)',
     'DJ1947' => 'Base imponible asignada a los propietarios (datos para la DJ 1947)',
+    'R12' => 'Recuadro N° 12. Base imponible de Primera Categoría (art. 14 letra A) LIR)',
+    'R13' => 'Recuadro N° 13. Determinación del RAI (art. 14 letra A) LIR)',
+    'R14' => 'Recuadro N° 14. Razonabilidad del Capital Propio Tributario (art. 14 letra A) LIR)',
 ];
 // Documentos en hoja horizontal, como en iTributario.
 const CTRIB_DOC_HORIZONTAL = ['BALANCE', 'HOMOLOGACION', 'RETIROS', 'R20', 'RTRE', 'R21', 'DJ1947'];
@@ -342,6 +345,20 @@ function ctrib_documento_cuerpo(PDO $pdo, int $empresa, int $anio, string $doc, 
         case 'R23':
             $r = ctrib_r23($pdo, $empresa, $anio);
             return ['estado' => $r['estado'], 'numero' => '23', 'html' => ctrib_pdf_recuadro('23', $r['lineas']) . ctrib_pdf_notas($r['avisos'])];
+
+        case 'R12':
+            $r = ctrib_r12($pdo, $empresa, $anio);
+            $grupo = fn(array $l) => ['RESULTADO_FINANCIERO' => 'Resultado financiero', 'AJUSTES' => 'Ajustes al resultado financiero', 'RLI' => 'Renta líquida imponible'][$l['seccion']] ?? null;
+            $notaIdpc = 'IDPC estimado (' . str_replace('.', ',', (string) $r['idpcEstimado']['tasa']) . '%): ' . ctrib_pesos($r['idpcEstimado']['monto']) . '.';
+            return ['estado' => $r['estado'], 'numero' => '12', 'html' => ctrib_pdf_recuadro('12', $r['lineas'], $grupo) . ctrib_pdf_notas([$notaIdpc])];
+
+        case 'R13':
+            $r = ctrib_r13($pdo, $empresa, $anio);
+            return ['estado' => $r['estado'], 'numero' => '13', 'html' => ctrib_pdf_recuadro('13', $r['lineas'])];
+
+        case 'R14':
+            $r = ctrib_r14($pdo, $empresa, $anio);
+            return ['estado' => $r['estado'], 'numero' => '14', 'html' => ctrib_pdf_recuadro('14', $r['lineas'])];
 
         case 'DJ1947':
             $r = ctrib_r22($pdo, $empresa, $anio);

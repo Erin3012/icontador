@@ -1,0 +1,12 @@
+[
+  {"codigo": "1698", "glosa": "CPT positivo final (recuadro N° 14)", "signo": "+", "naturalezaConfiguracion": "MANUAL"},
+  {"codigo": "1717", "glosa": "CPT negativo final (recuadro N° 14)", "signo": "-", "naturalezaConfiguracion": "MANUAL"},
+  {"codigo": "1692", "glosa": "Saldo negativo del registro REX al término del ejercicio", "signo": "+", "naturalezaConfiguracion": "MANUAL"},
+  {"codigo": "1699", "glosa": "Remesas, retiros o dividendos repartidos en el ejercicio, reajustados", "signo": "+", "naturalezaConfiguracion": "MANUAL"},
+  {"codigo": "1718", "glosa": "Subtotal", "signo": "=", "naturalezaConfiguracion": "CALCULADO"},
+  {"codigo": "1693", "glosa": "Saldo positivo del registro REX al término del ejercicio, antes de imputaciones", "signo": "-", "naturalezaConfiguracion": "MANUAL"},
+  {"codigo": "844", "glosa": "Capital aportado debidamente reajustado (incluye aumentos y disminuciones efectivas)", "signo": "-", "naturalezaConfiguracion": "MANUAL"},
+  {"codigo": "982", "glosa": "Saldo FUR (cuando no haya sido considerado dentro del valor del capital aportado a la empresa)", "signo": "-", "naturalezaConfiguracion": "MANUAL"},
+  {"codigo": "1198", "glosa": "Sobreprecio obtenido en la colocación de acciones de propia emisión, debidamente reajustado", "signo": "-", "naturalezaConfiguracion": "MANUAL"},
+  {"codigo": "1199", "glosa": "Rentas afectas a IGC o IA (RAI) del ejercicio", "signo": "=", "naturalezaConfiguracion": "CALCULADO"}
+]

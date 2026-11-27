@@ -1,6 +1,7 @@
 {
   "14A": {
     "nombre": "Semi Integrado (Art. 14 A)",
+    "cierre": true,
     "grupos": [
       {
         "slot": "gestion",
@@ -14,12 +15,11 @@
             "ayuda": "Balance de 8 columnas de la empresa para el año comercial. Sin balance no se calcula nada."
           },
           {
-            "nombre": "Homologación de cuentas IFRS",
+            "nombre": "Homologación de cuentas",
             "tipo": "Configuración",
-            "fuente": "pendiente",
-            "abrir14": "HOM14",
-            "etapa": 4,
-            "ayuda": "Cada cuenta del balance se asigna a una cuenta IFRS del SII; las de resultado también a un código del R12."
+            "fuente": "homologacion",
+            "abrir": "HOM",
+            "ayuda": "Cada cuenta de resultado del balance se asigna a un código del Recuadro 12."
           },
           {
             "nombre": "Retiro o Dividendos",
@@ -56,28 +56,28 @@
             "codigo": "R12",
             "nombre": "Base imponible de primera categoría",
             "tipo": "Cálculos",
-            "fuente": "pendiente",
-            "abrir14": "R12",
-            "etapa": 4,
-            "ayuda": "Resultado financiero con sus ajustes tributarios: de aquí sale la base del impuesto."
-          },
-          {
-            "codigo": "R13",
-            "nombre": "Determinación del RAI",
-            "tipo": "Cálculos",
-            "fuente": "pendiente",
-            "abrir14": "R13",
-            "etapa": 4,
-            "ayuda": "Renta atribuible a los propietarios, a partir del capital propio y los retiros."
+            "fuente": "recuadro",
+            "recuadro": "R12",
+            "abrir": "R12",
+            "ayuda": "Resultado financiero con sus ajustes tributarios: de aquí sale la base del impuesto (IDPC 27%)."
           },
           {
             "codigo": "R14",
             "nombre": "Razonabilidad del capital propio tributario",
             "tipo": "Cálculos",
-            "fuente": "pendiente",
-            "abrir14": "R14",
-            "etapa": 4,
+            "fuente": "recuadro",
+            "recuadro": "R14",
+            "abrir": "R14",
             "ayuda": "Verifica que el capital propio tributario sea razonable frente a la base imponible."
+          },
+          {
+            "codigo": "R13",
+            "nombre": "Determinación del RAI",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "R13",
+            "abrir": "R13",
+            "ayuda": "Renta atribuible a los propietarios, a partir del capital propio y los retiros."
           },
           {
             "codigo": "R15 y R16",
