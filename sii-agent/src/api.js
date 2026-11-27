@@ -9,13 +9,15 @@ class ErrorServidor extends Error {
   }
 }
 
-function crearServidor({ url, token, fetchImpl = globalThis.fetch }) {
+function crearServidor({ url, token, funciones = [], fetchImpl = globalThis.fetch }) {
   const base = String(url).replace(/\/+$/, '') + '/api/sii-agente.php';
+  // El servidor solo entrega tareas de funcionalidades extra (F22, DDJJ) al agente que declara que las sabe hacer.
+  const declaradas = funciones.length ? { 'X-Agente-Funciones': funciones.join(',') } : {};
 
   async function pedir(metodo, accion, cuerpo) {
     const res = await fetchImpl(`${base}?accion=${accion}`, {
       method: metodo,
-      headers: { 'X-Agente-Token': token, ...(cuerpo ? { 'Content-Type': 'application/json' } : {}) },
+      headers: { 'X-Agente-Token': token, ...declaradas, ...(cuerpo ? { 'Content-Type': 'application/json' } : {}) },
       body: cuerpo ? JSON.stringify(cuerpo) : undefined,
     });
     const datos = await res.json().catch(() => ({}));
@@ -28,6 +30,7 @@ function crearServidor({ url, token, fetchImpl = globalThis.fetch }) {
     importar: (tareaId, datos) => pedir('POST', 'importar', { tarea_id: tareaId, ...datos }),
     fallar: (tareaId, mensaje) => pedir('POST', 'error', { tarea_id: tareaId, mensaje: String(mensaje).slice(0, 500) }),
     resultadoEmpresa: (tareaId, datos) => pedir('POST', 'resultado_empresa', { tarea_id: tareaId, ...datos }),
+    resultadoConsulta: (tareaId, resultado) => pedir('POST', 'resultado_consulta', { tarea_id: tareaId, resultado }),
   };
 }
 

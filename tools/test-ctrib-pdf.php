@@ -33,7 +33,7 @@ $esperado = [
     'R17' => ['<span>17.</span>', 'Recuadro N° 17. Base imponible régimen Pro Pyme (art. 14 letra D) N° 3 LIR)', 'Percibido o pagado', '22.018.000', '15.112.643',
         '<td class="sig">+</td>', '<td class="sig">=</td>', 'class="agua"', 'class="sello">BORRADOR'],
     'RLI' => ['INFORME DE RENTA LÍQUIDA IMPONIBLE', 'Resultado del Balance', '$6.905.357', 'Sin partidas.', 'RENTA LÍQUIDA IMPONIBLE FINAL'],
-    'R18' => ['<span>18.</span>', '1721', 'Rentas afectas a impuestos (RAI)', '1.500.000'],
+    'R18' => ['<span>18.</span>', '1500', 'Rentas afectas a IGC o IA (RAI) del ejercicio', '1.500.000'],
     'R19' => ['<span>19.</span>', 'CPTS régimen Pro Pyme', '1545', '1.500.000'],
     'CPT' => ['Capital Propio Tributario a partir del Activo', 'TOTAL ACTIVO SEGÚN BALANCE', '$20.509.426', 'CAPITAL PROPIO DETERMINADO', 'Sin cuentas configuradas.'],
     'R20' => ['<span>20.</span>', 'Recuadro N° 20', 'Rentas con tributación cumplida', '1463', '1484', 'letter landscape'],
@@ -65,7 +65,7 @@ ctrib_r20_guardar_parametro($pdo, $empresa, 2026, 'SOBR', 250000, 'prueba');
 $f = ctrib_r20($pdo, $empresa, 2026)['formulaRai'];
 $r18 = ctrib_documento_html($pdo, $empresa, 2026, 'R18');
 check($f['rexPositivoPrevio'] === 1000000 && preg_match('/<td class="cod">1493<\/td><td class="mon">1\.000\.000</', $r18) === 1, 'R18: el 1493 muestra el saldo REX que se resta');
-check($f['rai'] === $f['subtotalRai'] - 1000000 - 250000 && str_contains($r18, 'Sobreprecio en colocación de acciones') && str_contains($r18, '250.000'), 'R18: el sobreprecio aparece y las líneas suman el RAI');
+check($f['rai'] === $f['subtotalRai'] - 1000000 - 250000 && str_contains($r18, '<td class="cod">1727</td><td class="mon">250.000</td>') && str_contains($r18, '250.000'), 'R18: el sobreprecio aparece y las líneas suman el RAI');
 check(!str_contains($r18, 'se toman como cero'), 'R18: sin la nota antigua');
 // En régimen 14 D N°8 el título del recuadro cambia a N° 8.
 ctrib_empresa_config_guardar($pdo, $empresa, 'EIRL', '14D8', 'prueba');

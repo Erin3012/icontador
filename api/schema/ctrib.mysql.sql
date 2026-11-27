@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS ctrib_valores (
 CREATE TABLE IF NOT EXISTS ctrib_recuadros (
     empresa_id INT NOT NULL DEFAULT 0,
     anio INT NOT NULL,
-    recuadro VARCHAR(4) NOT NULL,
+    recuadro VARCHAR(10) NOT NULL,
     estado VARCHAR(12) NOT NULL DEFAULT 'BORRADOR',
     finalizado VARCHAR(25) NOT NULL DEFAULT '',
     usuario VARCHAR(120) NOT NULL DEFAULT '',
@@ -176,6 +176,21 @@ CREATE TABLE IF NOT EXISTS ctrib_ajuste_saldos (
     saldo_inicial BIGINT NULL,
     saldo_final BIGINT NULL,
     PRIMARY KEY (empresa_id, anio, codigo)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ctrib_existencias_cuentas (
+    empresa_id INT NOT NULL DEFAULT 0,
+    anio INT NOT NULL,
+    cuenta VARCHAR(20) NOT NULL,
+    PRIMARY KEY (empresa_id, anio, cuenta)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ctrib_existencias_saldos (
+    empresa_id INT NOT NULL DEFAULT 0,
+    anio INT NOT NULL,
+    saldo_inicial BIGINT NULL,
+    saldo_final BIGINT NULL,
+    PRIMARY KEY (empresa_id, anio)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS ctrib_rli_partidas (

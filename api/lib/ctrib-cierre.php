@@ -1,22 +1,28 @@
 <?php
-// Cierre anual de Cifrax Tributario: sella el año cuando R4, R6, R17, R19 y el RTRE (R20) están finalizados.
-// El R21 (Registro SAC) se vacía desde el RTRE y sigue su estado. El R18 (Determinación del RAI) no está en esta versión.
+// Cierre anual de Cifrax Tributario: sella el año cuando los recuadros del régimen están finalizados.
+// Pro Pyme: R4, R6, R17, R19 y el RTRE (R20); el R21 sigue al RTRE y el R18 sale de él. 14 D N° 8: R4, R6, R22 y R23.
 declare(strict_types=1);
 
 require_once __DIR__ . '/ctrib-r4-r6.php';
+require_once __DIR__ . '/ctrib-r23.php';
 
 const CTRIB_CIERRE_RECUADROS = [
     'R4' => 'Enajenación de acciones', 'R6' => 'Datos informativos', 'R17' => 'Base imponible',
     'R19' => 'CPTS Pro Pyme', 'R20' => 'RTRE', 'R21' => 'Registro SAC',
+];
+const CTRIB_CIERRE_RECUADROS_14D8 = [
+    'R4' => 'Enajenación de acciones', 'R6' => 'Datos informativos', 'R22' => 'Base imponible', 'R23' => 'CPTS transparencia',
 ];
 
 function ctrib_cierre(PDO $pdo, int $empresa, int $anio): array
 {
     $recuadros = [];
     $pendientes = [];
-    $calculos = ['R4' => 'ctrib_r4', 'R6' => 'ctrib_r6', 'R17' => 'ctrib_r17', 'R19' => 'ctrib_r19', 'R20' => 'ctrib_r20'];
+    $calculos = ['R4' => 'ctrib_r4', 'R6' => 'ctrib_r6', 'R17' => 'ctrib_r17', 'R19' => 'ctrib_r19', 'R20' => 'ctrib_r20',
+        'R22' => 'ctrib_r22', 'R23' => 'ctrib_r23'];
+    $transparente = ctrib_empresa_config($pdo, $empresa)['regimen'] === '14D8';
     $desactualizados = [];
-    foreach (CTRIB_CIERRE_RECUADROS as $codigo => $nombre) {
+    foreach ($transparente ? CTRIB_CIERRE_RECUADROS_14D8 : CTRIB_CIERRE_RECUADROS as $codigo => $nombre) {
         $referencia = $codigo === 'R21' ? 'R20' : $codigo; // el R21 sigue al RTRE
         $finalizado = ctrib_estado_recuadro($pdo, $empresa, $anio, $referencia)['estado'] === 'FINALIZADO';
         $desactualizado = $finalizado && ($desactualizados[$referencia] ??= $calculos[$referencia]($pdo, $empresa, $anio)['desactualizado']);
@@ -36,7 +42,8 @@ function ctrib_cierre(PDO $pdo, int $empresa, int $anio): array
         'recuadros' => $recuadros, 'pendientes' => $pendientes, 'completo' => $pendientes === [],
         'cerrado' => $cerrado, 'cerradoEn' => $cierre['finalizado'], 'usuario' => $cierre['usuario'],
         'avisos' => $avisos,
-        'nota' => 'El R18 (Determinación del RAI) no está en esta versión y no bloquea el cierre.',
+        'nota' => $transparente ? 'El R7 (ingreso diferido) no está en esta versión y no bloquea el cierre.'
+            : 'El R18 (Determinación del RAI) sale del RTRE y no se finaliza aparte.',
     ];
 }
 
@@ -90,6 +97,12 @@ function ctrib_exigir_cambio_permitido(PDO $pdo, int $empresa, string $accion, a
         }
         return;
     }
+    if (in_array($accion, ['regimen_config', 'composicion_guardar'], true)) {
+        $actual = ctrib_empresa_config($pdo, $empresa)['regimen'];
+        if ($actual !== '' && (string) ($datos['regimen'] ?? '') !== $actual) {
+            throw new CtribError('Hay años cerrados (AT ' . implode(', ', $cerrados) . '): reabra sus cierres antes de cambiar el régimen de la empresa.');
+        }
+    }
     $anio = (int) (is_numeric($datos['anio'] ?? null) ? $datos['anio'] : 0);
     if (in_array($anio, $cerrados, true)) {
         throw new CtribError("El año tributario $anio está cerrado. Reabra el cierre para modificarlo.");
@@ -102,6 +115,7 @@ function ctrib_documento_desactualizado(PDO $pdo, int $empresa, int $anio, strin
     $calculo = match ($doc) {
         'R4' => 'ctrib_r4', 'R6' => 'ctrib_r6', 'R17' => 'ctrib_r17', 'R19' => 'ctrib_r19',
         'R18', 'R20', 'R21', 'RTRE' => 'ctrib_r20',
+        'R22', 'DJ1947' => 'ctrib_r22', 'R23' => 'ctrib_r23',
         default => null,
     };
     return $calculo !== null && $calculo($pdo, $empresa, $anio)['desactualizado'];

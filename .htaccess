@@ -12,6 +12,8 @@ RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
 # Carpetas y archivos internos que nunca se publican.
 RewriteRule ^(data|tools|reference|samples|node_modules|verification|\.git)(/|$) - [F,L]
+RewriteRule ^backup_db\.php$ - [F,L]
+RewriteRule (^|/)error_log$ - [F,L]
 RewriteRule ^api/(lib|schema)/ - [F,L]
 RewriteRule ^api/(db|config[^/]*)\.php$ - [F,L]
 

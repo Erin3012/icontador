@@ -37,6 +37,20 @@ function ctrib_schema(PDO $pdo): void
         saldo_final BIGINT NULL,
         PRIMARY KEY (empresa_id, anio, codigo)
     )$motor");
+    // Cuentas de existencias del 1409 (su variación del año suma al devengado) y sus saldos manuales.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_existencias_cuentas (
+        empresa_id INT NOT NULL DEFAULT 0,
+        anio INT NOT NULL,
+        cuenta VARCHAR(20) NOT NULL,
+        PRIMARY KEY (empresa_id, anio, cuenta)
+    )$motor");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_existencias_saldos (
+        empresa_id INT NOT NULL DEFAULT 0,
+        anio INT NOT NULL,
+        saldo_inicial BIGINT NULL,
+        saldo_final BIGINT NULL,
+        PRIMARY KEY (empresa_id, anio)
+    )$motor");
     // Partidas agregadas o deducidas del resultado del balance en el informe de RLI.
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_rli_partidas (
         id $id,
@@ -94,13 +108,23 @@ function ctrib_schema(PDO $pdo): void
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_recuadros (
         empresa_id INT NOT NULL DEFAULT 0,
         anio INT NOT NULL,
-        recuadro VARCHAR(4) NOT NULL,
+        recuadro VARCHAR(10) NOT NULL,
         estado VARCHAR(12) NOT NULL DEFAULT 'BORRADOR',
         finalizado VARCHAR(25) NOT NULL DEFAULT '',
         usuario VARCHAR(120) NOT NULL DEFAULT '',
         snapshot TEXT NULL,
         PRIMARY KEY (empresa_id, anio, recuadro)
     )$motor");
+    // 'CIERRE' (el sello del año) tiene 6 letras. Amplía la columna en las bases MySQL creadas con 4 y recupera
+    // los sellos que un servidor sin modo estricto haya guardado recortados.
+    if ($mysql) {
+        $largo = $pdo->query("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ctrib_recuadros' AND COLUMN_NAME = 'recuadro'")->fetchColumn();
+        if ((int) $largo < 10) {
+            $pdo->exec('ALTER TABLE ctrib_recuadros MODIFY recuadro VARCHAR(10) NOT NULL');
+            $pdo->exec("UPDATE ctrib_recuadros SET recuadro = 'CIERRE' WHERE recuadro = 'CIER'");
+        }
+    }
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_rtre_celdas (
         empresa_id INT NOT NULL DEFAULT 0,
         anio INT NOT NULL,
@@ -639,8 +663,8 @@ function ctrib_rut(string $rut): string
 
 // Tipo de contribuyente y régimen de la empresa: definen las reglas del cuadro de retiros
 // (EIRL: un solo titular con el 100%; 14 D N°8: se atribuye y retira la totalidad).
-const CTRIB_TIPOS_CONTRIBUYENTE = ['EIRL', 'SPA', 'LTDA', 'SA', 'OTRO'];
-const CTRIB_REGIMENES = ['14D3', '14D8', '14A'];
+const CTRIB_TIPOS_CONTRIBUYENTE = ['EIRL', 'SPA', 'LTDA', 'SA', 'OTRO', 'PERSONA_NATURAL'];
+const CTRIB_REGIMENES = ['14D3', '14D8', '14A', '14G', 'PERSONA'];
 
 function ctrib_empresa_config(PDO $pdo, int $empresa): array
 {
@@ -658,10 +682,16 @@ function ctrib_empresa_config_guardar(PDO $pdo, int $empresa, string $tipo, stri
     if (!in_array($regimen, CTRIB_REGIMENES, true)) {
         throw new CtribError('Seleccione el régimen tributario.');
     }
+    if (($tipo === 'PERSONA_NATURAL') !== ($regimen === 'PERSONA')) {
+        throw new CtribError('La persona natural tiene el régimen Persona natural (honorarios), y ningún otro tipo lo usa.');
+    }
     $antes = ctrib_empresa_config($pdo, $empresa);
     $pdo->prepare('DELETE FROM ctrib_empresa_config WHERE empresa_id = ?')->execute([$empresa]);
     $pdo->prepare('INSERT INTO ctrib_empresa_config (empresa_id, tipo, regimen, usuario, actualizado) VALUES (?, ?, ?, ?, ?)')
         ->execute([$empresa, $tipo, $regimen, $usuario, ctrib_ahora()]);
+    if (($antes['regimen'] === '14D8') !== ($regimen === '14D8')) {
+        ctrib_retiros_modo_reiniciar($pdo, $empresa, $usuario);
+    }
     if ($antes['tipo'] !== $tipo || $antes['regimen'] !== $regimen) {
         ctrib_registrar_historial($pdo, $empresa, 0, 'empresa', 'tipo y régimen', trim($antes['tipo'] . ' ' . $antes['regimen']), "$tipo $regimen", 'Configuración tributaria de la empresa', $usuario);
     }
@@ -676,7 +706,25 @@ function ctrib_retiros_modo(PDO $pdo, int $empresa, int $anio): string
     $st = $pdo->prepare('SELECT modo FROM ctrib_retiros_config WHERE empresa_id = ? AND anio = ?');
     $st->execute([$empresa, $anio]);
     $modo = $st->fetchColumn();
-    return in_array($modo, CTRIB_MODOS_RETIROS, true) ? $modo : 'importados';
+    if (in_array($modo, CTRIB_MODOS_RETIROS, true)) {
+        return $modo;
+    }
+    // Sin elección guardada: en 14 D N°8 se atribuye la totalidad; en los demás valen los retiros importados.
+    return ctrib_empresa_config($pdo, $empresa)['regimen'] === '14D8' ? 'totalidad' : 'importados';
+}
+
+/** Al entrar o salir del 14 D N°8 los años vuelven al modo propio del régimen. La declaración "sin retiros" se conserva. */
+function ctrib_retiros_modo_reiniciar(PDO $pdo, int $empresa, string $usuario): void
+{
+    $st = $pdo->prepare("SELECT anio, modo FROM ctrib_retiros_config WHERE empresa_id = ? AND modo <> 'sin_retiros' ORDER BY anio");
+    $st->execute([$empresa]);
+    foreach ($st->fetchAll() as $f) {
+        $pdo->prepare('DELETE FROM ctrib_retiros_config WHERE empresa_id = ? AND anio = ?')->execute([$empresa, (int) $f['anio']]);
+        $nuevo = ctrib_retiros_modo($pdo, $empresa, (int) $f['anio']);
+        if ($nuevo !== $f['modo']) {
+            ctrib_registrar_historial($pdo, $empresa, (int) $f['anio'], 'retiros', 'modo', $f['modo'], $nuevo, 'Cambio de régimen de la empresa', $usuario);
+        }
+    }
 }
 
 /** Socios con su participación (%), usados en el modo 'totalidad'. */

@@ -20,6 +20,8 @@ function inventario_schema(PDO $pdo): void
         actualizado_en VARCHAR(25) NOT NULL";
     if ($mysql) {
         $sql .= ", UNIQUE KEY uk_empresa_codigo (empresa_id, codigo), KEY idx_categoria (empresa_id, categoria)";
+    } else {
+        $sql .= ", UNIQUE (empresa_id, codigo)";
     }
     $sql .= ")";
     $pdo->exec($sql);
@@ -51,7 +53,7 @@ function inventario_items(PDO $pdo, int $empresa, string $desde = '', string $ha
 
 function inventario_agregar(PDO $pdo, int $empresa, array $item): array
 {
-    $sql = 'INSERT OR REPLACE INTO inventario_items (empresa_id, codigo, descripcion, categoria, cantidad, valor_unitario, fecha_ingreso, ubicacion, observaciones, creado_en, actualizado_en)
+    $sql = 'REPLACE INTO inventario_items (empresa_id, codigo, descripcion, categoria, cantidad, valor_unitario, fecha_ingreso, ubicacion, observaciones, creado_en, actualizado_en)
             VALUES (:empresa, :codigo, :descripcion, :categoria, :cantidad, :valor_unitario, :fecha_ingreso, :ubicacion, :observaciones, :creado_en, :actualizado_en)';
 
     $ahora = date('Y-m-d H:i:s');

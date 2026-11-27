@@ -36,6 +36,18 @@ CREATE TABLE IF NOT EXISTS sii_agentes (
   UNIQUE KEY uq_sii_agentes_token (token_hash)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Resultados de las consultas de solo lectura al SII (Formulario 22 y declaraciones juradas) por año tributario.
+CREATE TABLE IF NOT EXISTS sii_consultas (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  empresa_id INT NOT NULL,
+  tipo VARCHAR(8) NOT NULL,
+  anio SMALLINT NOT NULL,
+  estado VARCHAR(40) NOT NULL DEFAULT '',
+  datos_json MEDIUMTEXT NOT NULL,
+  consultado_en DATETIME NOT NULL,
+  KEY idx_sii_consultas (empresa_id, tipo, anio)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Códigos de emparejamiento: se guarda solo el hash; caducan y se usan una vez.
 CREATE TABLE IF NOT EXISTS sii_codigos_emparejamiento (
   codigo_hash CHAR(64) NOT NULL PRIMARY KEY,

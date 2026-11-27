@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/ctrib-cierre.php';
 require_once __DIR__ . '/ctrib-cpt.php';
+require_once __DIR__ . '/ctrib-r18.php';
 
 const CTRIB_DOCUMENTOS = [
     'BALANCE' => 'Balance General 8 Columnas',
@@ -24,11 +25,14 @@ const CTRIB_DOCUMENTOS = [
     'RTRE' => 'Registro Tributario de Rentas Empresariales — Hoja de trabajo',
     'R21' => 'Recuadro N° 21. Registro SAC (art. 14 letra D) N° {N} LIR)',
     'DJ1948' => 'DJ 1948 — Retiros y Dividendos (Certificado 70)',
+    'R22' => 'Recuadro N° 22. Base imponible régimen de transparencia tributaria (art. 14 letra D) N° 8 LIR)',
+    'R23' => 'Recuadro N° 23. CPTS régimen de transparencia tributaria (art. 14 letra D) N° 8 LIR)',
+    'DJ1947' => 'Base imponible asignada a los propietarios (datos para la DJ 1947)',
 ];
 // Documentos en hoja horizontal, como en iTributario.
-const CTRIB_DOC_HORIZONTAL = ['BALANCE', 'HOMOLOGACION', 'RETIROS', 'R20', 'RTRE', 'R21'];
+const CTRIB_DOC_HORIZONTAL = ['BALANCE', 'HOMOLOGACION', 'RETIROS', 'R20', 'RTRE', 'R21', 'DJ1947'];
 const CTRIB_REGIMEN_TEXTO = [
-    '14D3' => 'Pro Pyme General (Art. 14D N°3)', '14D8' => 'Pro Pyme Transparente (Art. 14D N°8)', '14A' => 'Régimen General (Art. 14A)',
+    '14D3' => 'Pro Pyme General (Art. 14D N°3)', '14D8' => 'Pro Pyme Transparente (Art. 14D N°8)', '14A' => 'Régimen General (Art. 14A)', 'PERSONA' => 'Persona natural (honorarios)', '14G' => 'Fundación o régimen especial (Art. 14 G)',
 ];
 const CTRIB_SIGNOS = ['POSITIVO' => '+', 'NEGATIVO' => '-', 'IGUAL' => '='];
 // Subtítulos del R4 (el catálogo no los trae) por el primer código de cada grupo.
@@ -287,10 +291,18 @@ function ctrib_documento_cuerpo(PDO $pdo, int $empresa, int $anio, string $doc, 
         case 'R17':
             $r = ctrib_r17($pdo, $empresa, $anio);
             $lineas = array_map(function (array $l) {
+                $partes = [];
+                $x = $l['existencias'] ?? null;
+                if ($x && $x['configurado']) {
+                    $partes[] = 'Existencias: final ' . ctrib_pesos($x['saldoFinal']) . ' − inicial ' . ctrib_pesos($x['saldoInicial']) . ' = variación ' . ctrib_pesos($x['variacion']);
+                }
                 $a = $l['ajuste'] ?? null;
                 if ($a && $a['configurado']) {
-                    $l['detalle'] = ctrib_h('Devengado ' . ctrib_pesos($a['devengado']) . ' + saldo inicial ' . $a['tipo'] . ' ' . ctrib_pesos($a['saldoInicial'])
-                        . ' − saldo final ' . ctrib_pesos($a['saldoFinal']) . ($a['repartoAnioAnterior'] ? ' · ' . ctrib_pesos($a['repartoAnioAnterior']) . ' al ' . $a['destinoReparto'] : ''));
+                    $partes[] = 'Devengado ' . ctrib_pesos($a['devengado']) . ' + saldo inicial ' . $a['tipo'] . ' ' . ctrib_pesos($a['saldoInicial'])
+                        . ' − saldo final ' . ctrib_pesos($a['saldoFinal']) . ($a['repartoAnioAnterior'] ? ' · ' . ctrib_pesos($a['repartoAnioAnterior']) . ' al ' . $a['destinoReparto'] : '');
+                }
+                if ($partes) {
+                    $l['detalle'] = ctrib_h(implode(' · ', $partes));
                 }
                 return $l;
             }, $r['lineas']);
@@ -319,24 +331,28 @@ function ctrib_documento_cuerpo(PDO $pdo, int $empresa, int $anio, string $doc, 
 
         case 'R18':
             $r = ctrib_r20($pdo, $empresa, $anio);
-            $f = $r['formulaRai'];
-            $lineas = [
-                ['glosa' => 'CPTS positivo final (recuadro N° 19)', 'codigo' => '1703', 'monto' => $f['cptPositivo'], 'signo' => '+'],
-                ['glosa' => 'CPTS negativo final (recuadro N° 19)', 'codigo' => '1719', 'monto' => $f['cptNegativo'], 'signo' => '-'],
-                ['glosa' => 'Saldo negativo del registro REX al término del ejercicio', 'codigo' => '1492', 'monto' => $f['rexNegativoAbs'], 'signo' => '+'],
-                ['glosa' => 'Remesas, retiros o dividendos repartidos en el ejercicio, históricos', 'codigo' => '1704', 'monto' => $f['retirosEjercicio'], 'signo' => '+'],
-                ['glosa' => 'Subtotal', 'codigo' => '1720', 'monto' => $f['subtotalRai'], 'signo' => '='],
-                ['glosa' => 'Saldo positivo del registro REX antes de imputaciones', 'codigo' => '1493', 'monto' => $f['rexPositivoPrevio'], 'signo' => '-'],
-                ['glosa' => 'Capital aportado efectivamente, más sus aumentos y menos sus disminuciones, históricos', 'codigo' => '1494', 'monto' => $f['capitalAportado'], 'signo' => '-'],
-                ['glosa' => 'Saldo FUR', 'codigo' => '1725', 'monto' => $f['saldoFur'], 'signo' => '-'],
-            ];
-            $notas = ['El R18 se arma con la fórmula del RAI del RTRE (4.2).'];
-            if ($f['sobreprecioAcciones'] > 0) {
-                $lineas[] = ['glosa' => 'Sobreprecio en colocación de acciones', 'codigo' => '', 'monto' => $f['sobreprecioAcciones'], 'signo' => '-'];
-                $notas[] = 'El sobreprecio en colocación de acciones se muestra sin código: falta confirmar en cuál se declara.';
-            }
-            $lineas[] = ['glosa' => 'Rentas afectas a impuestos (RAI)', 'codigo' => '1721', 'monto' => $f['rai'], 'signo' => '='];
-            return ['estado' => $r['estado'], 'numero' => '18', 'html' => ctrib_pdf_recuadro('18', $lineas) . ctrib_pdf_notas($notas)];
+            return ['estado' => $r['estado'], 'numero' => '18',
+                'html' => ctrib_pdf_recuadro('18', ctrib_r18_desde_formula($r['formulaRai'])) . ctrib_pdf_notas(['El R18 se arma con la fórmula del RAI del RTRE (4.2).'])];
+
+        case 'R22':
+            $r = ctrib_r22($pdo, $empresa, $anio);
+            $grupo = fn(array $l) => ['INGRESOS' => 'Ingresos', 'EGRESOS' => 'Egresos', 'RESULTADO' => 'Resultado'][$l['seccion']];
+            return ['estado' => $r['estado'], 'numero' => '22', 'html' => ctrib_pdf_recuadro('22', $r['lineas'], $grupo) . ctrib_pdf_notas($r['avisos'])];
+
+        case 'R23':
+            $r = ctrib_r23($pdo, $empresa, $anio);
+            return ['estado' => $r['estado'], 'numero' => '23', 'html' => ctrib_pdf_recuadro('23', $r['lineas']) . ctrib_pdf_notas($r['avisos'])];
+
+        case 'DJ1947':
+            $r = ctrib_r22($pdo, $empresa, $anio);
+            $columnas = [['RUT', ''], ['Propietario', ''], ['%', 'num'], ['Base imponible', 'num'], ['Ingreso diferido incluido', 'num'],
+                ['Retiros del año', 'num'], ['Crédito IDPC', 'num'], ['Crédito art. 33 bis', 'num']];
+            $claves = ['baseImponible', 'ingresoDiferido', 'retiros', 'creditoIdpc', 'credito33bis'];
+            $filas = array_map(fn($p) => array_merge([ctrib_h($p['rut']), ctrib_h($p['nombre']), ctrib_h(str_replace('.', ',', (string) $p['participacion']))],
+                array_map(fn($k) => ctrib_num((int) $p[$k]), $claves)), $r['propietarios']['filas']);
+            $filas[] = array_merge(['', 'Totales', ''], array_map(fn($k) => ctrib_num((int) array_sum(array_column($r['propietarios']['filas'], $k))), $claves));
+            return ['estado' => $r['estado'], 'html' => ctrib_pdf_tabla($columnas, $filas, [count($filas) - 1 => 'total'])
+                . ctrib_pdf_notas(array_merge($r['propietarios']['avisos'], ['Resumen de apoyo para preparar la declaración jurada: no reemplaza el formulario del SII.']))];
 
         case 'R19':
             $r = ctrib_r19($pdo, $empresa, $anio);

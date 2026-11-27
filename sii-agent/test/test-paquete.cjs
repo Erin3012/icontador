@@ -41,7 +41,7 @@ fs.mkdirSync(path.join(staging, 'assets'), { recursive: true });
 fs.cpSync(path.join(agente, 'src'), path.join(staging, 'sii-agent', 'src'), { recursive: true });
 fs.copyFileSync(path.join(raiz, 'assets', 'rcv-import.js'), path.join(staging, 'assets', 'rcv-import.js'));
 // Las dependencias se enlazan desde el repo solo para esta prueba; el build real hace npm ci --omit=dev.
-fs.symlinkSync(path.join(agente, 'node_modules'), path.join(staging, 'sii-agent', 'node_modules'), 'dir');
+fs.symlinkSync(path.join(agente, 'node_modules'), path.join(staging, 'sii-agent', 'node_modules'), 'junction'); // en Windows no exige permisos; en otros sistemas se ignora
 
 const salida = execFileSync(process.execPath, ['-e', "require('./src/index.js'); console.log('cargado')"], {
   cwd: path.join(staging, 'sii-agent'),

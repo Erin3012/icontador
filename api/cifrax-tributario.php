@@ -14,6 +14,9 @@ require_once __DIR__ . '/lib/sesion.php';
 require __DIR__ . '/lib/ctrib-cierre.php';
 require_once __DIR__ . '/lib/ctrib-cpt.php';
 require_once __DIR__ . '/lib/ctrib-pdf.php';
+require_once __DIR__ . '/lib/ctrib-sugerencias.php';
+require_once __DIR__ . '/lib/ctrib-inicio.php';
+require_once __DIR__ . '/lib/ctrib-r18.php';
 
 ejecutar(function (PDO $pdo, int $empresa) {
     ctrib_schema($pdo);
@@ -25,9 +28,14 @@ ejecutar(function (PDO $pdo, int $empresa) {
             $anio = ctrib_anio_solicitado();
             return match ($accion) {
                 'resumen' => ctrib_resumen($pdo, $empresa, $anio),
+                'inicio' => ctrib_inicio($pdo, $empresa, $anio, (string) ($_GET['regimen'] ?? '')),
+                'r18' => ctrib_r18($pdo, $empresa, $anio),
+                'r22' => ctrib_r22($pdo, $empresa, $anio),
+                'r23' => ctrib_r23($pdo, $empresa, $anio),
                 'mapeo' => ['mapeo' => ctrib_mapeo($pdo, $empresa), 'propuesto' => CTRIB_MAPEO_PROPUESTO, 'tipos' => CTRIB_TIPOS_CUENTA],
                 'balance' => ctrib_balance_guardado($pdo, $empresa, $anio),
-                'homologacion' => ctrib_homologacion($pdo, $empresa, $anio),
+                'homologacion' => ctrib_homologacion_con_sugerencias($pdo, $empresa, $anio),
+                'plan_sii' => ctrib_plan_sii(),
                 'historial' => ctrib_historial_listar($pdo, $empresa, $anio, (string) ($_GET['entidad'] ?? '')),
                 'r17' => ctrib_r17($pdo, $empresa, $anio),
                 'r19' => ctrib_r19($pdo, $empresa, $anio),
@@ -38,7 +46,7 @@ ejecutar(function (PDO $pdo, int $empresa) {
                 'r6' => ctrib_r6($pdo, $empresa, $anio),
                 'cierre' => ctrib_cierre($pdo, $empresa, $anio),
                 'cpt' => ctrib_cpt($pdo, $empresa, $anio),
-                'ajustes' => ['ajustes' => array_values(ctrib_r17_ajustes($pdo, $empresa, $anio)), 'cuentas' => ctrib_ajuste_cuentas_disponibles($pdo, $empresa, $anio)],
+                'ajustes' => ctrib_r17_ajustes($pdo, $empresa, $anio),
                 'rli' => ctrib_rli($pdo, $empresa, $anio),
                 'empresa' => ctrib_empresa_ficha($pdo, $empresa),
                 'retiros' => ctrib_retiros_del_anio($pdo, $empresa, $anio) + ['socios' => ctrib_socios($pdo, $empresa, $anio)],
@@ -77,6 +85,10 @@ ejecutar(function (PDO $pdo, int $empresa) {
             $datos = cuerpoJson();
             $anio = ctrib_anio_desde($datos['anio'] ?? null);
             return ctrib_homologar($pdo, $empresa, $anio, trim((string) ($datos['cuenta'] ?? '')), (string) ($datos['codigo'] ?? ''), $usuario, mb_substr(trim((string) ($datos['motivo'] ?? '')), 0, 255));
+        }
+        if ($metodo === 'POST' && $accion === 'homologacion_aplicar_sugerencias') {
+            $datos = cuerpoJson();
+            return ctrib_homologacion_aplicar_sugerencias($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), $usuario);
         }
         if ($metodo === 'POST' && $accion === 'r17_guardar_manual') {
             $datos = cuerpoJson();
@@ -132,6 +144,21 @@ ejecutar(function (PDO $pdo, int $empresa) {
                 return $recuadro === 'r4' ? ctrib_r4_finalizar($pdo, $empresa, $anio, $usuario) : ctrib_r6_finalizar($pdo, $empresa, $anio, $usuario);
             }
             return $recuadro === 'r4' ? ctrib_r4_reabrir($pdo, $empresa, $anio, $usuario, $motivo) : ctrib_r6_reabrir($pdo, $empresa, $anio, $usuario, $motivo);
+        }
+        if ($metodo === 'POST' && in_array($accion, ['r22_guardar_manual', 'r23_guardar_manual'], true)) {
+            $datos = cuerpoJson();
+            $guardar = $accion === 'r22_guardar_manual' ? 'ctrib_r22_guardar_valor' : 'ctrib_r23_guardar_valor';
+            return $guardar($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), (string) ($datos['codigo'] ?? ''), $datos['monto'] ?? null, $usuario);
+        }
+        if ($metodo === 'POST' && in_array($accion, ['r22_finalizar', 'r23_finalizar'], true)) {
+            $datos = cuerpoJson();
+            $finalizar = $accion === 'r22_finalizar' ? 'ctrib_r22_finalizar' : 'ctrib_r23_finalizar';
+            return $finalizar($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), $usuario);
+        }
+        if ($metodo === 'POST' && in_array($accion, ['r22_reabrir', 'r23_reabrir'], true)) {
+            $datos = cuerpoJson();
+            $reabrir = $accion === 'r22_reabrir' ? 'ctrib_r22_reabrir' : 'ctrib_r23_reabrir';
+            return $reabrir($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null), $usuario, mb_substr(trim((string) ($datos['motivo'] ?? '')), 0, 255));
         }
         if ($metodo === 'POST' && $accion === 'cierre_sellar') {
             $datos = cuerpoJson();
@@ -189,6 +216,19 @@ ejecutar(function (PDO $pdo, int $empresa) {
             $datos = cuerpoJson();
             $anio = ctrib_anio_desde($datos['anio'] ?? null);
             ctrib_ajuste_guardar($pdo, $empresa, $anio, (string) ($datos['codigo'] ?? ''), is_array($datos['cuentas'] ?? null) ? $datos['cuentas'] : [],
+                $datos['saldoInicial'] ?? null, $datos['saldoFinal'] ?? null, $usuario);
+            return ctrib_r17($pdo, $empresa, $anio);
+        }
+        if ($metodo === 'POST' && $accion === 'regimen_config') {
+            $datos = cuerpoJson();
+            ctrib_regimen_config_cambiar($pdo, $empresa, (string) ($datos['regimen'] ?? ''), $usuario);
+            return ['config' => ctrib_empresa_config($pdo, $empresa),
+                'inicio' => ctrib_inicio($pdo, $empresa, ctrib_anio_desde($datos['anio'] ?? null))];
+        }
+        if ($metodo === 'POST' && $accion === 'existencias_guardar') {
+            $datos = cuerpoJson();
+            $anio = ctrib_anio_desde($datos['anio'] ?? null);
+            ctrib_existencias_guardar($pdo, $empresa, $anio, is_array($datos['cuentas'] ?? null) ? $datos['cuentas'] : [],
                 $datos['saldoInicial'] ?? null, $datos['saldoFinal'] ?? null, $usuario);
             return ctrib_r17($pdo, $empresa, $anio);
         }

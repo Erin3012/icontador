@@ -9,7 +9,6 @@ declare(strict_types=1);
 require_once __DIR__ . '/ctrib-r19.php';
 
 const CTRIB_RTRE_COLUMNA_IDPC = 'SAC_NO_RESTITUCION_DESDE_2020_CON_DEVOLUCION';
-const CTRIB_RTRE_TASA_DEFECTO = 12.5; // tasa Pro Pyme vigente para 2025 (tasas-2025.json)
 
 /** Filas del RTRE en orden del catálogo, indexadas por código de fila (1.1 … 6.4, SUBTOTAL_x, REMANENTE_FINAL). */
 function ctrib_rtre_catalogo(): array
@@ -34,18 +33,6 @@ function ctrib_rtre_columnas(): array
         }
     }
     return array_keys($columnas);
-}
-
-function ctrib_tasa_pro_pyme(int $anioComercial): float
-{
-    $ruta = __DIR__ . '/ctrib/tasas-' . $anioComercial . '.json';
-    if (is_file($ruta)) {
-        $datos = json_decode((string) file_get_contents($ruta), true);
-        if (isset($datos['tasaProPyme'])) {
-            return (float) $datos['tasaProPyme'];
-        }
-    }
-    return CTRIB_RTRE_TASA_DEFECTO;
 }
 
 /** Celdas escritas a mano: 'fila::columna' => monto. */
@@ -528,6 +515,7 @@ function ctrib_r21(PDO $pdo, int $empresa, int $anio): array
         'formulario' => $formulario,
         'lineas' => $lineas,
         'estado' => $r20['estado'],
+        'desactualizado' => $r20['desactualizado'],
         'pendientesDeCalculo' => ['Créditos de IDPC voluntario y del art. 21 (CREDITO_ART21) no tienen columna en el formulario en esta versión.'],
     ];
 }

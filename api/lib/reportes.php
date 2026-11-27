@@ -227,8 +227,10 @@ class Reportes {
      * Reporte Flujo de Caja
      */
     private function reporteFlujo($desde, $hasta): array {
+        $mysql = $this->db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $fmtMes = $mysql ? "DATE_FORMAT(v.fecha, '%Y-%m')" : "strftime('%Y-%m', v.fecha)";
         $sql = "SELECT
-                    DATE_FORMAT(v.fecha, '%Y-%m') as mes,
+                    $fmtMes as mes,
                     SUM(CASE WHEN v.tipo='Ingreso' THEN vl.debe ELSE 0 END) as ingresos,
                     SUM(CASE WHEN v.tipo='Egreso' THEN vl.debe ELSE 0 END) as egresos
                 FROM vouchers v
@@ -236,7 +238,7 @@ class Reportes {
                 WHERE v.empresa_id = ?
                 AND v.estado = 'registrado'
                 AND v.fecha BETWEEN ? AND ?
-                GROUP BY DATE_FORMAT(v.fecha, '%Y-%m')
+                GROUP BY $fmtMes
                 ORDER BY mes";
 
         $flujos = $this->db->query($sql, [$this->empresa_id, $desde, $hasta])->fetchAll();

@@ -1,0 +1,87 @@
+[
+ {
+  "codigo": "1580",
+  "signo": "+",
+  "glosa": "CPT o CPTS positivo inicial"
+ },
+ {
+  "codigo": "1582",
+  "signo": "-",
+  "glosa": "CPT o CPTS negativo inicial"
+ },
+ {
+  "codigo": "1573",
+  "signo": "+",
+  "glosa": "Capital aportado empresas que inician actividades en el año comercial que corresponda a esta declaración"
+ },
+ {
+  "codigo": "1574",
+  "signo": "+",
+  "glosa": "Aumentos (efectivos) de capital del ejercicio"
+ },
+ {
+  "codigo": "1575",
+  "signo": "-",
+  "glosa": "Disminuciones (efectivas) de capital del ejercicio"
+ },
+ {
+  "codigo": "1712",
+  "signo": "+",
+  "glosa": "Base imponible del ejercicio, asignable a los propietarios"
+ },
+ {
+  "codigo": "1713",
+  "signo": "-",
+  "glosa": "Pérdida tributaria del ejercicio al 31 de diciembre"
+ },
+ {
+  "codigo": "1714",
+  "signo": "+",
+  "glosa": "Pérdidas tributarias de ejercicios anteriores"
+ },
+ {
+  "codigo": "1576",
+  "signo": "-",
+  "glosa": "Remesas, retiros o dividendos repartidos en el ejercicio"
+ },
+ {
+  "codigo": "1715",
+  "signo": "-",
+  "glosa": "Ingreso diferido imputado en el ejercicio, debidamente incrementado y reajustado, cuando corresponda"
+ },
+ {
+  "codigo": "1577",
+  "signo": "-",
+  "glosa": "Partidas de gastos no aceptados"
+ },
+ {
+  "codigo": "1716",
+  "signo": "-",
+  "glosa": "Crédito por activos fijos adquiridos en el ejercicio (art. 33 bis LIR)"
+ },
+ {
+  "codigo": "1578",
+  "signo": "-",
+  "glosa": "Crédito por IDPC, por participaciones en otras empresas que incrementaron la BI del ejercicio"
+ },
+ {
+  "codigo": "1584",
+  "signo": "+",
+  "glosa": "Otras partidas a agregar"
+ },
+ {
+  "codigo": "1585",
+  "signo": "-",
+  "glosa": "Otras partidas a deducir"
+ },
+ {
+  "codigo": "1581",
+  "signo": "=",
+  "glosa": "CPTS positivo final"
+ },
+ {
+  "codigo": "1583",
+  "signo": "=",
+  "glosa": "CPTS negativo final"
+ }
+]

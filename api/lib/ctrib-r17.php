@@ -7,9 +7,20 @@ require_once __DIR__ . '/ctrib-ajustes.php';
 
 const CTRIB_R17_MANUALES = ['1404', '1405', '1406', '1407', '1408', '1426', '1433'];
 const CTRIB_R17_TOPE_UF = 5000; // tope del incentivo al ahorro (art. 14 E LIR) en UF
-const CTRIB_R17_PENDIENTES = [
-    '1409' => 'variación de cuentas de existencias en el 1409',
-];
+const CTRIB_TASA_PRO_PYME_DEFECTO = 12.5; // tasa Pro Pyme vigente para 2025 (tasas-2025.json)
+
+/** Tasa del IDPC Pro Pyme del año comercial (tasas-AAAA.json), o la de defecto si no está la tabla. */
+function ctrib_tasa_pro_pyme(int $anioComercial): float
+{
+    $ruta = __DIR__ . '/ctrib/tasas-' . $anioComercial . '.json';
+    if (is_file($ruta)) {
+        $datos = json_decode((string) file_get_contents($ruta), true);
+        if (isset($datos['tasaProPyme'])) {
+            return (float) $datos['tasaProPyme'];
+        }
+    }
+    return CTRIB_TASA_PRO_PYME_DEFECTO;
+}
 
 /** Valores manuales del recuadro: código => monto (magnitud positiva; el signo lo da el catálogo). */
 function ctrib_valores_manuales(PDO $pdo, int $empresa, int $anio, string $recuadro): array
@@ -113,6 +124,20 @@ function ctrib_r17(PDO $pdo, int $empresa, int $anio): array
             $devengados[(string) $codigo] = array_sum(array_column($l['cuentas'], 'saldo'));
         }
     }
+    // Existencias del 1409: su devengado suma la variación del año (existencia final − inicial). Si el 1409 también tiene
+    // cuentas de ajuste CXP, el pagado se calcula sobre este devengado.
+    $existencias = ctrib_existencias($pdo, $empresa, $anio);
+    $devengado1409 = (int) ($devengados['1409'] ?? 0);
+    if ($existencias['configurado'] && isset($lineas['1409'])) {
+        $devengados['1409'] = $devengado1409 + $existencias['variacion'];
+        $lineas['1409']['monto'] = max(0, $devengados['1409']);
+        $lineas['1409']['huboPisoEnCero'] = $devengados['1409'] < 0;
+        $lineas['1409']['origen'] = 'CUENTAS_EXISTENCIAS';
+        $montos['1409'] = $lineas['1409']['monto'];
+    }
+    if (isset($lineas['1409'])) {
+        $lineas['1409']['existencias'] = $existencias + ['devengadoCuentas' => $devengado1409, 'devengadoConExistencias' => (int) ($devengados['1409'] ?? 0)];
+    }
     $ajustes = ctrib_ajustes($pdo, $empresa, $anio, $devengados);
     $reparto = ['1817' => 0, '1818' => 0];
     foreach ($ajustes as $codigo => $a) {
@@ -187,18 +212,26 @@ function ctrib_r17(PDO $pdo, int $empresa, int $anio): array
     $asignar('1729', $t1729);
     $asignar('1432', $m1432);
     $asignar('1440', $t1440);
-    foreach (CTRIB_R17_PENDIENTES as $codigo => $_) {
-        if (isset($lineas[$codigo]) && $lineas[$codigo]['origen'] === 'CALCULADO') {
-            $lineas[$codigo]['origen'] = 'PENDIENTE';
-        }
-    }
     $lineas['1432']['origen'] = $incentivo['monto'] !== null ? 'MANUAL' : 'CALCULADO_CON_TOPE';
+
+    // IDPC estimado sobre el 1440, solo en 14 D N°3 (o sin régimen configurado). Las reglas de 14 D N°8 esperan al contador.
+    $regimen = ctrib_empresa_config($pdo, $empresa)['regimen'];
+    $idpcEstimado = null;
+    if (in_array($regimen, ['14D3', ''], true)) {
+        $tasa = ctrib_tasa_pro_pyme(ctrib_anio_comercial($anio));
+        $baseIdpc = max(0, $t1440);
+        $idpcEstimado = ['tasa' => $tasa, 'base' => $baseIdpc, 'monto' => (int) round($baseIdpc * $tasa / 100, 0, PHP_ROUND_HALF_UP)];
+    }
 
     $estado = ctrib_estado_recuadro($pdo, $empresa, $anio, 'R17');
     $actual = array_map(fn($x) => $x['monto'], $lineas);
     $desactualizado = ctrib_desactualizado($estado, $actual);
 
     $bloqueos = [];
+    $sinExistenciaInicial = ctrib_existencias_bloqueo($pdo, $empresa, $anio);
+    if ($sinExistenciaInicial !== null) {
+        $bloqueos[] = $sinExistenciaInicial;
+    }
     if ($homologacion['pendientes'] > 0) {
         $bloqueos[] = "Hay {$homologacion['pendientes']} cuenta(s) de resultado sin código: asígnelas en la homologación.";
     }
@@ -228,9 +261,10 @@ function ctrib_r17(PDO $pdo, int $empresa, int $anio): array
             'elegibilidad' => $incentivo['elegibilidad'], 'limiteIngresos' => $incentivo['limiteIngresos'],
             'limiteRentasPasivas' => $incentivo['limiteRentasPasivas'], 'confirmado' => $confirmado,
         ],
+        'regimen' => $regimen, 'idpcEstimado' => $idpcEstimado,
         'estado' => $estado['estado'], 'finalizado' => $estado['finalizado'], 'usuario' => $estado['usuario'],
         'desactualizado' => $desactualizado,
-        'pendientesDeCalculo' => array_values(CTRIB_R17_PENDIENTES),
+        'pendientesDeCalculo' => [],
         'bloqueos' => $bloqueos,
         'puedeFinalizar' => $bloqueos === [] && $estado['estado'] !== 'FINALIZADO',
     ];
@@ -332,7 +366,7 @@ function ctrib_r17_reabrir(PDO $pdo, int $empresa, int $anio, string $usuario, s
 
 /**
  * Retiros del año según el modo: los importados, ninguno ('sin_retiros'), o en 'totalidad' la base imponible
- * completa (1440 del R17) atribuida a los socios según su participación, al 31-12 del año comercial.
+ * completa (1440 del R17, o 1630 del R22 en 14 D N° 8) atribuida a los socios según su participación, al 31-12.
  * La usan R19 (1479), RTRE, R6 (1193) y la DJ 1948.
  */
 function ctrib_retiros_del_anio(PDO $pdo, int $empresa, int $anio): array
@@ -345,7 +379,12 @@ function ctrib_retiros_del_anio(PDO $pdo, int $empresa, int $anio): array
         $lista = ctrib_retiros_listar($pdo, $empresa, $anio);
         return ['modo' => $modo, 'total' => array_sum(array_column($lista, 'monto')), 'retiros' => $lista];
     }
-    $base = max(0, (int) ctrib_r17($pdo, $empresa, $anio)['totales']['1440']);
+    if (ctrib_empresa_config($pdo, $empresa)['regimen'] === '14D8') {
+        require_once __DIR__ . '/ctrib-r22.php';
+        $base = max(0, (int) ctrib_r22_calculo($pdo, $empresa, $anio)['totales']['1630']);
+    } else {
+        $base = max(0, (int) ctrib_r17($pdo, $empresa, $anio)['totales']['1440']);
+    }
     $socios = ctrib_socios($pdo, $empresa, $anio);
     $partes = ctrib_repartir($base, array_column($socios, 'participacion'));
     $fecha = ctrib_anio_comercial($anio) . '-12-31';
@@ -616,15 +655,22 @@ function ctrib_factores_mes(int $anioComercial): ?array
     return $salida;
 }
 
-/** Ajustes CXC / CXP con el devengado de las cuentas homologadas de cada código (para la ventana de ajustes). */
+/**
+ * Ventanas de ajustes del R17: los ajustes CXC / CXP con el devengado de las cuentas homologadas de cada código,
+ * las existencias del 1409 y las cuentas de balance disponibles.
+ */
 function ctrib_r17_ajustes(PDO $pdo, int $empresa, int $anio): array
 {
     $r17 = ctrib_r17($pdo, $empresa, $anio);
-    $salida = [];
+    $ajustes = [];
+    $existencias = null;
     foreach ($r17['lineas'] as $l) {
         if (isset($l['ajuste'])) {
-            $salida[$l['codigo']] = $l['ajuste'];
+            $ajustes[] = $l['ajuste'];
+        }
+        if (isset($l['existencias'])) {
+            $existencias = $l['existencias'];
         }
     }
-    return $salida;
+    return ['ajustes' => $ajustes, 'existencias' => $existencias, 'cuentas' => ctrib_ajuste_cuentas_disponibles($pdo, $empresa, $anio)];
 }

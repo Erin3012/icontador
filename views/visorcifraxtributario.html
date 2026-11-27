@@ -6,7 +6,7 @@
     <title>Visor Cifrax Tributario</title>
     <link rel="stylesheet" href="../assets/5ef3f133326af069-original.css">
     <link rel="stylesheet" href="../assets/cifrax-tributario.css">
-    <link rel="stylesheet" href="../assets/cifrax-visor.css?v=9">
+    <link rel="stylesheet" href="../assets/cifrax-visor.css?v=12">
 </head>
 <body>
 <div class="cv-app">
@@ -22,7 +22,7 @@
         <button class="cf-paso" role="tab" data-panel="p-sync" aria-selected="false">Sincronización</button>
         <button class="cf-paso" disabled>Empresas</button>
         <button class="cf-paso" disabled>Usuarios</button>
-        <button class="cf-paso" disabled>Plan Cuenta SII</button>
+        <button class="cf-paso" data-abrir="PLANSII">Plan Cuenta SII</button>
         <button class="cf-paso" disabled>Mapeo de Cuentas</button>
         <button class="cf-paso" disabled>Factores</button>
     </aside>
@@ -38,8 +38,12 @@
             <strong id="cf-empresa-cabecera">Cargando empresa…</strong>
         </div>
         <div class="cv-campo">
-            <label>Régimen</label>
-            <strong>Pro Pyme General (Art. 14 D N°3)</strong>
+            <label for="cf-regimen">Régimen</label>
+            <select id="cf-regimen" title="Cambia la vista de los recuadros; no modifica la configuración de la empresa">
+                <option value="14D3">Pro Pyme General (14 D N°3)</option>
+                <option value="14D8">Pro Pyme Transparente (14 D N°8)</option>
+                <option value="14A">Semi Integrado (14 A)</option>
+            </select>
         </div>
         <div class="cv-campo">
             <label>Año comercial</label>
@@ -54,7 +58,6 @@
 
     <div class="cv-contenido">
     <main class="cf-contenido">
-        <div class="cf-aviso">Maqueta visual con datos de ejemplo. Los botones se conectan en la siguiente fase.</div>
 
         <!-- Inicio: tareas de declaracion (diseño de la pantalla de referencia) -->
         <section class="cf-panel activo" id="p-home">
@@ -158,7 +161,7 @@
                         <p></p>
                         <button type="button" class="cv-btn-ancho" disabled>Ver videos Tutoriales</button>
                     </div>
-                    <div class="cv-aviso-ok"><i class="fa fa-lightbulb-o" aria-hidden="true"></i> Todo al día: no hay advertencias críticas para este período.</div>
+                    <div class="cv-aviso-ok" id="cv-aviso-inicio"><i class="fa fa-lightbulb-o" aria-hidden="true"></i> Todo al día: no hay advertencias críticas para este período.</div>
                 </aside>
             </div>
         </section>
@@ -201,7 +204,7 @@
 
         <section class="cf-panel" id="p-f22">
             <h2 class="cf-titulo">Formulario 22</h2>
-            <p class="cf-descripcion">Estado de la renta de tus empresas activas en el SII, para el año tributario elegido.</p>
+            <p class="cf-descripcion">Estado de la renta en el SII de la empresa abierta, para el año tributario elegido. Solo consulta.</p>
             <div class="cf-barra">
                 <div class="cf-campo">
                     <label for="f22-anio">Año tributario</label>
@@ -209,39 +212,20 @@
                 </div>
                 <button class="cf-boton" disabled>Exportar a Excel</button>
             </div>
-            <div class="cf-chips">
-                <div class="cf-chip"><strong>0</strong><span>Con inconsistencia</span></div>
-                <div class="cf-chip"><strong>0</strong><span>Devolución retenida</span></div>
-                <div class="cf-chip"><strong>0</strong><span>Pago diferido</span></div>
-                <div class="cf-chip"><strong>1</strong><span>Con cambios</span></div>
-                <div class="cf-chip"><strong>0</strong><span>Error de acceso</span></div>
-            </div>
-            <div class="cf-barra">
-                <input class="cf-buscar" type="search" placeholder="Buscar por razón social o RUT" aria-label="Buscar">
-                <select class="cf-filtro" aria-label="Filtrar por estado">
-                    <option>Todos los estados</option><option>Aceptada</option><option>Con inconsistencia</option><option>Devolución retenida</option><option>En proceso</option><option>Sin declaración</option><option>Error de acceso</option><option>Sin consultar</option><option>Sin clave</option><option>Clave rechazada</option><option>Con cambios</option><option>Pago diferido</option>
-                </select>
-            </div>
+            <div class="cf-chips" data-sii-chips="f22"></div>
             <div class="cf-tarjeta">
                 <table class="cf-tabla">
                     <thead><tr><th>Razón social</th><th>RUT</th><th>Estado del F22</th><th>Última consulta</th><th></th></tr></thead>
-                    <tbody>
-                        <tr>
-                            <td>Empresa de ejemplo</td><td>76.000.000-0</td>
-                            <td><span class="cf-listo cf-estado">Aceptada</span> con devolución $3.621.300<br><small class="cf-pendiente">Cambió el 20-11-2026: antes En proceso</small></td>
-                            <td>23-11-2026 07:34</td>
-                            <td class="cf-acciones-celda"><button class="cf-boton" data-historial="f22">Ver historial</button> <button class="cf-boton" disabled>Reconsultar</button></td>
-                        </tr>
-                    </tbody>
+                    <tbody data-sii-filas="f22"><tr><td colspan="5">Cargando…</td></tr></tbody>
                 </table>
-                <p class="cf-nota">1 empresa · Mostrando 1–1 de 1</p>
+                <p class="cf-nota" data-sii-nota="f22" role="status"></p>
             </div>
         </section>
 
-        <!-- Consultas SII: DDJJ (maqueta) -->
+        <!-- Consultas SII: declaraciones juradas -->
         <section class="cf-panel" id="p-ddjj">
             <h2 class="cf-titulo">Declaraciones Juradas</h2>
-            <p class="cf-descripcion">Declaraciones juradas presentadas por tus empresas activas en el SII, para el año tributario elegido. Se consulta una empresa a la vez y de ella todas sus DJ.</p>
+            <p class="cf-descripcion">Declaraciones juradas anuales presentadas en el SII por la empresa abierta, para el año tributario elegido. Solo consulta.</p>
             <div class="cf-barra">
                 <div class="cf-campo">
                     <label for="ddjj-anio">Año tributario</label>
@@ -249,79 +233,19 @@
                 </div>
                 <button class="cf-boton" disabled>Exportar a Excel</button>
             </div>
-            <div class="cf-chips">
-                <div class="cf-chip"><strong>1</strong><span>Con observadas</span></div>
-                <div class="cf-chip"><strong>1</strong><span>Con cambios</span></div>
-                <div class="cf-chip"><strong>0</strong><span>Error de acceso</span></div>
-                <div class="cf-chip"><strong>0</strong><span>Sin consultar</span></div>
-                <div class="cf-chip"><strong>0</strong><span>Todas aceptadas</span></div>
-            </div>
-            <div class="cf-barra">
-                <input class="cf-buscar" type="search" placeholder="Buscar por razón social o RUT" aria-label="Buscar">
-                <select class="cf-filtro" aria-label="Filtrar por estado">
-                    <option>Todos los estados</option><option>Todas aceptadas</option><option>Con observadas</option><option>Sin DJ presentadas</option><option>Error de acceso</option><option>Sin consultar</option><option>Sin clave</option><option>Clave rechazada</option><option>Con cambios</option>
-                </select>
-            </div>
+            <div class="cf-chips" data-sii-chips="ddjj"></div>
             <div class="cf-tarjeta">
                 <table class="cf-tabla">
                     <thead><tr><th></th><th>Razón social</th><th>RUT</th><th>Declaraciones juradas</th><th>Última consulta</th><th></th></tr></thead>
-                    <tbody>
-                        <tr>
-                            <td><button class="cf-boton cf-expandir" aria-expanded="false" aria-controls="ddjj-detalle">▸</button></td>
-                            <td>Empresa de ejemplo</td><td>76.000.000-0</td>
-                            <td><span class="cf-pendiente cf-estado">Con observadas</span><br><small>4 presentadas · 1 observada</small><br><small class="cf-pendiente">Cambió el 21-11-2026: antes Todas aceptadas</small></td>
-                            <td>23-11-2026 07:34</td>
-                            <td><button class="cf-boton" disabled>Reconsultar</button></td>
-                        </tr>
-                        <tr id="ddjj-detalle" hidden>
-                            <td colspan="6">
-                                <table class="cf-tabla cf-tabla-interna">
-                                    <thead><tr><th>Formulario</th><th>Estado</th><th>Folio</th><th>Presentada</th><th>Tipo</th><th></th></tr></thead>
-                                    <tbody>
-                                        <tr><td><strong>DJ 1948</strong><br><small>Retiros, remesas o distribuciones y créditos (Certificado 70)</small></td><td class="cf-listo cf-estado">Aceptada</td><td>7100234561</td><td>26-03-2026 12:00</td><td>Original</td><td></td></tr>
-                                        <tr><td><strong>DJ 1879</strong><br><small>Retenciones de impuestos por honorarios</small></td><td class="cf-listo cf-estado">Aceptada</td><td>7100234102</td><td>18-03-2026 12:00</td><td>Original</td><td></td></tr>
-                                        <tr><td><strong>DJ 1887</strong><br><small>Rentas del trabajo (sueldos)</small></td><td class="cf-listo cf-estado">Aceptada</td><td>7100233874</td><td>12-03-2026 12:00</td><td>Original</td><td></td></tr>
-                                        <tr><td><strong>DJ 1847</strong><br><small>Balance 8 columnas y antecedentes del ejercicio</small></td><td class="cf-pendiente cf-estado">Observada</td><td>7100235019</td><td>30-03-2026 12:00</td><td>Original</td><td><button class="cf-boton" data-observaciones="1">Ver observaciones</button></td></tr>
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
-                    </tbody>
+                    <tbody data-sii-filas="ddjj"><tr><td colspan="6">Cargando…</td></tr></tbody>
                 </table>
-                <p class="cf-nota">1 empresa · Mostrando 1–1 de 1</p>
+                <p class="cf-nota" data-sii-nota="ddjj" role="status"></p>
             </div>
         </section>
 
-        <!-- Ventana de historial del SII (maqueta) -->
+        <!-- Historial del F22: se llena desde la consulta guardada -->
         <div class="cf-modal" id="cf-modal-historial" hidden role="dialog" aria-modal="true" aria-labelledby="cf-modal-titulo">
-            <div class="cf-modal-caja">
-                <div class="cf-modal-cab">
-                    <div>
-                        <strong id="cf-modal-titulo">Empresa de ejemplo</strong>
-                        <div class="cf-nota">76.000.000-0 · Año tributario 2026</div>
-                    </div>
-                    <button class="cf-boton" data-cerrar="1" aria-label="Cerrar">×</button>
-                </div>
-                <p><span class="cf-listo cf-estado">Aceptada</span> con devolución $3.621.300</p>
-                <div class="cf-cifras cf-cifras-2">
-                    <div class="cf-cifra"><span>Folio</span><strong>9300125587</strong></div>
-                    <div class="cf-cifra"><span>Último evento</span><strong>20-11-2026</strong></div>
-                    <div class="cf-cifra"><span>Consultado</span><strong>23-11-2026 07:34</strong></div>
-                </div>
-                <h3>Historial del SII</h3>
-                <table class="cf-tabla">
-                    <thead><tr><th>Fecha</th><th>Evento</th></tr></thead>
-                    <tbody>
-                        <tr><td>17-04-2026</td><td>Declaración recibida por el SII</td></tr>
-                        <tr><td>17-04-2026</td><td>En proceso de revisión</td></tr>
-                        <tr><td>20-11-2026</td><td>Declaración aceptada</td></tr>
-                    </tbody>
-                </table>
-                <div class="cf-acciones">
-                    <button class="cf-boton principal" disabled>Ver F22</button>
-                    <button class="cf-boton" data-cerrar="1">Cerrar</button>
-                </div>
-            </div>
+            <div class="cf-modal-caja"></div>
         </div>
     </main>
     </div>
@@ -334,6 +258,7 @@
         var pasos = document.querySelectorAll('.cf-paso');
         var paneles = document.querySelectorAll('.cf-panel');
         pasos.forEach(function (b) {
+            if (!b.hasAttribute('data-panel')) return; // los que abren una ventana (Plan Cuenta SII) no cambian de panel
             b.addEventListener('click', function () {
                 pasos.forEach(function (x) { x.setAttribute('aria-selected', 'false'); });
                 paneles.forEach(function (p) { p.classList.remove('activo'); });
@@ -461,26 +386,6 @@
             }).catch(function (e) { aviso.textContent = e.message; });
         });
         cargarSync();
-
-        // Consultas SII (maqueta): historial en ventana, filas desplegables de DJ
-        var modal = document.getElementById('cf-modal-historial');
-        document.querySelectorAll('[data-historial]').forEach(function (b) {
-            b.addEventListener('click', function () { modal.hidden = false; });
-        });
-        document.querySelectorAll('[data-cerrar]').forEach(function (b) {
-            b.addEventListener('click', function () { modal.hidden = true; });
-        });
-        modal.addEventListener('click', function (e) { if (e.target === modal) modal.hidden = true; });
-        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') modal.hidden = true; });
-        document.querySelectorAll('.cf-expandir').forEach(function (b) {
-            b.addEventListener('click', function () {
-                var fila = document.getElementById(b.getAttribute('aria-controls'));
-                var abierta = b.getAttribute('aria-expanded') === 'true';
-                b.setAttribute('aria-expanded', abierta ? 'false' : 'true');
-                b.textContent = abierta ? '▸' : '▾';
-                fila.hidden = abierta;
-            });
-        });
 
         // Inicio: pestanas Tareas de Declaracion y Reportes
         document.querySelectorAll('.cv-tab[data-tab]').forEach(function (t) {
@@ -619,7 +524,7 @@
         var b = e.target.closest('[data-abrir]');
         if (!b || b.disabled) return;
         var clave = b.getAttribute('data-abrir');
-        if (['balance', 'R4', 'R6', 'R17', 'R19', 'R20', 'R21', 'DJ1948', 'CIERRE', 'CPT', 'RLI', 'HOM'].indexOf(clave) >= 0) return; // estos se cargan desde la API (ver el script final)
+        if (['balance', 'R4', 'R6', 'R17', 'R18', 'R19', 'R20', 'R21', 'R22', 'R23', 'DJ1947', 'DJ1948', 'CIERRE', 'CPT', 'RLI', 'HOM', 'PLANSII'].indexOf(clave) >= 0) return; // estos se cargan desde la API (ver el script final)
         abrirRecuadro(clave);
     });
 
@@ -648,7 +553,8 @@
     var empresaActiva = null;
     try { empresaActiva = JSON.parse(localStorage.getItem('icontador.empresaSeleccionada') || 'null'); } catch (e) { empresaActiva = null; }
     var empresaId = new URLSearchParams(window.location.search).get('empresa_id') || (empresaActiva && empresaActiva.id) || '';
-    var anio = 2026; // año tributario
+    var selectorAnio = document.getElementById('cf-anio');
+    var anio = Number(selectorAnio.value) || new Date().getFullYear(); // año tributario elegido arriba
     var recuadroActual = null; // 'R17' o 'R19' cuando la ventana muestra un recuadro
 
     function esc(s) {
@@ -679,9 +585,9 @@
     }
     function origenEtiqueta(o) {
         var etiquetas = {
-            CUENTAS: 'Cuentas', MANUAL: 'Manual', CALCULADO: 'Calculado', CALCULADO_CON_TOPE: 'Calculado con tope',
+            CUENTAS: 'Cuentas', CUENTAS_EXISTENCIAS: 'Cuentas + existencias', MANUAL: 'Manual', CALCULADO: 'Calculado', CALCULADO_CON_TOPE: 'Calculado con tope',
             COPIA_1422: 'Copia del 1422', AUTOMATICO: 'Automático', 'AÑO_ANTERIOR': 'Año anterior',
-            SIN_ANTERIOR_FINALIZADO: 'Sin R19 anterior finalizado', PENDIENTE: 'Pendiente de cálculo', PENDIENTE_CALCULO: 'Pendiente', RESULTADO: 'Resultado',
+            SIN_ANTERIOR_FINALIZADO: 'Sin R19 anterior finalizado', ACTIVO_FIJO: 'Balance (activo fijo)', R22: 'R22', R4: 'R4', RETIROS: 'Retiros', PENDIENTE: 'Pendiente de cálculo', PENDIENTE_CALCULO: 'Pendiente', RESULTADO: 'Resultado',
             vouchers: 'Vouchers de contabilidad', itributario: 'Captura de iTributario', excel: 'Excel', csv: 'CSV'
         };
         return etiquetas[o] || o;
@@ -739,7 +645,7 @@
 
     // ---------- Recuadro 17 y 19 ----------
     function editable(clave, l) {
-        if (clave === 'R4') return l.naturaleza === 'MANUAL';
+        if (clave === 'R4' || clave === 'R22' || clave === 'R23') return l.naturaleza === 'MANUAL';
         if (clave === 'R6') return ['122', '123', '102', '1193'].indexOf(l.codigo) < 0;
         if (clave === 'R17') return l.naturaleza === 'MANUAL';
         return l.origen === 'MANUAL' || ['1445', '1446', '1377', '1378', '1380', '1381'].indexOf(l.codigo) >= 0;
@@ -839,10 +745,7 @@
         if (clave === 'R17') r17Actual = r;
         titulo.textContent = titulosRecuadro[clave] || clave;
         sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
-        var estadoHtml = r.estado === 'FINALIZADO'
-            ? '<span class="cv-pill cv-disp">Finalizado</span>'
-            : (r.desactualizado ? '<span class="cv-pill cv-borr">Desactualizado</span>' : '<span class="cv-pill cv-borr">Borrador</span>');
-        acc.innerHTML = estadoHtml + ' ' +
+        acc.innerHTML = estadoPill(r) + ' ' +
             (r.estado === 'FINALIZADO'
                 ? '<button type="button" class="cv-btn-pdf" data-reabrir>Reabrir</button>'
                 : '<button type="button" class="cv-btn-fin" data-fin' + (r.puedeFinalizar ? '' : ' disabled') + '>Finalizar declaración</button>') +
@@ -850,11 +753,19 @@
 
         var html = '';
         (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
-        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: finalícelo nuevamente para actualizar el snapshot.</div>';
+        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: reábralo y finalícelo nuevamente.</div>';
+        if (clave === 'R22' && r.confirmar1618 !== null && r.estado !== 'FINALIZADO') {
+            html += '<p style="margin:0 0 8px"><button type="button" class="cv-btn-pdf" data-confirmar-1618="' + esc(r.confirmar1618) + '" style="cursor:pointer">Confirmar el 1618 en $' + fmt(r.confirmar1618) + '</button></p>';
+        }
+        if (clave === 'R22' || clave === 'R23') {
+            (r.avisos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+            html += '<p class="cv-texto" style="font-size:12.5px;margin:0 0 8px">Los montos con casilla se pueden corregir; si borra una casilla vuelve el valor automático.' +
+                (clave === 'R22' ? ' <button type="button" class="cv-btn-pdf" data-abrir="R17" style="padding:2px 8px;cursor:pointer">Cuentas por cobrar, por pagar y existencias (R17)</button>' : '') + '</p>';
+        }
         html += '<table class="cv-modal-tabla"><thead><tr><th>Concepto</th><th class="num">Código</th><th class="num">Valor</th><th>Origen</th></tr></thead><tbody>';
         var seccionPrevia = null;
         r.lineas.forEach(function (l) {
-            if (clave === 'R17') {
+            if (clave === 'R17' || clave === 'R22') {
                 var seccion = l.seccion || 'Cálculos';
                 if (seccion !== seccionPrevia) {
                     html += '<tr class="cv-seccion"><td colspan="4">▾ ' + esc(seccion) + '</td></tr>';
@@ -871,21 +782,79 @@
             if (clave === 'R17' && l.ajuste) {
                 valor += ' <button type="button" class="cv-btn-pdf" data-ajuste="' + esc(l.codigo) + '" style="padding:2px 8px;margin-left:6px" title="Cuentas de ajuste ' + esc(l.ajuste.tipo) + '">Ajuste ' + esc(l.ajuste.tipo) + '</button>';
             }
+            if (clave === 'R17' && l.existencias) {
+                valor += ' <button type="button" class="cv-btn-pdf" data-existencias style="padding:2px 8px;margin-left:6px" title="Cuentas de existencias del 1409">Existencias</button>';
+            }
             var cuentas = l.cuentas && l.cuentas.length
                 ? '<br><small>' + l.cuentas.map(function (c) { return esc(c.cuenta + ' ' + c.nombre); }).join(' · ') + '</small>' : '';
+            if (l.existencias && l.existencias.configurado) {
+                var ex = l.existencias;
+                cuentas += '<br><small style="color:#1d4ed8">Existencias: final $' + fmt(ex.saldoFinal) + ' − inicial $' + fmt(ex.saldoInicial) + ' = variación $' + fmt(ex.variacion) + '</small>';
+            }
             if (l.ajuste && l.ajuste.configurado) {
                 var aj = l.ajuste;
                 cuentas += '<br><small style="color:#1d4ed8">Devengado $' + fmt(aj.devengado) + ' + saldo inicial ' + aj.tipo + ' $' + fmt(aj.saldoInicial) + ' − saldo final $' + fmt(aj.saldoFinal) +
                     (aj.repartoAnioAnterior ? ' · $' + fmt(aj.repartoAnioAnterior) + ' al ' + aj.destinoReparto : '') + '</small>';
             }
-            html += '<tr><td>' + esc(l.glosa) + cuentas + '</td><td class="num">' + esc(l.codigo) + '</td><td class="num">' + valor +
+            html += '<tr><td style="white-space:normal">' + esc(l.glosa) + cuentas + '</td><td class="num">' + esc(l.codigo) + '</td><td class="num" style="white-space:nowrap">' + valor +
                 '</td><td>' + (l.origen ? '<span class="cv-chip">' + esc(origenEtiqueta(l.origen)) + '</span>' : '') + '</td></tr>';
         });
         html += '</tbody></table>';
+        if (clave === 'R17' && r.idpcEstimado) {
+            var idpc = r.idpcEstimado;
+            html += '<p class="cv-texto" data-idpc style="margin-top:10px;font-size:12.5px"><strong>IDPC estimado (14 D N°3):</strong> ' + fmtDec(idpc.tasa) + ' % del 1440 ($' +
+                fmt(idpc.base) + ') = <strong>$' + fmt(idpc.monto) + '</strong> · sin PPM ni créditos.</p>';
+        }
+        if (clave === 'R22') html += tablaPropietarios(r.propietarios);
         if (r.pendientesDeCalculo && r.pendientesDeCalculo.length) {
-            html += '<p class="cv-texto" style="margin-top:10px;font-size:12px">Pendiente de cálculo en esta versión: ' + esc(r.pendientesDeCalculo.join('; ')) + '.</p>';
+            var rotulo = clave === 'R22' || clave === 'R23' ? '' : 'Pendiente de cálculo en esta versión: ';
+            html += '<p class="cv-texto" style="margin-top:10px;font-size:12px">' + esc(rotulo + r.pendientesDeCalculo.join('; ').replace(/\.$/, '')) + '.</p>';
         }
         cuerpo.innerHTML = html;
+    }
+
+    // ---------- 14 D N°8: asignación a los propietarios (R22 y DJ 1947) y R18 de Pro Pyme ----------
+    function tablaPropietarios(p) {
+        var columnas = [['baseImponible', 'Base imponible'], ['ingresoDiferido', 'Ingreso diferido incluido'], ['retiros', 'Retiros del año'],
+            ['creditoIdpc', 'Crédito IDPC'], ['credito33bis', 'Crédito art. 33 bis']];
+        var html = '<h3 style="font-size:14px;margin:14px 0 6px">Asignación a los propietarios</h3>';
+        (p.avisos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+        if (!p.filas.length) return html + '<p class="cv-texto"><button type="button" class="cv-btn-pdf" data-abrir="DJ1948" style="cursor:pointer">Registrar propietarios y retiros</button></p>';
+        html += '<table class="cv-modal-tabla"><thead><tr><th>RUT</th><th>Propietario</th><th class="num">%</th>' +
+            columnas.map(function (c) { return '<th class="num">' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>';
+        p.filas.forEach(function (f) {
+            html += '<tr><td style="white-space:nowrap">' + esc(f.rut || '—') + '</td><td style="white-space:normal">' + esc(f.nombre) + '</td><td class="num">' + fmtDec(f.participacion) + '</td>' +
+                columnas.map(function (c) { return '<td class="num">$' + fmt(f[c[0]]) + '</td>'; }).join('') + '</tr>';
+        });
+        html += '<tr><td></td><td><strong>Totales</strong></td><td></td>' + columnas.map(function (c) {
+            return '<td class="num"><strong>$' + fmt(p.filas.reduce(function (s, f) { return s + f[c[0]]; }, 0)) + '</strong></td>';
+        }).join('') + '</tr></tbody></table>';
+        return html;
+    }
+
+    function pintarDJ1947(r) {
+        recuadroActual = null;
+        titulo.textContent = titulosRecuadro.DJ1947;
+        sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
+        acc.innerHTML = estadoPill(r) + ' <button type="button" class="cv-btn-pdf" data-abrir="R22" style="cursor:pointer">Abrir R22</button>' +
+            ' <button type="button" class="cv-btn-pdf" data-pdf="DJ1947" style="cursor:pointer">Ver PDF</button>';
+        cuerpo.innerHTML = (r.estado === 'FINALIZADO' ? '' : '<div class="cv-aviso-ok">El R22 no está finalizado: estas cifras todavía pueden cambiar.</div>') +
+            tablaPropietarios(r.propietarios) +
+            '<p class="cv-texto" style="margin-top:10px;font-size:12px">Resumen de apoyo para preparar la declaración jurada: no reemplaza el formulario del SII.</p>';
+    }
+
+    function pintarR18(r) {
+        recuadroActual = null;
+        titulo.textContent = titulosRecuadro.R18;
+        sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
+        acc.innerHTML = '<span class="cv-chip">Sale del RTRE (R20)</span> ' + estadoPill(r) +
+            ' <button type="button" class="cv-btn-pdf" data-abrir="R20" style="cursor:pointer">Abrir RTRE</button>' +
+            ' <button type="button" class="cv-btn-pdf" data-pdf="R18" style="cursor:pointer">Ver PDF</button>';
+        cuerpo.innerHTML = '<table class="cv-modal-tabla"><thead><tr><th>Concepto</th><th class="num">Código</th><th>Signo</th><th class="num">Valor</th></tr></thead><tbody>' +
+            r.lineas.map(function (l) {
+                return '<tr><td style="white-space:normal">' + esc(l.glosa) + '</td><td class="num">' + esc(l.codigo) + '</td><td>' + esc(l.signo === '-' ? '−' : l.signo) +
+                    '</td><td class="num" style="white-space:nowrap">$' + fmt(l.monto) + '</td></tr>';
+            }).join('') + '</tbody></table><p class="cv-texto" style="margin-top:10px;font-size:12px">' + esc(r.nota) + '</p>';
     }
 
     // ---------- RTRE (R20), Registro SAC (R21) y DJ 1948 ----------
@@ -897,13 +866,16 @@
         DJ1948: 'DJ 1948 — Retiros y Dividendos (Certificado 70)',
         R4: 'Recuadro 4 — Enajenación de acciones y derechos sociales',
         R6: 'Recuadro 6 — Datos Informativos (Pro Pyme)',
-        CIERRE: 'Cierre anual'
+        CIERRE: 'Cierre anual',
+        R18: 'Recuadro 18 — Determinación del RAI',
+        R22: 'Recuadro 22 — Base imponible del régimen de transparencia (14 D N°8)',
+        R23: 'Recuadro 23 — CPTS del régimen de transparencia (14 D N°8)',
+        DJ1947: 'DJ 1947 — Base imponible asignada a los propietarios'
     };
 
     function estadoPill(r) {
-        return r.estado === 'FINALIZADO'
-            ? '<span class="cv-pill cv-disp">Finalizado</span>'
-            : (r.desactualizado ? '<span class="cv-pill cv-borr">Desactualizado</span>' : '<span class="cv-pill cv-borr">Borrador</span>');
+        if (r.desactualizado) return '<span class="cv-pill cv-borr">Desactualizado</span>';
+        return r.estado === 'FINALIZADO' ? '<span class="cv-pill cv-disp">Finalizado</span>' : '<span class="cv-pill cv-borr">Borrador</span>';
     }
 
     // RTRE como en iTributario: tarjetas (RAI final, REX final, SAC disponible, retiros), botones R20 y R21 que abren
@@ -941,7 +913,7 @@
 
         var html = '';
         (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
-        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: finalícelo nuevamente.</div>';
+        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: reábralo y finalícelo nuevamente.</div>';
         html += '<table class="cv-modal-tabla cv-rtre-tabla"><thead><tr><th>Movimiento</th>' + GRUPOS_RTRE.map(function (g) { return '<th class="num">' + g + '</th>'; }).join('') + '</tr></thead><tbody>';
         r.secciones.secciones.forEach(function (s) {
             var cerrada = !!seccionesCerradas[s.bloque];
@@ -1184,8 +1156,8 @@
 
     // Composición y retiros del año: titular, socios o accionistas con su participación, la utilidad que les
     // corresponde y lo retirado en el año. EIRL: un solo titular con el 100%. 14 D N°8: se retira la totalidad.
-    var TIPOS_CONTRIBUYENTE = [['EIRL', 'EIRL (un solo titular)'], ['SPA', 'SpA'], ['LTDA', 'Sociedad de responsabilidad limitada'], ['SA', 'Sociedad anónima'], ['OTRO', 'Otro']];
-    var REGIMENES = [['14D3', 'Pro Pyme General (14 D N°3)'], ['14D8', 'Pro Pyme Transparente (14 D N°8)'], ['14A', 'Régimen general (14 A)']];
+    var TIPOS_CONTRIBUYENTE = [['EIRL', 'EIRL (un solo titular)'], ['SPA', 'SpA'], ['LTDA', 'Sociedad de responsabilidad limitada'], ['SA', 'Sociedad anónima'], ['PERSONA_NATURAL', 'Persona natural'], ['OTRO', 'Otro']];
+    var REGIMENES = [['14D3', 'Pro Pyme General (14 D N°3)'], ['14D8', 'Pro Pyme Transparente (14 D N°8)'], ['14A', 'Régimen general (14 A)'], ['14G', '14 G (fundaciones y corporaciones)'], ['PERSONA', 'Persona natural (honorarios)']];
     var ESTILO_CAMPO = 'style="width:100%;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font:inherit"';
 
     function opcionesSelect(lista, actual) {
@@ -1260,7 +1232,7 @@
         var sin = cuerpo.querySelector('[data-comp-sin]');
         b.disabled = true;
         enviar('composicion_guardar', { tipo: valorComp('tipo'), regimen: valorComp('regimen'), socios: socios, sinRetiros: !!(sin && sin.checked) })
-            .then(function (r) { pintarDJ(r); mostrarError('Composición y retiros del año guardados.'); })
+            .then(function (r) { pintarDJ(r); cargarCabecera(); mostrarError('Composición y retiros del año guardados.'); })
             .catch(function (err) { b.disabled = false; mostrarError(err.message); });
     });
 
@@ -1315,11 +1287,13 @@
         else if (clave === 'R20') pintarR20(r);
         else if (clave === 'R21') pintarR21(r);
         else if (clave === 'DJ1948') pintarDJ(r);
+        else if (clave === 'DJ1947') pintarDJ1947(r);
+        else if (clave === 'R18') pintarR18(r);
         else pintarRecuadro(clave, r);
     }
 
     function cargarRecuadro(clave) {
-        return pedir(clave.toLowerCase()).then(function (r) { pintarSegun(clave, r); });
+        return pedir(clave === 'DJ1947' ? 'r22' : clave.toLowerCase()).then(function (r) { pintarSegun(clave, r); });
     }
 
     function abrirRecuadro(clave) {
@@ -1341,8 +1315,72 @@
         else if (clave === 'CPT') abrirCpt();
         else if (clave === 'RLI') abrirRli();
         else if (clave === 'R20' && dialogo) abrirRecuadro('R20').then(function (ok) { if (ok) abrirGrilla(dialogo); });
-        else if (['R4', 'R6', 'R17', 'R19', 'R20', 'R21', 'DJ1948', 'CIERRE'].indexOf(clave) >= 0) abrirRecuadro(clave);
+        else if (['R4', 'R6', 'R17', 'R18', 'R19', 'R20', 'R21', 'R22', 'R23', 'DJ1947', 'DJ1948', 'CIERRE'].indexOf(clave) >= 0) abrirRecuadro(clave);
         else if (clave === 'HOM') abrirHomologacion();
+        else if (clave === 'PLANSII') abrirPlanSii();
+    });
+
+    // ---------- Plan de cuentas del SII (IFRS tributario, el mismo de iTributario): solo consulta ----------
+    var GRUPOS_PLAN = { ACTIVO: 'Activo', PASIVO: 'Pasivo', PATRIMONIO: 'Patrimonio', RESULTADO: 'Resultado', AJUSTE_TRIBUTARIO: 'Ajustes tributarios' };
+    var planSii = null;
+    var gruposPlanCerrados = { AJUSTE_TRIBUTARIO: true };
+    function sinTildes(t) { return String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+
+    function abrirPlanSii() {
+        recuadroActual = null;
+        titulo.textContent = 'Plan de cuentas SII';
+        sub.textContent = 'Plan de cuentas IFRS tributario del SII · solo consulta';
+        acc.innerHTML = '';
+        cuerpo.innerHTML = '<p class="cv-texto cv-mensaje-ventana">Cargando plan de cuentas…</p>';
+        modal.hidden = false;
+        modal.querySelector('.cv-modal-x').focus();
+        pedir('plan_sii').then(function (p) {
+            planSii = p;
+            cuerpo.innerHTML = '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px">' +
+                '<input type="search" data-plan-buscar placeholder="Buscar por código o descripción" aria-label="Buscar en el plan de cuentas SII" style="flex:1;min-width:220px;padding:6px 8px;font:inherit;border:1px solid #d1d5db;border-radius:4px">' +
+                '<span class="cv-texto" data-plan-total style="font-size:12px"></span></div>' +
+                '<p class="cv-texto" style="font-size:12px;margin:0 0 8px">En Resultado se indica el código del Recuadro 17 que sugiere la homologación.</p>' +
+                '<div data-plan-tabla></div>';
+            pintarPlanSii();
+        }).catch(function (e) { cuerpo.innerHTML = ''; mostrarError(e.message); });
+    }
+
+    function pintarPlanSii() {
+        var destino = cuerpo.querySelector('[data-plan-tabla]');
+        if (!destino || !planSii) return;
+        var filtro = sinTildes(cuerpo.querySelector('[data-plan-buscar]').value.trim());
+        var html = '<table class="cv-modal-tabla"><thead><tr><th>Código</th><th>Descripción</th><th>Código R17</th><th>Excepción tipo capital</th></tr></thead><tbody>';
+        var visibles = 0;
+        Object.keys(GRUPOS_PLAN).forEach(function (g) {
+            var filas = planSii.cuentas.filter(function (c) {
+                return c.grupo === g && (!filtro || sinTildes(c.codigo + ' ' + c.descripcion).indexOf(filtro) >= 0);
+            });
+            if (!filas.length) return;
+            visibles += filas.length;
+            var cerrado = !filtro && !!gruposPlanCerrados[g];
+            html += '<tr class="cv-seccion"><td colspan="4"><button type="button" data-plan-grupo="' + g + '" aria-expanded="' + !cerrado + '" style="background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer">' +
+                (cerrado ? '▸ ' : '▾ ') + esc(GRUPOS_PLAN[g]) + ' <small>(' + filas.length + ')</small></button></td></tr>';
+            if (cerrado) return;
+            filas.forEach(function (c) {
+                html += '<tr><td>' + esc(c.codigo) + '</td><td style="white-space:normal;padding-left:' + (8 + (c.nivel - 1) * 16) + 'px' + (c.esEncabezado ? ';font-weight:600' : '') + '">' +
+                    esc(c.descripcion) + '</td><td>' + (c.codigoR17 ? '<span class="cv-chip">' + esc(c.codigoR17) + '</span>' : '') + '</td><td>' + (c.excepcionTipoCapital ? 'Sí' : '') + '</td></tr>';
+            });
+        });
+        destino.innerHTML = visibles ? html + '</tbody></table>' : '<p class="cv-texto">Sin resultados para la búsqueda.</p>';
+        cuerpo.querySelector('[data-plan-total]').textContent = visibles + ' de ' + planSii.cuentas.length + ' líneas';
+    }
+
+    cuerpo.addEventListener('input', function (e) {
+        if (e.target.matches && e.target.matches('[data-plan-buscar]')) pintarPlanSii();
+    });
+    cuerpo.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('[data-plan-grupo]') : null;
+        if (!b) return;
+        var g = b.getAttribute('data-plan-grupo');
+        gruposPlanCerrados[g] = !gruposPlanCerrados[g];
+        pintarPlanSii();
+        var mismo = cuerpo.querySelector('[data-plan-grupo="' + g + '"]');
+        if (mismo) mismo.focus();
     });
 
     // Campos manuales: se guardan al salir del campo
@@ -1355,10 +1393,20 @@
         if (monto !== null && !Number.isInteger(monto)) { mostrarError('El monto debe ser un número entero.'); return; }
         var datos = { codigo: campo.getAttribute('data-codigo'), monto: monto };
         if (clave === 'R17' && monto === null) datos.monto = 0;
-        var endpoint = { R4: 'r4_guardar_valor', R6: 'r6_guardar_valor', R17: 'r17_guardar_manual', R19: 'r19_guardar_manual' }[clave];
+        var endpoint = { R4: 'r4_guardar_valor', R6: 'r6_guardar_valor', R17: 'r17_guardar_manual', R19: 'r19_guardar_manual',
+            R22: 'r22_guardar_manual', R23: 'r23_guardar_manual' }[clave];
         enviar(endpoint, datos)
             .then(function (r) { pintarSegun(clave, r); })
             .catch(function (err) { cargarRecuadro(clave).then(function () { mostrarError(err.message); }); });
+    });
+
+    cuerpo.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('[data-confirmar-1618]') : null;
+        if (!b) return;
+        b.disabled = true;
+        enviar('r22_guardar_manual', { codigo: '1618', monto: Number(b.getAttribute('data-confirmar-1618')) })
+            .then(function (r) { pintarSegun('R22', r); })
+            .catch(function (err) { cargarRecuadro('R22').then(function () { mostrarError(err.message); }); });
     });
 
     // ---------- Homologación de cuentas (cuenta de resultado → código del R17) ----------
@@ -1391,22 +1439,42 @@
         }).catch(function (e) { destino.innerHTML = '<p class="cv-texto" style="font-size:12px">' + esc(e.message) + '</p>'; });
     }
 
+    function recortar(texto, largo) {
+        texto = String(texto || '');
+        return texto.length > largo ? texto.slice(0, largo - 1) + '…' : texto;
+    }
+
+    // Sugerencia desde el plan de cuentas del SII: solo se asigna si el usuario pulsa "Usar".
+    function celdaSugerencia(c) {
+        var s = c.sugerencia;
+        var td = '<td style="white-space:normal;min-width:260px">';
+        if (!s) return td + '—</td>';
+        var detalle = '<div class="cv-texto" style="font-size:11.5px;color:#6b7280;margin-top:2px">Plan SII ' + esc(s.planSii.codigo + ' ' + s.planSii.descripcion) + ' · ' + esc(s.motivo) + '</div>';
+        if (s.codigo === null) return td + '<span class="cv-chip">Sin código</span>' + detalle + '</td>';
+        var accion = s.codigo === c.codigo
+            ? '<span class="cv-estado ok" style="padding:1px 8px;white-space:nowrap">✓ coincide</span>'
+            : '<button type="button" class="cv-btn-pdf" data-usar-sugerencia="' + esc(c.cuenta) + '" data-codigo-sugerido="' + esc(s.codigo) + '" style="padding:2px 8px;cursor:pointer">Usar</button>';
+        return td + '<strong>' + esc(s.codigo) + '</strong> ' + esc(recortar(s.glosa, 46)) + (s.confianza !== 'alta' ? ' <small>(confianza ' + esc(s.confianza) + ')</small>' : '') +
+            ' ' + accion + detalle + '</td>';
+    }
+
     function pintarHomologacion(h) {
         recuadroActual = null;
-        acc.innerHTML = '<span class="cv-pill ' + (h.pendientes || h.alertas ? 'cv-borr' : 'cv-disp') + '">Pendientes: ' + h.pendientes + ' · Alertas: ' + h.alertas + '</span>';
+        acc.innerHTML = '<span class="cv-pill ' + (h.pendientes || h.alertas ? 'cv-borr' : 'cv-disp') + '">Pendientes: ' + h.pendientes + ' · Alertas: ' + h.alertas + '</span>' +
+            (h.sugerenciasAplicables ? ' <button type="button" class="cv-btn-fin" data-aplicar-sugerencias style="cursor:pointer;opacity:1">Usar sugerencias de confianza alta o media (' + h.sugerenciasAplicables + ')</button>' : '');
         var html = '';
         if (h.alertas) {
             html += '<div class="cv-aviso-ok">Hay ' + h.alertas + ' cuenta(s) asignada(s) a un código de la sección contraria (ingreso o gasto). Corríjalas: el Recuadro 17 no se finaliza mientras existan.</div>';
         }
-        html += '<table class="cv-modal-tabla"><thead><tr><th>Cuenta</th><th>Nombre</th><th>Tipo</th><th class="num">Saldo</th><th>Código del R17</th></tr></thead><tbody>';
+        html += '<table class="cv-modal-tabla"><thead><tr><th>Cuenta</th><th>Nombre</th><th>Tipo</th><th class="num">Saldo</th><th>Código del R17</th><th>Sugerencia (plan SII)</th></tr></thead><tbody>';
         if (!h.cuentasResultado.length) {
-            html += '<tr><td colspan="5">No hay cuentas de resultado en el balance de este año.</td></tr>';
+            html += '<tr><td colspan="6">No hay cuentas de resultado en el balance de este año.</td></tr>';
         }
         h.cuentasResultado.forEach(function (c) {
             html += '<tr><td>' + esc(c.cuenta) + '</td><td>' + esc(c.nombre) + '</td><td>' + (c.tipo === 'GANANCIA' ? 'Ingreso' : 'Gasto') +
-                '</td><td class="num">' + fmt(c.saldo) + '</td><td><select data-cuenta="' + esc(c.cuenta) + '" style="max-width:360px;padding:3px 6px;font:inherit;border:1px solid #d1d5db;border-radius:4px">' +
+                '</td><td class="num">' + fmt(c.saldo) + '</td><td><select data-cuenta="' + esc(c.cuenta) + '" style="max-width:300px;padding:3px 6px;font:inherit;border:1px solid #d1d5db;border-radius:4px">' +
                 opcionesCodigo(h.codigos, c.tipo, c.codigo || '') + '</select>' +
-                (c.alerta ? '<div class="cv-texto" style="color:#b45309;font-size:12px;margin-top:4px">' + esc(c.alerta) + '</div>' : '') + '</td></tr>';
+                (c.alerta ? '<div class="cv-texto" style="color:#b45309;font-size:12px;margin-top:4px">' + esc(c.alerta) + '</div>' : '') + '</td>' + celdaSugerencia(c) + '</tr>';
         });
         html += '</tbody></table>';
         html += '<h3 style="margin:14px 0 6px;font-size:13px">Historial de homologación</h3><div id="cv-hist-hom"></div>';
@@ -1429,13 +1497,33 @@
         if (!sel.matches || !sel.matches('select[data-cuenta]')) return;
         var cuenta = sel.getAttribute('data-cuenta');
         var codigo = sel.value;
-        enviar('homologacion_asignar', { cuenta: cuenta, codigo: codigo, motivo: codigo ? 'Asignación desde el visor' : 'Cuenta quitada desde el visor' })
+        asignarCodigo(cuenta, codigo, codigo ? 'Asignación desde el visor' : 'Cuenta quitada desde el visor');
+    });
+
+    // La API de asignar devuelve solo la cuenta cambiada: se vuelve a pedir la homologación completa para pintarla.
+    function asignarCodigo(cuenta, codigo, motivo) {
+        return enviar('homologacion_asignar', { cuenta: cuenta, codigo: codigo, motivo: motivo })
+            .then(function () { return pedir('homologacion'); })
             .then(pintarHomologacion)
             .catch(function (err) { pedir('homologacion').then(function (h) { pintarHomologacion(h); mostrarError(err.message); }); });
+    }
+
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('[data-usar-sugerencia], [data-aplicar-sugerencias]') : null;
+        if (!b || b.disabled) return;
+        b.disabled = true;
+        if (b.hasAttribute('data-usar-sugerencia')) {
+            asignarCodigo(b.getAttribute('data-usar-sugerencia'), b.getAttribute('data-codigo-sugerido'), 'Sugerencia aceptada (plan SII)');
+            return;
+        }
+        enviar('homologacion_aplicar_sugerencias', {})
+            .then(function (h) { pintarHomologacion(h); mostrarError('Sugerencias aplicadas: ' + h.aplicadas + ' cuenta(s).'); })
+            .catch(function (err) { b.disabled = false; mostrarError(err.message); });
     });
 
     // Estados de las filas de Inicio según la API. Se actualizan al cargar y cada vez que se cierra una ventana.
     function ponerEstado(selector, texto, clase) {
+        if (window.cvInicioPropio) return; // el inicio por régimen lo pinta cifrax-inicio.js
         document.querySelectorAll(selector).forEach(function (est) {
             est.textContent = texto;
             est.className = 'cv-estado ' + clase;
@@ -1444,15 +1532,37 @@
     function estadoRecuadro(clave, r) {
         if (!r) return;
         var fin = r.estado === 'FINALIZADO';
-        ponerEstado('.cv-fila[data-abrir="' + clave + '"] .cv-estado', fin ? 'FINALIZADO' : 'EN PROCESO', fin ? 'ok' : 'proceso');
+        ponerEstado('.cv-fila[data-abrir="' + clave + '"] .cv-estado', r.desactualizado ? 'DESACTUALIZADO' : (fin ? 'FINALIZADO' : 'EN PROCESO'),
+            r.desactualizado ? 'pend' : (fin ? 'ok' : 'proceso'));
+    }
+    // Etiquetas de la pestaña Reportes según los datos del año (antes eran fijas).
+    function ponerPildora(codigo, texto, clase) {
+        document.querySelectorAll('.cv-rep').forEach(function (fila) {
+            var cod = fila.querySelector('.cv-cod');
+            var pildora = fila.querySelector('.cv-pill');
+            if (!cod || !pildora || cod.textContent.trim() !== codigo) return;
+            pildora.textContent = texto;
+            pildora.className = 'cv-pill ' + clase;
+        });
+    }
+    var CODIGOS_REPORTE = ['Balance', 'Homol.', 'Retiros', 'RLI', 'CPT', 'R4', 'R6', 'R17', 'R19', 'R18', 'R20', 'R21', 'RTRE', 'DJ 1948'];
+    function reporteDisponible(codigos, hay) {
+        codigos.forEach(function (c) { ponerPildora(c, hay ? 'Disponible' : 'Sin datos', hay ? 'cv-disp' : 'cv-sin'); });
+    }
+    function reporteRecuadro(codigos, r) {
+        var texto = !r ? 'Sin datos' : (r.desactualizado ? 'Desactualizado' : (r.estado === 'FINALIZADO' ? 'Finalizado' : 'Borrador'));
+        var clase = !r ? 'cv-sin' : (texto === 'Finalizado' ? 'cv-disp' : 'cv-borr');
+        codigos.forEach(function (c) { ponerPildora(c, texto, clase); });
     }
     function nada() { return null; }
     function actualizarInicio() {
+        var anioPedido = anio;
         Promise.all([
             pedir('r17').catch(nada), pedir('r19').catch(nada), pedir('homologacion').catch(nada), pedir('r20').catch(nada),
             pedir('balance').catch(nada), pedir('retiros').catch(nada), pedir('cierre').catch(nada), pedir('r4').catch(nada), pedir('r6').catch(nada),
             pedir('dj1948').catch(nada)
         ]).then(function (res) {
+            if (anioPedido !== anio) return; // se cambió de año mientras llegaba la respuesta
             // DJ 1948: completada con el RTRE finalizado y todos los socios con certificado (o sin retiros en el año).
             var dj = res[9];
             if (dj) {
@@ -1466,14 +1576,23 @@
             estadoRecuadro('R20', res[3]);
             estadoRecuadro('R4', res[7]);
             estadoRecuadro('R6', res[8]);
+            reporteRecuadro(['R17'], res[0]);
+            reporteRecuadro(['R19'], res[1]);
+            reporteRecuadro(['R18', 'R20', 'R21', 'RTRE'], res[3]);
+            reporteRecuadro(['R4'], res[7]);
+            reporteRecuadro(['R6'], res[8]);
+            ponerPildora('DJ 1948', !dj ? 'Sin datos' : (dj.paso1.listo ? 'Disponible' : 'Borrador'), !dj ? 'cv-sin' : (dj.paso1.listo ? 'cv-disp' : 'cv-borr'));
             if (res[2]) {
                 var pendiente = res[2].pendientes > 0 || res[2].alertas > 0;
                 ponerEstado('.cv-fila[data-abrir="HOM"] .cv-estado', pendiente ? 'PENDIENTE' : 'AL DÍA', pendiente ? 'pend' : 'ok');
             }
             var hayBalance = !!(res[4] && res[4].cuentas && res[4].cuentas.length);
             ponerEstado('.cv-fila[data-estado="balance"] .cv-estado', hayBalance ? 'COMPLETADO' : 'PENDIENTE', hayBalance ? 'ok' : 'pend');
-            var hayRetiros = !!(res[5] && (res[5].modo === 'sin_retiros' || (res[5].retiros && res[5].retiros.length)));
+            var hayRetiros = !!(res[5] && (res[5].modo === 'sin_retiros' || (res[5].retiros && res[5].retiros.length) ||
+                (res[5].modo === 'totalidad' && res[5].socios && res[5].socios.length)));
             ponerEstado('.cv-fila[data-estado="retiros"] .cv-estado', hayRetiros ? 'COMPLETADO' : 'PENDIENTE', hayRetiros ? 'ok' : 'pend');
+            reporteDisponible(['Balance', 'Homol.', 'RLI', 'CPT'], hayBalance);
+            reporteDisponible(['Retiros'], hayRetiros);
             var c = res[6];
             if (c) {
                 var nombres = {};
@@ -1487,6 +1606,22 @@
             }
         });
     }
+    function marcarCargando() {
+        CODIGOS_REPORTE.forEach(function (c) { ponerPildora(c, 'Cargando', 'cv-sin'); });
+        ['.cv-fila[data-abrir] .cv-estado', '.cv-fila[data-estado] .cv-estado'].forEach(function (s) {
+            document.querySelectorAll(s).forEach(function (e) {
+                if (e.textContent.trim() !== '—') { e.textContent = 'CARGANDO'; e.className = 'cv-estado proceso'; }
+            });
+        });
+        document.querySelectorAll('[data-cierre-texto]').forEach(function (p) { p.textContent = 'Revisando el estado de los recuadros…'; });
+    }
+    selectorAnio.addEventListener('change', function () {
+        anio = Number(selectorAnio.value);
+        recuadroActual = null;
+        marcarCargando();
+        actualizarInicio();
+    });
+    CODIGOS_REPORTE.forEach(function (c) { ponerPildora(c, 'Cargando', 'cv-sin'); });
     actualizarInicio();
     new MutationObserver(function () { if (modal.hidden) actualizarInicio(); }).observe(modal, { attributes: true, attributeFilter: ['hidden'] });
 
@@ -1543,15 +1678,20 @@
             .catch(function (err) { recargar().then(function () { mostrarError(err.message); }); });
     });
 
-    // ---------- Cabecera: razón social y RUT de la empresa desde la API ----------
-    pedir('empresa').then(function (f) {
-        if (!f || !f.razon_social) return;
-        var texto = f.razon_social + (f.rut ? ' · RUT ' + f.rut : '');
-        var cab = document.getElementById('cf-empresa-cabecera');
-        if (cab) cab.textContent = texto;
-        var lateral = document.querySelector('.cv-side-empresa');
-        if (lateral) lateral.textContent = texto;
-    }).catch(function () { /* se mantiene lo que había */ });
+    // ---------- Cabecera: razón social, RUT y régimen de la empresa desde la API ----------
+    function cargarCabecera() {
+        pedir('empresa').then(function (f) {
+            if (!f) return;
+            document.dispatchEvent(new CustomEvent('cv:regimen', { detail: f.regimen }));
+            if (!f.razon_social) return;
+            var texto = f.razon_social + (f.rut ? ' · RUT ' + f.rut : '');
+            var cab = document.getElementById('cf-empresa-cabecera');
+            if (cab) cab.textContent = texto;
+            var lateral = document.querySelector('.cv-side-empresa');
+            if (lateral) lateral.textContent = texto;
+        }).catch(function () { /* se mantiene lo que había */ });
+    }
+    cargarCabecera();
 
     // ---------- Parámetros del RAI en el RTRE ----------
     cuerpo.addEventListener('change', function (e) {
@@ -1575,8 +1715,9 @@
             a.cuentas.forEach(function (c) { marcadas[c.cuenta] = true; });
             var opciones = d.cuentas.filter(function (c) { return c.tipo === a.tipo; }).map(function (c) {
                 var otra = c.codigo && c.codigo !== codigo;
-                return '<label class="cv-sub-check" style="margin:4px 0"><input type="checkbox" data-aj-cuenta="' + esc(c.cuenta) + '"' + (marcadas[c.cuenta] ? ' checked' : '') + (otra || fin ? ' disabled' : '') +
-                    '><span>' + esc(c.cuenta + ' ' + c.nombre) + ' — saldo $' + fmt(c.saldo) + (otra ? ' <small>(ajuste del ' + esc(c.codigo) + ')</small>' : '') + '</span></label>';
+                return '<label class="cv-sub-check" style="margin:4px 0"><input type="checkbox" data-aj-cuenta="' + esc(c.cuenta) + '"' + (marcadas[c.cuenta] ? ' checked' : '') + (otra || c.existencias || fin ? ' disabled' : '') +
+                    '><span>' + esc(c.cuenta + ' ' + c.nombre) + ' — saldo $' + fmt(c.saldo) + (otra ? ' <small>(ajuste del ' + esc(c.codigo) + ')</small>' : '') +
+                    (c.existencias ? ' <small>(existencias del 1409)</small>' : '') + '</span></label>';
             }).join('') || '<p class="cv-sub-ayuda">No hay cuentas de ' + (a.tipo === 'CXC' ? 'activo' : 'pasivo') + ' en el balance.</p>';
             var html = '<div class="cv-sub" data-sub-ajuste role="dialog" aria-modal="true" aria-label="Cuentas de ajuste"><div class="cv-sub-caja">' +
                 '<div class="cv-sub-cab"><strong>' + esc(a.codigo + ' — ' + a.glosa) + '</strong><button type="button" class="cv-modal-x" data-sub-cerrar aria-label="Cerrar">×</button></div>' +
@@ -1614,6 +1755,53 @@
         enviar('ajuste_guardar', { codigo: b.getAttribute('data-aj-guardar'), cuentas: cuentas, saldoInicial: valor('inicial'), saldoFinal: valor('final') })
             .then(function (r) { caja.remove(); pintarRecuadro('R17', r); mostrarError('Cuentas de ajuste guardadas.'); })
             .catch(function (err) { b.disabled = false; caja.querySelector('[data-aj-error]').innerHTML = '<div class="cv-aviso-ok">' + esc(err.message) + '</div>'; });
+    });
+
+    // ---------- Existencias del 1409: la variación del año (final − inicial) se suma al devengado ----------
+    function abrirExistencias() {
+        pedir('ajustes').then(function (d) {
+            var x = d.existencias;
+            if (!x) return;
+            var fin = r17Actual && r17Actual.estado === 'FINALIZADO';
+            var dis = fin ? ' disabled' : '';
+            var marcadas = {};
+            x.cuentas.forEach(function (c) { marcadas[c.cuenta] = true; });
+            var opciones = d.cuentas.filter(function (c) { return c.tipo === 'CXC'; }).map(function (c) {
+                return '<label class="cv-sub-check" style="margin:4px 0"><input type="checkbox" data-ex-cuenta="' + esc(c.cuenta) + '"' + (marcadas[c.cuenta] ? ' checked' : '') + (c.codigo || fin ? ' disabled' : '') +
+                    '><span>' + esc(c.cuenta + ' ' + c.nombre) + ' — saldo $' + fmt(c.saldo) + (c.codigo ? ' <small>(ajuste del ' + esc(c.codigo) + ')</small>' : '') + '</span></label>';
+            }).join('') || '<p class="cv-sub-ayuda">No hay cuentas de activo en el balance.</p>';
+            var html = '<div class="cv-sub" data-sub-existencias role="dialog" aria-modal="true" aria-label="Existencias del 1409"><div class="cv-sub-caja">' +
+                '<div class="cv-sub-cab"><strong>1409 — Existencias, insumos y servicios del negocio</strong><button type="button" class="cv-modal-x" data-sub-cerrar aria-label="Cerrar">×</button></div>' +
+                (fin ? '<div class="cv-aviso-ok">El Recuadro 17 está finalizado: reábralo para modificar las existencias.</div>' : '') +
+                '<p class="cv-sub-ayuda">Compras del año = costo de ventas + existencia final − existencia inicial: el devengado del 1409 suma esa variación. Si el 1409 tiene cuentas de ajuste CXP, el pagado se calcula sobre este devengado.</p>' +
+                '<label class="cv-sub-label">Cuentas de existencias (activo)</label>' + opciones +
+                '<label class="cv-sub-label">Existencia inicial (sugerida $' + fmt(x.saldoInicialSugerido) + ', del balance del año anterior)</label>' +
+                '<input class="cv-sub-input cv-sub-num" type="number" step="1" data-ex="inicial" placeholder="' + esc(x.saldoInicialSugerido) + '" value="' + esc(x.saldoInicialManual === null ? '' : x.saldoInicialManual) + '"' + dis + '>' +
+                '<label class="cv-sub-label">Existencia final (sugerida $' + fmt(x.saldoFinalSugerido) + ', del balance del año)</label>' +
+                '<input class="cv-sub-input cv-sub-num" type="number" step="1" data-ex="final" placeholder="' + esc(x.saldoFinalSugerido) + '" value="' + esc(x.saldoFinalManual === null ? '' : x.saldoFinalManual) + '"' + dis + '>' +
+                '<div class="cv-sub-calculo">' +
+                '<div class="cv-sub-fila"><span>Devengado (cuentas homologadas)</span><span>$' + fmt(x.devengadoCuentas) + '</span></div>' +
+                '<div class="cv-sub-fila"><span>+ Existencia final / − existencia inicial</span><span>$' + fmt(x.saldoFinal) + ' / $' + fmt(x.saldoInicial) + '</span></div><hr>' +
+                '<div class="cv-sub-fila"><strong>Devengado con existencias</strong><strong>$' + fmt(x.devengadoConExistencias) + '</strong></div></div>' +
+                '<p class="cv-sub-ayuda">Deje los saldos vacíos para usar los sugeridos.</p><div data-ex-error></div>' +
+                '<button type="button" class="cv-sub-guardar" data-ex-guardar' + dis + '>Guardar</button>' +
+                '<button type="button" class="cv-sub-cancelar" data-sub-cerrar>Cancelar</button></div></div>';
+            document.body.insertAdjacentHTML('beforeend', html);
+        }).catch(function (err) { mostrarError(err.message); });
+    }
+
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('[data-existencias], [data-ex-guardar]') : null;
+        if (!b || b.disabled) return;
+        if (b.hasAttribute('data-existencias')) { abrirExistencias(); return; }
+        var caja = b.closest('[data-sub-existencias]');
+        var cuentas = [];
+        caja.querySelectorAll('[data-ex-cuenta]:checked').forEach(function (c) { cuentas.push(c.getAttribute('data-ex-cuenta')); });
+        var valor = function (k) { var v = caja.querySelector('[data-ex="' + k + '"]').value.trim(); return v === '' ? null : Number(v); };
+        b.disabled = true;
+        enviar('existencias_guardar', { cuentas: cuentas, saldoInicial: valor('inicial'), saldoFinal: valor('final') })
+            .then(function (r) { caja.remove(); pintarRecuadro('R17', r); mostrarError('Existencias del 1409 guardadas.'); })
+            .catch(function (err) { b.disabled = false; caja.querySelector('[data-ex-error]').innerHTML = '<div class="cv-aviso-ok">' + esc(err.message) + '</div>'; });
     });
 
     // ---------- Informe de Renta Líquida Imponible (RLI) con agregados y deducidos ----------
@@ -1726,5 +1914,8 @@
     });
 })();
 </script>
+<script src="../assets/cifrax-14a.js?v=6"></script>
+<script src="../assets/cifrax-inicio.js?v=3"></script>
+<script src="../assets/cifrax-sii.js?v=6"></script>
 </body>
 </html>

@@ -1,0 +1,270 @@
+[
+ {
+  "codigo": "1600",
+  "signo": "+",
+  "seccion": "INGRESOS",
+  "glosa": "Ingresos del giro percibidos",
+  "r17": [
+   "1400"
+  ]
+ },
+ {
+  "codigo": "1819",
+  "signo": "+",
+  "seccion": "INGRESOS",
+  "glosa": "Ingresos del giro devengados en ejercicios anteriores y percibidos en el ejercicio actual",
+  "r17": [
+   "1817"
+  ]
+ },
+ {
+  "codigo": "1601",
+  "signo": "+",
+  "seccion": "INGRESOS",
+  "glosa": "Rentas de fuente extranjera percibidas",
+  "r17": [
+   "1401"
+  ]
+ },
+ {
+  "codigo": "1602",
+  "signo": "+",
+  "seccion": "INGRESOS",
+  "glosa": "Intereses y reajustes percibidos por préstamos y otros",
+  "r17": [
+   "1402"
+  ]
+ },
+ {
+  "codigo": "1603",
+  "signo": "+",
+  "seccion": "INGRESOS",
+  "glosa": "Mayor valor percibido por rescate o enajenación de inversiones o bienes no depreciables",
+  "r17": [
+   "1403"
+  ]
+ },
+ {
+  "codigo": "1604",
+  "signo": "+",
+  "seccion": "INGRESOS",
+  "glosa": "Dividendos o retiros percibidos en el ejercicio, por participaciones en otras empresas",
+  "r17": []
+ },
+ {
+  "codigo": "1605",
+  "signo": "+",
+  "seccion": "INGRESOS",
+  "glosa": "Incremento por IDPC",
+  "r17": []
+ },
+ {
+  "codigo": "1606",
+  "signo": "+",
+  "seccion": "INGRESOS",
+  "glosa": "Ingresos percibidos o devengados por operaciones con empresas relacionadas del art. 14 letra A) LIR",
+  "r17": [
+   "1587"
+  ]
+ },
+ {
+  "codigo": "1607",
+  "signo": "+",
+  "seccion": "INGRESOS",
+  "glosa": "Otros ingresos percibidos o devengados",
+  "r17": [
+   "1588"
+  ]
+ },
+ {
+  "codigo": "1608",
+  "signo": "+",
+  "seccion": "INGRESOS",
+  "glosa": "Ingreso diferido imputado en el ejercicio, debidamente incrementado y reajustado, cuando corresponda",
+  "r17": []
+ },
+ {
+  "codigo": "1609",
+  "signo": "+",
+  "seccion": "INGRESOS",
+  "glosa": "Crédito por activos fijos adquiridos en el ejercicio (art. 33 bis LIR)",
+  "r17": []
+ },
+ {
+  "codigo": "1610",
+  "signo": "=",
+  "seccion": "INGRESOS",
+  "glosa": "Total de ingresos anuales",
+  "r17": []
+ },
+ {
+  "codigo": "1611",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Gasto por saldo inicial de existencias o insumos del negocio en cambio de régimen, pagados",
+  "r17": []
+ },
+ {
+  "codigo": "1612",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Gasto por saldo inicial de activos fijos depreciables en cambio de régimen, pagados",
+  "r17": []
+ },
+ {
+  "codigo": "1613",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Gasto por pérdida tributaria en cambio de régimen",
+  "r17": []
+ },
+ {
+  "codigo": "1614",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Existencias, insumos y servicios del negocio, pagados",
+  "r17": [
+   "1409"
+  ]
+ },
+ {
+  "codigo": "1820",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Existencias, insumos y servicios del negocio adeudados en ejercicios anteriores y pagados en el ejercicio actual",
+  "r17": [
+   "1818"
+  ]
+ },
+ {
+  "codigo": "1615",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Gastos de rentas de fuente extranjera, pagados",
+  "r17": [
+   "1429"
+  ]
+ },
+ {
+  "codigo": "1616",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Remuneraciones pagadas",
+  "r17": [
+   "1411"
+  ]
+ },
+ {
+  "codigo": "1617",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Honorarios pagados",
+  "r17": [
+   "1412"
+  ]
+ },
+ {
+  "codigo": "1618",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Adquisición de bienes del activo fijo, pagados",
+  "r17": [
+   "1413"
+  ]
+ },
+ {
+  "codigo": "1620",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Arriendos pagados",
+  "r17": [
+   "1415"
+  ]
+ },
+ {
+  "codigo": "1621",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Gastos por exigencias medio ambientales, pagados",
+  "r17": [
+   "1416"
+  ]
+ },
+ {
+  "codigo": "1622",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Intereses y reajustes pagados por préstamos y otros",
+  "r17": [
+   "1419"
+  ]
+ },
+ {
+  "codigo": "1624",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Pérdida en rescate o enajenación de inversiones o bienes no depreciables",
+  "r17": [
+   "1423"
+  ]
+ },
+ {
+  "codigo": "1625",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Otros gastos deducibles de los ingresos",
+  "r17": [
+   "1424",
+   "1417",
+   "1418"
+  ]
+ },
+ {
+  "codigo": "1626",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Gastos o egresos pagados o adeudados por operaciones con empresas relacionadas del art. 14 letra A) LIR",
+  "r17": [
+   "1425"
+  ]
+ },
+ {
+  "codigo": "1627",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Pérdidas tributarias de ejercicios anteriores",
+  "r17": []
+ },
+ {
+  "codigo": "1628",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Créditos incobrables castigados en el ejercicio (reconocidos sobre ingresos devengados)",
+  "r17": [
+   "1427"
+  ]
+ },
+ {
+  "codigo": "1909",
+  "signo": "-",
+  "seccion": "EGRESOS",
+  "glosa": "Gastos aceptados por donaciones",
+  "r17": [
+   "1428"
+  ]
+ },
+ {
+  "codigo": "1629",
+  "signo": "=",
+  "seccion": "EGRESOS",
+  "glosa": "Total de egresos anuales",
+  "r17": []
+ },
+ {
+  "codigo": "1630",
+  "signo": "=",
+  "seccion": "RESULTADO",
+  "glosa": "Base imponible a asignar a propietarios que son contribuyentes de impuestos finales, o pérdida tributaria del ejercicio",
+  "r17": []
+ }
+]

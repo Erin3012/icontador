@@ -3,6 +3,8 @@
 //   GET  api/sii.php                 -> tareas de RCV recientes de la empresa elegida y si hay clave guardada
 //   POST api/sii.php  {tipo:"clave", clave} -> guarda (cifrada) la clave tributaria de la empresa; vacía la borra
 //   POST api/sii.php  {periodo, libros:["compras","ventas"]}  -> encola la descarga del RCV
+//   GET  api/sii.php?consulta=f22|ddjj&anio=AAAA    -> última consulta del SII de la empresa y su tarea
+//   POST api/sii.php  {tipo:"consulta", consulta:"f22"|"ddjj", anio}  -> encola la consulta (solo lectura)
 //   POST api/sii.php  {tipo:"datos_empresa", rut}             -> pide razón social y giro del RUT (no requiere empresa)
 //   GET  api/sii.php?tarea=ID        -> estado y datos de esa consulta (solo quien la pidió)
 //   GET  api/sii.php?agentes=1       -> PCs emparejados del usuario (sin tokens)
@@ -50,6 +52,13 @@ try {
         responder(200, ['agentes' => sii_agentes_listar($db, (int) $usuario['id'])]);
     }
     $empresa = empresa_actual($db);
+    if ($metodo === 'GET' && isset($_GET['consulta'])) {
+        responder(200, sii_consulta_estado($db, $empresa, (string) $_GET['consulta'], $_GET['anio'] ?? null));
+    }
+    if ($metodo === 'POST' && is_array($entrada) && ($entrada['tipo'] ?? '') === 'consulta') {
+        if (stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== 0) responder(415, ['error' => 'Se espera JSON.']);
+        responder(200, sii_crear_consulta($db, $empresa, (int) $usuario['id'], (string) ($entrada['consulta'] ?? ''), $entrada['anio'] ?? null));
+    }
     if ($metodo === 'GET') {
         responder(200, ['tareas' => sii_listar($db, $empresa), 'clave_guardada' => sii_clave_guardada($db, $empresa)]);
     }
