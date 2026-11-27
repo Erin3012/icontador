@@ -65,7 +65,7 @@ function inventario_agregar(PDO $pdo, int $empresa, array $item): array
         ':categoria' => $item['categoria'] ?? '',
         ':cantidad' => (int)($item['cantidad'] ?? 0),
         ':valor_unitario' => (int)($item['valor_unitario'] ?? 0),
-        ':fecha_ingreso' => $item['fecha_ingreso'] ?? null,
+        ':fecha_ingreso' => ($item['fecha_ingreso'] ?? '') !== '' ? $item['fecha_ingreso'] : null,
         ':ubicacion' => $item['ubicacion'] ?? '',
         ':observaciones' => $item['observaciones'] ?? '',
         ':creado_en' => $ahora,

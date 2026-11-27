@@ -21,6 +21,7 @@ function ctrib_schema(PDO $pdo): void
     $mysql = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
     $motor = $mysql ? ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4' : '';
     $id = $mysql ? 'INT AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
+    $snapshot = $mysql ? 'MEDIUMTEXT NULL' : 'TEXT NULL';
     // Cuentas de ajuste (CXC / CXP) de los códigos del R17 y sus saldos inicial y final escritos a mano.
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_ajuste_cuentas (
         empresa_id INT NOT NULL DEFAULT 0,
@@ -112,17 +113,22 @@ function ctrib_schema(PDO $pdo): void
         estado VARCHAR(12) NOT NULL DEFAULT 'BORRADOR',
         finalizado VARCHAR(25) NOT NULL DEFAULT '',
         usuario VARCHAR(120) NOT NULL DEFAULT '',
-        snapshot TEXT NULL,
+        snapshot $snapshot,
         PRIMARY KEY (empresa_id, anio, recuadro)
     )$motor");
-    // 'CIERRE' (el sello del año) tiene 6 letras. Amplía la columna en las bases MySQL creadas con 4 y recupera
-    // los sellos que un servidor sin modo estricto haya guardado recortados.
+    // 'CIERRE' (el sello del año) tiene 6 letras y los snapshots pueden superar 64 KB (TEXT en MySQL).
+    // Amplía las columnas en las bases MySQL anteriores y recupera sellos recortados sin modo estricto.
     if ($mysql) {
         $largo = $pdo->query("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS
             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ctrib_recuadros' AND COLUMN_NAME = 'recuadro'")->fetchColumn();
-        if ((int) $largo < 10) {
+        if ($largo !== false && (int) $largo < 10) {
             $pdo->exec('ALTER TABLE ctrib_recuadros MODIFY recuadro VARCHAR(10) NOT NULL');
             $pdo->exec("UPDATE ctrib_recuadros SET recuadro = 'CIERRE' WHERE recuadro = 'CIER'");
+        }
+        $tipoSnap = $pdo->query("SELECT DATA_TYPE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ctrib_recuadros' AND COLUMN_NAME = 'snapshot'")->fetchColumn();
+        if (strtolower((string) $tipoSnap) === 'text') {
+            $pdo->exec('ALTER TABLE ctrib_recuadros MODIFY snapshot MEDIUMTEXT NULL');
         }
     }
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_rtre_celdas (
@@ -178,11 +184,20 @@ function ctrib_schema(PDO $pdo): void
     )$motor");
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_empresa_config (
         empresa_id INT NOT NULL PRIMARY KEY,
-        tipo VARCHAR(12) NOT NULL DEFAULT '',
+        tipo VARCHAR(20) NOT NULL DEFAULT '',
         regimen VARCHAR(12) NOT NULL DEFAULT '',
         usuario VARCHAR(120) NOT NULL DEFAULT '',
         actualizado VARCHAR(25) NOT NULL
     )$motor");
+    // 'PERSONA_NATURAL' tiene 15 caracteres: amplía MySQL si se creó con VARCHAR(12) y recupera truncados.
+    if ($mysql) {
+        $largoTipo = $pdo->query("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ctrib_empresa_config' AND COLUMN_NAME = 'tipo'")->fetchColumn();
+        if ($largoTipo !== false && (int) $largoTipo < 20) {
+            $pdo->exec("ALTER TABLE ctrib_empresa_config MODIFY tipo VARCHAR(20) NOT NULL DEFAULT ''");
+            $pdo->exec("UPDATE ctrib_empresa_config SET tipo = 'PERSONA_NATURAL' WHERE tipo = 'PERSONA_NATU'");
+        }
+    }
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_retiros_config (
         empresa_id INT NOT NULL DEFAULT 0,
         anio INT NOT NULL,
@@ -332,7 +347,7 @@ function ctrib_registrar_historial(PDO $pdo, int $empresa, int $anio, string $en
     $pdo->prepare('INSERT INTO ctrib_historial (empresa_id, anio, entidad, referencia, antes, despues, motivo, usuario, creado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
         // Se recorta al tamaño de cada columna: MySQL en modo estricto rechaza los textos más largos.
         ->execute([$empresa, $anio, $entidad, mb_substr($referencia, 0, 100), mb_substr($antes, 0, 255), mb_substr($despues, 0, 255),
-            mb_substr($motivo, 0, 255), $usuario, ctrib_ahora()]);
+            mb_substr($motivo, 0, 255), mb_substr($usuario, 0, 120), ctrib_ahora()]);
 }
 
 function ctrib_historial_listar(PDO $pdo, int $empresa, int $anio, string $entidad = '', int $limite = 50): array
@@ -452,7 +467,7 @@ function ctrib_balance_guardar(PDO $pdo, int $empresa, int $anio, string $origen
         $pdo->prepare('DELETE FROM ctrib_balance_cuentas WHERE empresa_id = ? AND anio = ?')->execute([$empresa, $anio]);
         $pdo->prepare('DELETE FROM ctrib_balance WHERE empresa_id = ? AND anio = ?')->execute([$empresa, $anio]);
         $pdo->prepare('INSERT INTO ctrib_balance (empresa_id, anio, origen, archivo, importado, usuario) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([$empresa, $anio, $origen, $archivo, ctrib_ahora(), $usuario]);
+            ->execute([$empresa, $anio, $origen, mb_substr($archivo, 0, 255), ctrib_ahora(), mb_substr($usuario, 0, 120)]);
         $insertar = $pdo->prepare('INSERT INTO ctrib_balance_cuentas (empresa_id, anio, codigo, nombre, debitos, creditos) VALUES (?, ?, ?, ?, ?, ?)');
         foreach ($balance['cuentas'] as $c) {
             $insertar->execute([$empresa, $anio, $c['codigo'], $c['nombre'], $c['debitos'], $c['creditos']]);
@@ -982,7 +997,7 @@ function ctrib_asignaciones(PDO $pdo, int $empresa, int $anio): array
     $st->execute([$empresa, $anio]);
     $salida = [];
     foreach ($st as $f) {
-        $salida[$f['cuenta']] = $f['codigo'];
+        $salida[$f['cuenta']] = trim((string) $f['codigo']);
     }
     return $salida;
 }

@@ -19,12 +19,13 @@ class Notificaciones {
      * Crear tablas de esquema si no existen
      */
     public static function crearEsquema($db): void {
-        $mysql = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
-        $id = $mysql ? 'INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
-        $motor = $mysql ? ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4' : '';
+        if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $db->exec(file_get_contents(dirname(__DIR__) . '/schema/notificaciones.mysql.sql'));
+            return;
+        }
 
         $db->exec("CREATE TABLE IF NOT EXISTS alertas_configuracion (
-            id $id,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             empresa_id INT NOT NULL DEFAULT 0,
             tipo_alerta VARCHAR(50) NOT NULL DEFAULT '',
             descripcion VARCHAR(255),
@@ -34,13 +35,13 @@ class Notificaciones {
             frecuencia VARCHAR(20) NOT NULL DEFAULT 'inmediata',
             canal_notificacion VARCHAR(50) NOT NULL DEFAULT 'email',
             creado_en VARCHAR(25) NOT NULL,
-            actualizado_en VARCHAR(25) NOT NULL,
-            KEY idx_alertas_empresa (empresa_id),
-            KEY idx_alertas_tipo (tipo_alerta)
-        )$motor");
+            actualizado_en VARCHAR(25) NOT NULL
+        )");
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_alertas_empresa ON alertas_configuracion (empresa_id)');
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_alertas_tipo ON alertas_configuracion (tipo_alerta)');
 
         $db->exec("CREATE TABLE IF NOT EXISTS notificaciones (
-            id $id,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             empresa_id INT NOT NULL DEFAULT 0,
             usuario_id INT,
             tipo_notificacion VARCHAR(50) NOT NULL DEFAULT '',
@@ -51,14 +52,14 @@ class Notificaciones {
             fecha_enviada VARCHAR(25),
             fecha_leida VARCHAR(25),
             canal VARCHAR(50) NOT NULL DEFAULT 'sistema',
-            creado_en VARCHAR(25) NOT NULL,
-            KEY idx_notificaciones_usuario (usuario_id),
-            KEY idx_notificaciones_empresa_estado (empresa_id, estado),
-            KEY idx_notificaciones_fecha (creado_en)
-        )$motor");
+            creado_en VARCHAR(25) NOT NULL
+        )");
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_notificaciones_usuario ON notificaciones (usuario_id)');
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_notificaciones_empresa_estado ON notificaciones (empresa_id, estado)');
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_notificaciones_fecha ON notificaciones (creado_en)');
 
         $db->exec("CREATE TABLE IF NOT EXISTS preferencias_notificacion (
-            id $id,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             usuario_id INT NOT NULL,
             empresa_id INT NOT NULL DEFAULT 0,
             notificaciones_email BOOLEAN NOT NULL DEFAULT 1,
@@ -68,8 +69,8 @@ class Notificaciones {
             alertas_criticas BOOLEAN NOT NULL DEFAULT 1,
             alertas_advertencia BOOLEAN NOT NULL DEFAULT 1,
             actualizado_en VARCHAR(25) NOT NULL,
-            KEY idx_preferencias_usuario (usuario_id)
-        )$motor");
+            UNIQUE (usuario_id, empresa_id)
+        )");
     }
 
     /**
@@ -95,7 +96,7 @@ class Notificaciones {
             $creado_en,
         ]);
 
-        return $this->db->lastInsertId();
+        return (int) $this->db->lastInsertId();
     }
 
     /**
@@ -103,14 +104,15 @@ class Notificaciones {
      */
     public function obtenerNotificacionesPendientes($usuarioId): array {
         try {
-            $result = $this->db->query(
+            $stmt = $this->db->prepare(
                 "SELECT id, tipo_notificacion, titulo, mensaje, creado_en, datos_json
                  FROM notificaciones
                  WHERE empresa_id = ? AND usuario_id = ? AND estado = 'pendiente'
                  ORDER BY creado_en DESC
-                 LIMIT 20",
-                [$this->empresa_id, $usuarioId]
-            )->fetchAll();
+                 LIMIT 20"
+            );
+            $stmt->execute([$this->empresa_id, $usuarioId]);
+            $result = $stmt->fetchAll();
 
             return $result ?: [];
         } catch (Exception $e) {
@@ -161,7 +163,7 @@ class Notificaciones {
             $creado_en,
         ]);
 
-        return $this->db->lastInsertId();
+        return (int) $this->db->lastInsertId();
     }
 
     /**
@@ -248,11 +250,12 @@ class Notificaciones {
      */
     public function obtenerPreferencias($usuarioId): array {
         try {
-            $result = $this->db->query(
+            $stmt = $this->db->prepare(
                 "SELECT * FROM preferencias_notificacion 
-                 WHERE usuario_id = ? AND empresa_id = ?",
-                [$usuarioId, $this->empresa_id]
-            )->fetch();
+                 WHERE usuario_id = ? AND empresa_id = ?"
+            );
+            $stmt->execute([$usuarioId, $this->empresa_id]);
+            $result = $stmt->fetch();
 
             return $result ?: [
                 'notificaciones_email' => true,

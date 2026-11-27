@@ -29,7 +29,7 @@ function ctrib_valores_manuales(PDO $pdo, int $empresa, int $anio, string $recua
     $st->execute([$empresa, $anio, $recuadro]);
     $salida = [];
     foreach ($st as $f) {
-        $salida[(string) $f['codigo']] = (int) $f['monto'];
+        $salida[trim((string) $f['codigo'])] = (int) $f['monto'];
     }
     return $salida;
 }

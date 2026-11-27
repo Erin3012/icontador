@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS ctrib_recuadros (
     estado VARCHAR(12) NOT NULL DEFAULT 'BORRADOR',
     finalizado VARCHAR(25) NOT NULL DEFAULT '',
     usuario VARCHAR(120) NOT NULL DEFAULT '',
-    snapshot TEXT NULL,
+    snapshot MEDIUMTEXT NULL,
     PRIMARY KEY (empresa_id, anio, recuadro)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -99,6 +99,14 @@ CREATE TABLE IF NOT EXISTS ctrib_cpt_maestro (
     PRIMARY KEY (empresa_id, cuenta)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS ctrib_ifrs_cuentas (
+    empresa_id INT NOT NULL DEFAULT 0,
+    anio INT NOT NULL,
+    cuenta VARCHAR(20) NOT NULL,
+    codigo_ifrs VARCHAR(20) NOT NULL,
+    PRIMARY KEY (empresa_id, anio, cuenta)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS ctrib_incentivo (
     empresa_id INT NOT NULL DEFAULT 0,
     anio INT NOT NULL,
@@ -113,7 +121,7 @@ CREATE TABLE IF NOT EXISTS ctrib_incentivo (
 
 CREATE TABLE IF NOT EXISTS ctrib_empresa_config (
     empresa_id INT NOT NULL PRIMARY KEY,
-    tipo VARCHAR(12) NOT NULL DEFAULT '',
+    tipo VARCHAR(20) NOT NULL DEFAULT '',
     regimen VARCHAR(12) NOT NULL DEFAULT '',
     usuario VARCHAR(120) NOT NULL DEFAULT '',
     actualizado VARCHAR(25) NOT NULL
