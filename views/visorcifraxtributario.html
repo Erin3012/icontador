@@ -39,7 +39,7 @@
         </div>
         <div class="cv-campo">
             <label>Régimen</label>
-            <strong>Pro Pyme General (Art. 14 D N°3)</strong>
+            <strong id="cf-regimen">—</strong>
         </div>
         <div class="cv-campo">
             <label>Año comercial</label>
@@ -54,8 +54,6 @@
 
     <div class="cv-contenido">
     <main class="cf-contenido">
-        <div class="cf-aviso">Maqueta visual con datos de ejemplo. Los botones se conectan en la siguiente fase.</div>
-
         <!-- Inicio: tareas de declaracion (diseño de la pantalla de referencia) -->
         <section class="cf-panel activo" id="p-home">
             <div class="cv-tabs">
@@ -201,6 +199,7 @@
 
         <section class="cf-panel" id="p-f22">
             <h2 class="cf-titulo">Formulario 22</h2>
+            <div class="cf-aviso">Datos de ejemplo: la consulta al SII todavía no está conectada.</div>
             <p class="cf-descripcion">Estado de la renta de tus empresas activas en el SII, para el año tributario elegido.</p>
             <div class="cf-barra">
                 <div class="cf-campo">
@@ -241,6 +240,7 @@
         <!-- Consultas SII: DDJJ (maqueta) -->
         <section class="cf-panel" id="p-ddjj">
             <h2 class="cf-titulo">Declaraciones Juradas</h2>
+            <div class="cf-aviso">Datos de ejemplo: la consulta al SII todavía no está conectada.</div>
             <p class="cf-descripcion">Declaraciones juradas presentadas por tus empresas activas en el SII, para el año tributario elegido. Se consulta una empresa a la vez y de ella todas sus DJ.</p>
             <div class="cf-barra">
                 <div class="cf-campo">
@@ -302,6 +302,7 @@
                     </div>
                     <button class="cf-boton" data-cerrar="1" aria-label="Cerrar">×</button>
                 </div>
+                <div class="cf-aviso">Datos de ejemplo: la consulta al SII todavía no está conectada.</div>
                 <p><span class="cf-listo cf-estado">Aceptada</span> con devolución $3.621.300</p>
                 <div class="cf-cifras cf-cifras-2">
                     <div class="cf-cifra"><span>Folio</span><strong>9300125587</strong></div>
@@ -648,7 +649,8 @@
     var empresaActiva = null;
     try { empresaActiva = JSON.parse(localStorage.getItem('icontador.empresaSeleccionada') || 'null'); } catch (e) { empresaActiva = null; }
     var empresaId = new URLSearchParams(window.location.search).get('empresa_id') || (empresaActiva && empresaActiva.id) || '';
-    var anio = 2026; // año tributario
+    var selectorAnio = document.getElementById('cf-anio');
+    var anio = Number(selectorAnio.value) || new Date().getFullYear(); // año tributario elegido arriba
     var recuadroActual = null; // 'R17' o 'R19' cuando la ventana muestra un recuadro
 
     function esc(s) {
@@ -839,10 +841,7 @@
         if (clave === 'R17') r17Actual = r;
         titulo.textContent = titulosRecuadro[clave] || clave;
         sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
-        var estadoHtml = r.estado === 'FINALIZADO'
-            ? '<span class="cv-pill cv-disp">Finalizado</span>'
-            : (r.desactualizado ? '<span class="cv-pill cv-borr">Desactualizado</span>' : '<span class="cv-pill cv-borr">Borrador</span>');
-        acc.innerHTML = estadoHtml + ' ' +
+        acc.innerHTML = estadoPill(r) + ' ' +
             (r.estado === 'FINALIZADO'
                 ? '<button type="button" class="cv-btn-pdf" data-reabrir>Reabrir</button>'
                 : '<button type="button" class="cv-btn-fin" data-fin' + (r.puedeFinalizar ? '' : ' disabled') + '>Finalizar declaración</button>') +
@@ -850,7 +849,7 @@
 
         var html = '';
         (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
-        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: finalícelo nuevamente para actualizar el snapshot.</div>';
+        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: reábralo y finalícelo nuevamente.</div>';
         html += '<table class="cv-modal-tabla"><thead><tr><th>Concepto</th><th class="num">Código</th><th class="num">Valor</th><th>Origen</th></tr></thead><tbody>';
         var seccionPrevia = null;
         r.lineas.forEach(function (l) {
@@ -901,9 +900,8 @@
     };
 
     function estadoPill(r) {
-        return r.estado === 'FINALIZADO'
-            ? '<span class="cv-pill cv-disp">Finalizado</span>'
-            : (r.desactualizado ? '<span class="cv-pill cv-borr">Desactualizado</span>' : '<span class="cv-pill cv-borr">Borrador</span>');
+        if (r.desactualizado) return '<span class="cv-pill cv-borr">Desactualizado</span>';
+        return r.estado === 'FINALIZADO' ? '<span class="cv-pill cv-disp">Finalizado</span>' : '<span class="cv-pill cv-borr">Borrador</span>';
     }
 
     // RTRE como en iTributario: tarjetas (RAI final, REX final, SAC disponible, retiros), botones R20 y R21 que abren
@@ -941,7 +939,7 @@
 
         var html = '';
         (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
-        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: finalícelo nuevamente.</div>';
+        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: reábralo y finalícelo nuevamente.</div>';
         html += '<table class="cv-modal-tabla cv-rtre-tabla"><thead><tr><th>Movimiento</th>' + GRUPOS_RTRE.map(function (g) { return '<th class="num">' + g + '</th>'; }).join('') + '</tr></thead><tbody>';
         r.secciones.secciones.forEach(function (s) {
             var cerrada = !!seccionesCerradas[s.bloque];
@@ -1444,15 +1442,40 @@
     function estadoRecuadro(clave, r) {
         if (!r) return;
         var fin = r.estado === 'FINALIZADO';
-        ponerEstado('.cv-fila[data-abrir="' + clave + '"] .cv-estado', fin ? 'FINALIZADO' : 'EN PROCESO', fin ? 'ok' : 'proceso');
+        ponerEstado('.cv-fila[data-abrir="' + clave + '"] .cv-estado', r.desactualizado ? 'DESACTUALIZADO' : (fin ? 'FINALIZADO' : 'EN PROCESO'),
+            r.desactualizado ? 'pend' : (fin ? 'ok' : 'proceso'));
+    }
+    // Etiquetas de la pestaña Reportes según los datos del año (antes eran fijas).
+    function ponerPildora(codigo, texto, clase) {
+        document.querySelectorAll('.cv-rep').forEach(function (fila) {
+            var cod = fila.querySelector('.cv-cod');
+            var pildora = fila.querySelector('.cv-pill');
+            if (!cod || !pildora || cod.textContent.trim() !== codigo) return;
+            pildora.textContent = texto;
+            pildora.className = 'cv-pill ' + clase;
+        });
+    }
+    var CODIGOS_REPORTE = ['Balance', 'Homol.', 'Retiros', 'RLI', 'CPT', 'R4', 'R6', 'R17', 'R19', 'R18', 'R20', 'R21', 'RTRE', 'DJ 1948'];
+    function reporteDisponible(codigos, hay) {
+        codigos.forEach(function (c) { ponerPildora(c, hay ? 'Disponible' : 'Sin datos', hay ? 'cv-disp' : 'cv-sin'); });
+    }
+    function reporteRecuadro(codigos, r) {
+        var texto = !r ? 'Sin datos' : (r.desactualizado ? 'Desactualizado' : (r.estado === 'FINALIZADO' ? 'Finalizado' : 'Borrador'));
+        var clase = !r ? 'cv-sin' : (texto === 'Finalizado' ? 'cv-disp' : 'cv-borr');
+        codigos.forEach(function (c) { ponerPildora(c, texto, clase); });
     }
     function nada() { return null; }
     function actualizarInicio() {
+        var anioPedido = anio;
         Promise.all([
             pedir('r17').catch(nada), pedir('r19').catch(nada), pedir('homologacion').catch(nada), pedir('r20').catch(nada),
             pedir('balance').catch(nada), pedir('retiros').catch(nada), pedir('cierre').catch(nada), pedir('r4').catch(nada), pedir('r6').catch(nada),
-            pedir('dj1948').catch(nada)
+            pedir('dj1948').catch(nada), pedir('empresa').catch(nada)
         ]).then(function (res) {
+            if (anioPedido !== anio) return; // se cambió de año mientras llegaba la respuesta
+            var ficha = res[10];
+            var regimen = document.getElementById('cf-regimen');
+            if (regimen) regimen.textContent = !ficha ? '—' : (ficha.regimen ? ficha.regimenTexto : 'Sin configurar');
             // DJ 1948: completada con el RTRE finalizado y todos los socios con certificado (o sin retiros en el año).
             var dj = res[9];
             if (dj) {
@@ -1466,6 +1489,12 @@
             estadoRecuadro('R20', res[3]);
             estadoRecuadro('R4', res[7]);
             estadoRecuadro('R6', res[8]);
+            reporteRecuadro(['R17'], res[0]);
+            reporteRecuadro(['R19'], res[1]);
+            reporteRecuadro(['R18', 'R20', 'R21', 'RTRE'], res[3]);
+            reporteRecuadro(['R4'], res[7]);
+            reporteRecuadro(['R6'], res[8]);
+            ponerPildora('DJ 1948', !dj ? 'Sin datos' : (dj.paso1.listo ? 'Disponible' : 'Borrador'), !dj ? 'cv-sin' : (dj.paso1.listo ? 'cv-disp' : 'cv-borr'));
             if (res[2]) {
                 var pendiente = res[2].pendientes > 0 || res[2].alertas > 0;
                 ponerEstado('.cv-fila[data-abrir="HOM"] .cv-estado', pendiente ? 'PENDIENTE' : 'AL DÍA', pendiente ? 'pend' : 'ok');
@@ -1474,6 +1503,8 @@
             ponerEstado('.cv-fila[data-estado="balance"] .cv-estado', hayBalance ? 'COMPLETADO' : 'PENDIENTE', hayBalance ? 'ok' : 'pend');
             var hayRetiros = !!(res[5] && (res[5].modo === 'sin_retiros' || (res[5].retiros && res[5].retiros.length)));
             ponerEstado('.cv-fila[data-estado="retiros"] .cv-estado', hayRetiros ? 'COMPLETADO' : 'PENDIENTE', hayRetiros ? 'ok' : 'pend');
+            reporteDisponible(['Balance', 'Homol.', 'RLI', 'CPT'], hayBalance);
+            reporteDisponible(['Retiros'], hayRetiros);
             var c = res[6];
             if (c) {
                 var nombres = {};
@@ -1487,6 +1518,22 @@
             }
         });
     }
+    function marcarCargando() {
+        CODIGOS_REPORTE.forEach(function (c) { ponerPildora(c, 'Cargando', 'cv-sin'); });
+        ['.cv-fila[data-abrir] .cv-estado', '.cv-fila[data-estado] .cv-estado'].forEach(function (s) {
+            document.querySelectorAll(s).forEach(function (e) {
+                if (e.textContent.trim() !== '—') { e.textContent = 'CARGANDO'; e.className = 'cv-estado proceso'; }
+            });
+        });
+        document.querySelectorAll('[data-cierre-texto]').forEach(function (p) { p.textContent = 'Revisando el estado de los recuadros…'; });
+    }
+    selectorAnio.addEventListener('change', function () {
+        anio = Number(selectorAnio.value);
+        recuadroActual = null;
+        marcarCargando();
+        actualizarInicio();
+    });
+    CODIGOS_REPORTE.forEach(function (c) { ponerPildora(c, 'Cargando', 'cv-sin'); });
     actualizarInicio();
     new MutationObserver(function () { if (modal.hidden) actualizarInicio(); }).observe(modal, { attributes: true, attributeFilter: ['hidden'] });
 
