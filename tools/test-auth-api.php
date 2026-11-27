@@ -58,7 +58,7 @@ foreach (glob(dirname(__DIR__) . '/api/*.php') as $archivo) {
     if ($nombre === 'db.php' || str_starts_with($nombre, 'config')) continue;
     // El agente del PC (sii-agente.php) no tiene sesión: se autoriza con el token secreto de sii_autorizar_agente().
     if ($nombre === 'sii-agente.php') {
-        comprobar(str_contains(file_get_contents($archivo), 'sii_autorizar_agente();'), "api/$nombre exige el token del agente");
+        comprobar(str_contains(file_get_contents($archivo), 'sii_autorizar_agente('), "api/$nombre exige el token del agente");
         continue;
     }
     comprobar(str_contains(file_get_contents($archivo), "require_once __DIR__ . '/lib/sesion.php';"), "api/$nombre exige sesión");

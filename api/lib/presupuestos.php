@@ -32,7 +32,7 @@ class Presupuestos {
             anio INT NOT NULL,
             mes INT NULL,
             estado VARCHAR(20) NOT NULL DEFAULT 'activo',
-            descripcion TEXT NOT NULL DEFAULT '',
+            descripcion TEXT NULL,
             creado_en VARCHAR(25) NOT NULL,
             actualizado_en VARCHAR(25) NOT NULL,
             KEY idx_presupuestos_empresa (empresa_id),

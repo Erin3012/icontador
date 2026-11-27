@@ -6,6 +6,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/lib/sesion.php';
 require __DIR__ . '/db.php';
+require_once __DIR__ . '/lib/empresas.php';
 require __DIR__ . '/lib/inventario.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -57,6 +58,6 @@ try {
 } catch (EmpresaError $e) {
     responder(403, ['error' => $e->getMessage()]);
 } catch (Throwable $e) {
-    error_log($e);
+    error_log('inventario.php: ' . $e->getMessage());
     responder(500, ['error' => 'Error del servidor.']);
 }

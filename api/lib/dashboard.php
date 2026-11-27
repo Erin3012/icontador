@@ -170,21 +170,24 @@ class Dashboard {
     private function obtenerFlujoMensual($meses = 6) {
         try {
             $meses = max(1, min($meses, 24)); // 1-24 meses
+            $mysql = $this->db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $fmtMes = $mysql ? "DATE_FORMAT(v.fecha, '%Y-%m')" : "strftime('%Y-%m', v.fecha)";
+            $desde = date('Y-m-d', strtotime("-{$meses} months"));
 
             $result = $this->db->query(
                 "SELECT
-                    DATE_FORMAT(v.fecha, '%Y-%m') as mes,
+                    $fmtMes as mes,
                     SUM(CASE WHEN v.tipo='Ingreso' THEN vl.monto ELSE 0 END) as ingresos,
                     SUM(CASE WHEN v.tipo='Egreso' THEN vl.monto ELSE 0 END) as egresos,
                     SUM(CASE WHEN v.tipo='Ingreso' THEN vl.monto ELSE -vl.monto END) as neto
                 FROM vouchers v
                 JOIN voucher_lineas vl ON v.id = vl.voucher_id
                 WHERE v.empresa_id = ?
-                AND v.fecha >= DATE_SUB(NOW(), INTERVAL ? MONTH)
+                AND v.fecha >= ?
                 AND v.estado = 'registrado'
-                GROUP BY DATE_FORMAT(v.fecha, '%Y-%m')
+                GROUP BY $fmtMes
                 ORDER BY v.fecha",
-                [$this->empresa_id, $meses]
+                [$this->empresa_id, $desde]
             )->fetchAll();
 
             return $result ?: [];
