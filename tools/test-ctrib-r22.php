@@ -98,7 +98,7 @@ $i = ctrib_inicio($pdo, $e, 2026);
 check($i['propio'] && $i['regimen'] === '14D8' && !$i['vistaPrevia'] && $i['cierre'] !== null, 'inicio propio del 14 D N° 8');
 $codigos = [];
 foreach ($i['grupos'] as $g) foreach ($g['filas'] as $f) if ($f['codigo'] !== '') $codigos[] = $f['codigo'];
-check($codigos === ['R4', 'R6', 'R22', 'R23', 'DJ 1947'], 'recuadros y declaración que corresponden');
+check($codigos === ['R4', 'R6', 'R22', 'R23', 'F22', 'DJ 1947'], 'recuadros y declaración que corresponden');
 $previa = ctrib_inicio($pdo, $e, 2026, '14D3');
 check($previa['vistaPrevia'] && $previa['regimen'] === '14D3' && $previa['regimenGuardado'] === '14D8' && $previa['cierre'] === null, 'vista previa de otro régimen sin guardarlo');
 check(array_column(ctrib_cierre($pdo, $e, 2026)['recuadros'], 'codigo') === ['R4', 'R6', 'R22', 'R23'], 'el cierre exige los recuadros del régimen');

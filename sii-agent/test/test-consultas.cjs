@@ -7,6 +7,7 @@ const { crearServidor } = require('../src/api');
 
 // 1. Estados del F22 según la frase del SII ("no presenta diferencias" es aceptada).
 assert.equal(estadoF22('Tu declaración de Renta no presenta diferencias ... el SII la ha aceptado.'), 'Aceptada');
+assert.equal(estadoF22('El Servicio de Impuestos Internos autorizó a la Tesorería General de la República la devolución total solicitada por $8.056.616.'), 'Aceptada');
 assert.equal(estadoF22('Tu declaración presenta diferencias con la información del SII.'), 'Con inconsistencia');
 assert.equal(estadoF22('Su declaración ha sido observada.'), 'Con inconsistencia');
 assert.equal(estadoF22('Tu devolución se encuentra retenida.'), 'Devolución retenida');
@@ -45,6 +46,7 @@ assert.deepEqual(parsearDdjj(2026, conMotivo).declaraciones[0].observaciones, []
 assert.deepEqual(dj.declaraciones.map((d) => d.presentada), ['11/02/2026', '29/03/2026 22:08']);
 assert.equal(dj.declaraciones[0].medio, 'Formulario Electrónico');
 assert.equal(parsearDdjj(2026, { data: [detalle.data[0]] }).estado, 'Todas aceptadas');
+assert.equal(parsearDdjj(2026, { data: [detalle.data[0], { dj: 1887, titulo: 'Sueldos', result: [{ estado: 'Anulada', folio: 99 }] }] }).estado, 'Todas aceptadas');
 assert.equal(parsearDdjj(2026, { data: [] }).estado, 'Sin DJ presentadas');
 assert.equal(fechaHora('29/04/2026'), '29/04/2026');
 assert.equal(limpiar('  a   &#243; b '), 'a ó b');

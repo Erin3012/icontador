@@ -19,12 +19,13 @@ class CRM {
      * Crear tablas de esquema si no existen
      */
     public static function crearEsquema($db): void {
-        $mysql = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
-        $id = $mysql ? 'INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
-        $motor = $mysql ? ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4' : '';
+        if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $db->exec(file_get_contents(dirname(__DIR__) . '/schema/crm.mysql.sql'));
+            return;
+        }
 
         $db->exec("CREATE TABLE IF NOT EXISTS crm_contactos (
-            id $id,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             empresa_id INT NOT NULL DEFAULT 0,
             tipo VARCHAR(20) NOT NULL DEFAULT 'cliente',
             nombre VARCHAR(255) NOT NULL DEFAULT '',
@@ -46,15 +47,14 @@ class CRM {
             notas TEXT,
             creado_en VARCHAR(25) NOT NULL,
             actualizado_en VARCHAR(25) NOT NULL,
-            KEY idx_crm_empresa_tipo (empresa_id, tipo),
-            KEY idx_crm_empresa_estado (empresa_id, estado),
-            KEY idx_crm_ultima_interaccion (ultima_interaccion),
-            KEY idx_crm_proximo_seguimiento (proximo_seguimiento)
-        )$motor");
+            UNIQUE (empresa_id, email)
+        )");
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_crm_empresa_tipo ON crm_contactos (empresa_id, tipo)');
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_crm_empresa_estado ON crm_contactos (empresa_id, estado)');
 
         $db->exec("CREATE TABLE IF NOT EXISTS crm_interacciones (
-            id $id,
-            contacto_id INT UNSIGNED NOT NULL,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            contacto_id INTEGER NOT NULL,
             empresa_id INT NOT NULL DEFAULT 0,
             tipo_interaccion VARCHAR(50) NOT NULL DEFAULT 'llamada',
             descripcion TEXT,
@@ -65,13 +65,14 @@ class CRM {
             proxima_accion VARCHAR(255),
             proximafecha_seguimiento DATE,
             creado_en VARCHAR(25) NOT NULL,
-            KEY idx_interacciones_contacto (contacto_id),
-            KEY idx_interacciones_empresa_fecha (empresa_id, fecha_interaccion)
-        )$motor");
+            FOREIGN KEY (contacto_id) REFERENCES crm_contactos(id) ON DELETE CASCADE
+        )");
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_interacciones_contacto ON crm_interacciones (contacto_id)');
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_interacciones_empresa_fecha ON crm_interacciones (empresa_id, fecha_interaccion)');
 
         $db->exec("CREATE TABLE IF NOT EXISTS crm_oportunidades (
-            id $id,
-            contacto_id INT UNSIGNED NOT NULL,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            contacto_id INTEGER NOT NULL,
             empresa_id INT NOT NULL DEFAULT 0,
             nombre VARCHAR(255) NOT NULL DEFAULT '',
             descripcion TEXT,
@@ -85,14 +86,14 @@ class CRM {
             motivo_cierre VARCHAR(255),
             creado_en VARCHAR(25) NOT NULL,
             actualizado_en VARCHAR(25) NOT NULL,
-            KEY idx_oportunidades_contacto (contacto_id),
-            KEY idx_oportunidades_empresa_etapa (empresa_id, etapa),
-            KEY idx_oportunidades_estado (estado)
-        )$motor");
+            FOREIGN KEY (contacto_id) REFERENCES crm_contactos(id) ON DELETE CASCADE
+        )");
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_oportunidades_contacto ON crm_oportunidades (contacto_id)');
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_oportunidades_empresa_etapa ON crm_oportunidades (empresa_id, etapa)');
 
         $db->exec("CREATE TABLE IF NOT EXISTS crm_tareas (
-            id $id,
-            contacto_id INT UNSIGNED NOT NULL,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            contacto_id INTEGER NOT NULL,
             empresa_id INT NOT NULL DEFAULT 0,
             descripcion TEXT NOT NULL,
             tipo_tarea VARCHAR(50) NOT NULL DEFAULT 'seguimiento',
@@ -102,10 +103,10 @@ class CRM {
             usuario_asignado INT,
             completada_en VARCHAR(25),
             creado_en VARCHAR(25) NOT NULL,
-            KEY idx_tareas_contacto (contacto_id),
-            KEY idx_tareas_empresa_estado (empresa_id, estado),
-            KEY idx_tareas_fecha_vencimiento (fecha_vencimiento)
-        )$motor");
+            FOREIGN KEY (contacto_id) REFERENCES crm_contactos(id) ON DELETE CASCADE
+        )");
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_tareas_contacto ON crm_tareas (contacto_id)');
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_tareas_empresa_estado ON crm_tareas (empresa_id, estado)');
     }
 
     /**
@@ -131,7 +132,7 @@ class CRM {
             $creado_en,
         ]);
 
-        return $this->db->lastInsertId();
+        return (int) $this->db->lastInsertId();
     }
 
     /**
@@ -139,14 +140,15 @@ class CRM {
      */
     public function listarContactos($tipo = 'cliente', $estado = 'activo'): array {
         try {
-            $result = $this->db->query(
+            $stmt = $this->db->prepare(
                 "SELECT id, nombre, email, telefono, empresa, cargo, tipo, estado, 
                         categoria, probabilidad_compra, monto_estimado, ultima_interaccion, proximo_seguimiento
                  FROM crm_contactos
                  WHERE empresa_id = ? AND tipo = ? AND estado = ?
-                 ORDER BY ultima_interaccion DESC NULLS LAST",
-                [$this->empresa_id, $tipo, $estado]
-            )->fetchAll();
+                 ORDER BY (ultima_interaccion IS NULL), ultima_interaccion DESC"
+            );
+            $stmt->execute([$this->empresa_id, $tipo, $estado]);
+            $result = $stmt->fetchAll();
 
             return $result ?: [];
         } catch (Exception $e) {
@@ -163,7 +165,7 @@ class CRM {
         $stmt = $this->db->prepare(
             "INSERT INTO crm_interacciones
              (contacto_id, empresa_id, tipo_interaccion, descripcion, resultado, duracion_minutos, fecha_interaccion, creado_en)
-             VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)"
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
 
         $stmt->execute([
@@ -174,14 +176,15 @@ class CRM {
             $resultado,
             $duracion,
             $creado_en,
+            $creado_en,
         ]);
 
         // Actualizar última interacción en contacto
         $this->db->prepare(
-            "UPDATE crm_contactos SET ultima_interaccion = CURDATE(), actualizado_en = ? WHERE id = ? AND empresa_id = ?"
-        )->execute([date('Y-m-d H:i:s'), $contactoId, $this->empresa_id]);
+            "UPDATE crm_contactos SET ultima_interaccion = ?, actualizado_en = ? WHERE id = ? AND empresa_id = ?"
+        )->execute([date('Y-m-d'), date('Y-m-d H:i:s'), $contactoId, $this->empresa_id]);
 
-        return $this->db->lastInsertId();
+        return (int) $this->db->lastInsertId();
     }
 
     /**
@@ -207,7 +210,7 @@ class CRM {
             $creado_en,
         ]);
 
-        return $this->db->lastInsertId();
+        return (int) $this->db->lastInsertId();
     }
 
     /**
@@ -215,15 +218,16 @@ class CRM {
      */
     public function obtenerOportunidadesAbiertas(): array {
         try {
-            $result = $this->db->query(
+            $stmt = $this->db->prepare(
                 "SELECT o.id, o.nombre, o.monto_estimado, o.probabilidad, o.etapa, o.fecha_cierre_estimada,
                         c.nombre as contacto_nombre, c.email, c.telefono
                  FROM crm_oportunidades o
                  JOIN crm_contactos c ON o.contacto_id = c.id
                  WHERE o.empresa_id = ? AND o.estado = 'abierta'
-                 ORDER BY o.fecha_cierre_estimada ASC",
-                [$this->empresa_id]
-            )->fetchAll();
+                 ORDER BY o.fecha_cierre_estimada ASC"
+            );
+            $stmt->execute([$this->empresa_id]);
+            $result = $stmt->fetchAll();
 
             foreach ($result as &$oportunidad) {
                 $oportunidad['valor_esperado'] = (int)($oportunidad['monto_estimado'] * ($oportunidad['probabilidad'] / 100));
@@ -240,15 +244,16 @@ class CRM {
      */
     public function obtenerTareasPendientes(): array {
         try {
-            $result = $this->db->query(
+            $stmt = $this->db->prepare(
                 "SELECT t.id, t.descripcion, t.prioridad, t.fecha_vencimiento,
                         c.nombre as contacto_nombre, c.email
                  FROM crm_tareas t
                  JOIN crm_contactos c ON t.contacto_id = c.id
                  WHERE t.empresa_id = ? AND t.estado = 'pendiente'
-                 ORDER BY t.prioridad DESC, t.fecha_vencimiento ASC",
-                [$this->empresa_id]
-            )->fetchAll();
+                 ORDER BY t.prioridad DESC, t.fecha_vencimiento ASC"
+            );
+            $stmt->execute([$this->empresa_id]);
+            $result = $stmt->fetchAll();
 
             return $result ?: [];
         } catch (Exception $e) {
@@ -261,29 +266,33 @@ class CRM {
      */
     public function obtenerDashboard(): array {
         try {
-            $clientes = $this->db->query(
-                "SELECT COUNT(*) as total FROM crm_contactos WHERE empresa_id = ? AND tipo = 'cliente' AND estado = 'activo'",
-                [$this->empresa_id]
-            )->fetch();
+            $stmtClientes = $this->db->prepare(
+                "SELECT COUNT(*) as total FROM crm_contactos WHERE empresa_id = ? AND tipo = 'cliente' AND estado = 'activo'"
+            );
+            $stmtClientes->execute([$this->empresa_id]);
+            $clientes = $stmtClientes->fetch();
 
-            $oportunidades = $this->db->query(
+            $stmtOp = $this->db->prepare(
                 "SELECT COUNT(*) as total, SUM(monto_estimado * probabilidad / 100) as valor_esperado 
                  FROM crm_oportunidades 
-                 WHERE empresa_id = ? AND estado = 'abierta'",
-                [$this->empresa_id]
-            )->fetch();
+                 WHERE empresa_id = ? AND estado = 'abierta'"
+            );
+            $stmtOp->execute([$this->empresa_id]);
+            $oportunidades = $stmtOp->fetch();
 
-            $interacciones = $this->db->query(
+            $stmtInt = $this->db->prepare(
                 "SELECT COUNT(*) as total FROM crm_interacciones 
-                 WHERE empresa_id = ? AND DATE(fecha_interaccion) = CURDATE()",
-                [$this->empresa_id]
-            )->fetch();
+                 WHERE empresa_id = ? AND DATE(fecha_interaccion) = ?"
+            );
+            $stmtInt->execute([$this->empresa_id, date('Y-m-d')]);
+            $interacciones = $stmtInt->fetch();
 
-            $tareas = $this->db->query(
+            $stmtTar = $this->db->prepare(
                 "SELECT COUNT(*) as total FROM crm_tareas 
-                 WHERE empresa_id = ? AND estado = 'pendiente'",
-                [$this->empresa_id]
-            )->fetch();
+                 WHERE empresa_id = ? AND estado = 'pendiente'"
+            );
+            $stmtTar->execute([$this->empresa_id]);
+            $tareas = $stmtTar->fetch();
 
             return [
                 'clientes_totales' => $clientes['total'] ?? 0,

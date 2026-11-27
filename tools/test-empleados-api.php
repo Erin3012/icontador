@@ -25,9 +25,10 @@ $db = base_prueba();
 empleados_schema($db);
 empleados_schema($db); // idempotente
 
-// Crear una empresa para pruebas
-$db->exec("CREATE TABLE IF NOT EXISTS empresas (id INTEGER PRIMARY KEY AUTOINCREMENT, razon_social TEXT)");
-$db->exec("INSERT INTO empresas (razon_social) VALUES ('Empresa Test')");
+// Crear una empresa para pruebas (compatible con SQLite y MySQL)
+empresas_schema($db);
+$db->prepare("INSERT INTO empresas (origen_id, razon_social, datos_json, actualizado) VALUES (?, ?, ?, ?)")
+    ->execute(['emp-test-' . bin2hex(random_bytes(3)), 'Empresa Test', '{}', '']);
 $empresa_id = (int)$db->lastInsertId();
 
 // Test 1: Crear empleado válido

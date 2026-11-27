@@ -53,7 +53,8 @@ check(fila($pyI, 'Base imponible (RLI)')['clase'] === 'pend', 'Pro Pyme: R17 pen
 $i = ctrib_inicio($pdo, $e14, 2026);
 check($i['propio'] === true && $i['regimen'] === '14A', '14 A tiene inicio propio');
 check(fila($i, 'Balance')['estado'] === 'PENDIENTE', 'balance sin importar: pendiente');
-check(fila($i, 'Base imponible de primera categoría')['estado'] === 'POR CALCULAR', 'R12 todavía no se calcula');
+check(fila($i, 'Base imponible de primera categoría')['estado'] === 'PENDIENTE', 'R12 sin finalizar: pendiente');
+check(fila($i, 'Registro tributario de rentas (RTRE) y registro SAC')['estado'] === 'PENDIENTE', 'RTRE 14 A sin finalizar: pendiente');
 check(fila($i, 'Retiro o Dividendos')['estado'] === 'PENDIENTE', 'retiros sin importar: pendiente');
 check(fila($i, 'Enajenación de acciones y derechos sociales')['estado'] === 'PENDIENTE', 'R4 sin finalizar: pendiente');
 
@@ -79,7 +80,7 @@ $pdo->prepare("INSERT INTO sii_consultas (empresa_id, tipo, anio, estado, datos_
     ->execute([$persona]);
 $f = fila(ctrib_inicio($pdo, $persona, 2026), 'Consulta del Formulario 22 en el SII');
 check($f['estado'] === 'ACEPTADA' && $f['clase'] === 'ok', 'consulta guardada: se muestra su estado');
-check(fila(ctrib_inicio($pdo, $persona, 2026), 'Honorarios (boletas recibidas)')['estado'] === 'POR CALCULAR', 'honorarios: por calcular hasta su etapa');
+check(fila(ctrib_inicio($pdo, $persona, 2026), 'Honorarios — Recuadro N° 1 (boletas emitidas, gastos y retenciones)')['estado'] === 'PENDIENTE', 'honorarios R1: calculable en etapa 10');
 
 // 8. La respuesta se puede convertir a JSON (la lee el visor).
 check(json_last_error() === JSON_ERROR_NONE && json_decode(json_encode(ctrib_inicio($pdo, $e14, 2026)), true) !== null, 'la respuesta es JSON válido');
@@ -91,12 +92,24 @@ check($i['siguiente'] !== null && $i['siguiente']['nombre'] === 'Enajenación de
 check($i['siguiente']['ayuda'] !== '', 'el paso siguiente explica qué hacer');
 check(fila($i, 'Balance')['ayuda'] !== '', 'cada fila trae su explicación');
 
-// 10. Persona: el paso siguiente es consultar el F22; después de la consulta ya no hay nada que se pueda hacer hoy.
-check(ctrib_inicio($pdo, $persona, 2026)['siguiente'] === null, 'persona con F22 consultado: no hay paso pendiente que se pueda hacer hoy');
+// 10. Persona: el paso siguiente tras consultar F22 es completar R1 y luego F22; al finalizar ambos no queda pendiente ejecutable.
+check(str_contains((string) (ctrib_inicio($pdo, $persona, 2026)['siguiente']['nombre'] ?? ''), 'Recuadro N° 1'), 'persona con F22 consultado: siguiente paso es R1');
+ctrib_r1_finalizar($pdo, $persona, 2026, 'prueba');
+check(str_contains((string) (ctrib_inicio($pdo, $persona, 2026)['siguiente']['nombre'] ?? ''), 'Formulario 22'), 'persona con R1 finalizado: siguiente paso es F22');
+ctrib_f22_finalizar($pdo, $persona, 2026, 'prueba');
+check(ctrib_inicio($pdo, $persona, 2026)['siguiente'] === null, 'persona con R1 y F22 finalizados: no hay paso pendiente que se pueda hacer hoy');
 
-// 11. Régimen 14 G (fundación): se guarda en la configuración; aún no tiene inicio propio.
+// 11. Régimen 14 G (fundación): tiene inicio propio con R4, R6, R12, R14 y cierre sin R13/R15/R16.
 ctrib_empresa_config_guardar($pdo, $pyme, 'OTRO', '14G', 'prueba');
-check(ctrib_empresa_config($pdo, $pyme)['regimen'] === '14G' && ctrib_inicio($pdo, $pyme, 2026)['propio'] === false, '14 G se guarda y conserva la vista de fundación');
+$i14g = ctrib_inicio($pdo, $pyme, 2026);
+check(ctrib_empresa_config($pdo, $pyme)['regimen'] === '14G' && $i14g['propio'] === true && $i14g['regimen'] === '14G', '14 G se guarda y tiene inicio propio');
+check($i14g['cierre'] !== null && array_column(ctrib_cierre($pdo, $pyme, 2026)['recuadros'], 'codigo') === ['R4', 'R6', 'R12', 'R14'], 'cierre 14 G exige R4, R6, R12 y R14');
+
+// 11b. Régimen PRESUNTA (art. 34 LIR): tiene inicio propio con L57 y cierre de L57.
+ctrib_empresa_config_guardar($pdo, $pyme, 'LTDA', 'PRESUNTA', 'prueba');
+$irp = ctrib_inicio($pdo, $pyme, 2026);
+check(ctrib_empresa_config($pdo, $pyme)['regimen'] === 'PRESUNTA' && $irp['propio'] === true && $irp['regimen'] === 'PRESUNTA', 'PRESUNTA se guarda y tiene inicio propio');
+check($irp['cierre'] !== null && array_column(ctrib_cierre($pdo, $pyme, 2026)['recuadros'], 'codigo') === ['L57'], 'cierre PRESUNTA exige L57');
 
 // 12. Cambio de régimen desde la pantalla: queda en el historial y ajusta el tipo.
 ctrib_regimen_config_cambiar($pdo, $e14, 'PERSONA', 'prueba');

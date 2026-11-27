@@ -98,6 +98,35 @@ function ctrib_sugerencia(string $nombre, string $tipo): array
         : $armar('3.01.03.00', '1424', 'baja', 'gasto sin regla: otros gastos deducibles');
 }
 
+/** Traduce una sugerencia del R17 al código equivalente del R12 para empresas del régimen 14 A. */
+function ctrib_sugerencia_para_14a(array $s, string $nombre, string $tipo): array
+{
+    $mapa = [
+        '1400' => '1657', '1401' => '1658', '1402' => '1659', '1403' => '1660', '1587' => '1657', '1588' => '1660',
+        '1409' => '1661', '1410' => '1661', '1411' => '1662', '1412' => '1671', '1413' => '1671', '1414' => '1671',
+        '1415' => '1140', '1416' => '1664', '1417' => '1671', '1418' => '1666', '1419' => '1671', '1420' => '1671',
+        '1421' => '1671', '1422' => '1671', '1423' => '1671', '1424' => '1671',
+    ];
+    $normal = ctrib_normalizar_nombre($nombre);
+    $cod = $s['codigo'] !== null ? ($mapa[$s['codigo']] ?? null) : null;
+    if ($tipo === 'PERDIDA') {
+        if (preg_match('/depreciac/u', $normal)) $cod = '1663';
+        elseif (preg_match('/donacion/u', $normal)) $cod = '1665';
+        elseif (preg_match('/impuesto.*renta|impuesto diferido/u', $normal)) $cod = '1670';
+        elseif ($cod === null) $cod = '1671';
+    } elseif ($tipo === 'GANANCIA' && $cod === null) {
+        $cod = '1660';
+    }
+    $r12 = ctrib_catalogo_r12();
+    return [
+        'planSii' => $s['planSii'],
+        'codigo' => $cod,
+        'glosa' => $cod !== null ? (string) ($r12[$cod]['glosa'] ?? '') : null,
+        'confianza' => $s['confianza'],
+        'motivo' => $s['motivo'],
+    ];
+}
+
 /** Se asigna en bloque solo con confianza alta o media: la baja es un relleno genérico que se revisa una a una. */
 function ctrib_sugerencia_masiva(array $cuenta): bool
 {
@@ -107,10 +136,15 @@ function ctrib_sugerencia_masiva(array $cuenta): bool
 /** Homologación del año con la sugerencia de cada cuenta de resultado. */
 function ctrib_homologacion_con_sugerencias(PDO $pdo, int $empresa, int $anio): array
 {
+    $esR12 = in_array(ctrib_empresa_config($pdo, $empresa)['regimen'], ['14A', '14G'], true);
     $h = ctrib_homologacion($pdo, $empresa, $anio);
     $aplicables = 0;
     foreach ($h['cuentasResultado'] as $i => $c) {
-        $h['cuentasResultado'][$i]['sugerencia'] = ctrib_sugerencia((string) $c['nombre'], (string) $c['tipo']);
+        $s = ctrib_sugerencia((string) $c['nombre'], (string) $c['tipo']);
+        if ($esR12) {
+            $s = ctrib_sugerencia_para_14a($s, (string) $c['nombre'], (string) $c['tipo']);
+        }
+        $h['cuentasResultado'][$i]['sugerencia'] = $s;
         if (ctrib_sugerencia_masiva($h['cuentasResultado'][$i])) {
             $aplicables++;
         }

@@ -44,13 +44,13 @@ function ctrib_ajustes(PDO $pdo, int $empresa, int $anio, array $devengados = []
     $st->execute([$empresa, $anio]);
     $cuentasPorCodigo = [];
     foreach ($st as $f) {
-        $cuentasPorCodigo[(string) $f['codigo']][] = (string) $f['cuenta'];
+        $cuentasPorCodigo[trim((string) $f['codigo'])][] = (string) $f['cuenta'];
     }
     $st = $pdo->prepare('SELECT codigo, saldo_inicial, saldo_final FROM ctrib_ajuste_saldos WHERE empresa_id = ? AND anio = ?');
     $st->execute([$empresa, $anio]);
     $manuales = [];
     foreach ($st as $f) {
-        $manuales[(string) $f['codigo']] = [
+        $manuales[trim((string) $f['codigo'])] = [
             'inicial' => $f['saldo_inicial'] === null ? null : (int) $f['saldo_inicial'],
             'final' => $f['saldo_final'] === null ? null : (int) $f['saldo_final'],
         ];
@@ -106,7 +106,7 @@ function ctrib_ajuste_cuentas_disponibles(PDO $pdo, int $empresa, int $anio): ar
         }
         $tipo = $c['tipo'] === 'ACTIVO' ? 'CXC' : 'CXP';
         $salida[] = ['cuenta' => (string) $c['codigo'], 'nombre' => $c['nombre'], 'tipo' => $tipo,
-            'saldo' => ctrib_saldo_ajuste($balance, (string) $c['codigo'], $tipo), 'codigo' => isset($usadas[$c['codigo']]) ? (string) $usadas[$c['codigo']] : null,
+            'saldo' => ctrib_saldo_ajuste($balance, (string) $c['codigo'], $tipo), 'codigo' => isset($usadas[$c['codigo']]) ? trim((string) $usadas[$c['codigo']]) : null,
             'existencias' => isset($existencias[(string) $c['codigo']])];
     }
     return $salida;

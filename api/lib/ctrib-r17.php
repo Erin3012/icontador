@@ -29,7 +29,7 @@ function ctrib_valores_manuales(PDO $pdo, int $empresa, int $anio, string $recua
     $st->execute([$empresa, $anio, $recuadro]);
     $salida = [];
     foreach ($st as $f) {
-        $salida[(string) $f['codigo']] = (int) $f['monto'];
+        $salida[trim((string) $f['codigo'])] = (int) $f['monto'];
     }
     return $salida;
 }
@@ -538,8 +538,8 @@ function ctrib_composicion_guardar(PDO $pdo, int $empresa, int $anio, string $ti
     if (abs($suma - 100) > 0.01) {
         throw new CtribError('La participación debe sumar 100% (suma ' . rtrim(rtrim(number_format($suma, 4, ',', ''), '0'), ',') . '%).');
     }
-    if ($tipo === 'EIRL' && count($limpios) !== 1) {
-        throw new CtribError('Una EIRL tiene un solo titular con el 100% de participación.');
+    if (in_array($tipo, ['EI', 'EIRL'], true) && count($limpios) !== 1) {
+        throw new CtribError('Un contribuyente EI o EIRL tiene un solo titular con el 100% de participación.');
     }
     $ac = ctrib_anio_comercial($anio);
     $previos = array_column(ctrib_socios($pdo, $empresa, $anio), 'rut'); // socios del cuadro antes de este guardado

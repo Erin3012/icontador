@@ -520,9 +520,14 @@ function ctrib_r21(PDO $pdo, int $empresa, int $anio): array
     ];
 }
 
-/** El RTRE sirve para certificar solo si está finalizado y no cambió desde entonces. */
+/** El RTRE sirve para certificar solo si está finalizado y no cambió desde entonces (R20 en Pro Pyme, R15 en 14 A). */
 function ctrib_rtre_vigente(PDO $pdo, int $empresa, int $anio): bool
 {
+    $regimen = ctrib_empresa_config($pdo, $empresa)['regimen'];
+    if ($regimen === '14A' && function_exists('ctrib_r15')) {
+        return ctrib_estado_recuadro($pdo, $empresa, $anio, 'R15')['estado'] === 'FINALIZADO'
+            && !ctrib_r15($pdo, $empresa, $anio)['desactualizado'];
+    }
     return ctrib_estado_recuadro($pdo, $empresa, $anio, 'R20')['estado'] === 'FINALIZADO'
         && !ctrib_r20($pdo, $empresa, $anio)['desactualizado'];
 }
@@ -556,9 +561,15 @@ function ctrib_dj1948(PDO $pdo, int $empresa, int $anio): array
             'primera' => $s['primera'], 'ultima' => $s['ultima'], 'certificado' => $cert ? (int) $cert['numero'] : null, 'emitido' => $cert['emitido'] ?? null];
     }
     $paso1 = ctrib_rtre_vigente($pdo, $empresa, $anio);
+    $cfg = ctrib_empresa_config($pdo, $empresa);
+    $esEI = $cfg['tipo'] === 'EI';
+    $recRtre = $cfg['regimen'] === '14A' ? 'R15' : 'R20';
+    $mensajePaso1 = $esEI
+        ? "Empresario Individual (EI): excluido del Certificado N° 70; declare sus retiros afectos en la letra a) de la Línea 1 de su mismo F22."
+        : ($paso1 ? 'RTRE finalizado: puede emitir certificados.' : "Paso 1 · Certificado 70: el RTRE ($recRtre) debe estar finalizado y al día antes de emitir certificados o la DJ 1948.");
     return [
         'anio' => $anio, 'anioComercial' => ctrib_anio_comercial($anio),
-        'paso1' => ['listo' => $paso1, 'mensaje' => $paso1 ? 'RTRE finalizado: puede emitir certificados.' : 'Paso 1 · Certificado 70: el RTRE (R20) debe estar finalizado y al día antes de emitir certificados o la DJ 1948.'],
+        'paso1' => ['listo' => $paso1 && !$esEI, 'mensaje' => $mensajePaso1],
         'socios' => $filas,
         'modo' => $efectivos['modo'],
         'total' => $efectivos['total'],
@@ -571,6 +582,9 @@ function ctrib_dj1948(PDO $pdo, int $empresa, int $anio): array
 /** Emite el Certificado 70 de un socio (número correlativo por año). Si ya existe, devuelve el mismo número. */
 function ctrib_certificado_emitir(PDO $pdo, int $empresa, int $anio, string $rut, string $usuario): array
 {
+    if (ctrib_empresa_config($pdo, $empresa)['tipo'] === 'EI') {
+        throw new CtribError('Un Empresario Individual (EI) está excluido de emitir Certificado N° 70: declara sus retiros en su propio F22.');
+    }
     $rut = ctrib_rut($rut);
     if ($rut === '') {
         throw new CtribError('Falta el RUT del socio o titular: ingréselo en "Composición y retiros del año" y guarde antes de emitir el certificado.');

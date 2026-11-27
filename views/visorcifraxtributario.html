@@ -43,6 +43,7 @@
                 <option value="14D3">Pro Pyme General (14 D N°3)</option>
                 <option value="14D8">Pro Pyme Transparente (14 D N°8)</option>
                 <option value="14A">Semi Integrado (14 A)</option>
+                <option value="PRESUNTA">Renta presunta (Art. 34)</option>
             </select>
         </div>
         <div class="cv-campo">
@@ -120,7 +121,7 @@
                     </div>
 
                     <div class="cv-card">
-                        <h2>Recuadros F22 <span class="cv-count">9</span></h2>
+                        <h2>Recuadros F22 <span class="cv-count">10</span></h2>
                         <div class="cv-rep"><span class="cv-cod">R4</span><span class="cv-rep-nombre">Enajenación de acciones y derechos sociales</span><span class="cv-pill cv-borr">Borrador</span><span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" disabled><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>
                         <div class="cv-rep"><span class="cv-cod">R6</span><span class="cv-rep-nombre">Datos Informativos</span><span class="cv-pill cv-borr">Borrador</span><span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" disabled><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>
                         <div class="cv-rep"><span class="cv-cod">R17</span><span class="cv-rep-nombre">Base Imponible</span><span class="cv-pill cv-borr">Borrador</span><span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" disabled><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>
@@ -130,6 +131,7 @@
                         <div class="cv-rep"><span class="cv-cod">CPT</span><span class="cv-rep-nombre">Capital Propio Tributario desde Activo</span><span class="cv-pill cv-borr">Borrador</span><span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" disabled><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>
                         <div class="cv-rep"><span class="cv-cod">R20</span><span class="cv-rep-nombre">RTRE — Registro Tributario de Rentas Empresariales</span><span class="cv-pill cv-sin">Sin datos</span><span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" disabled><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>
                         <div class="cv-rep"><span class="cv-cod">R21</span><span class="cv-rep-nombre">SAC — Saldo Acumulado de Créditos</span><span class="cv-pill cv-sin">Sin datos</span><span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" disabled><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>
+                        <div class="cv-rep"><span class="cv-cod">F22</span><span class="cv-rep-nombre">Formulario 22 — Impuestos anuales, créditos, PPM y resultado</span><span class="cv-pill cv-borr">Borrador</span><span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" disabled><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>
                     </div>
 
                     <div class="cv-card">
@@ -524,12 +526,12 @@
         var b = e.target.closest('[data-abrir]');
         if (!b || b.disabled) return;
         var clave = b.getAttribute('data-abrir');
-        if (['balance', 'R4', 'R6', 'R17', 'R18', 'R19', 'R20', 'R21', 'R22', 'R23', 'DJ1947', 'DJ1948', 'CIERRE', 'CPT', 'RLI', 'HOM', 'PLANSII'].indexOf(clave) >= 0) return; // estos se cargan desde la API (ver el script final)
+        if (['balance', 'R1', 'R4', 'R6', 'R12', 'R13', 'R14', 'R15', 'R16', 'DJ1847', 'DJ1926', 'L57', 'F22', 'R17', 'R18', 'R19', 'R20', 'R21', 'R22', 'R23', 'DJ1947', 'DJ1948', 'CIERRE', 'CPT', 'RLI', 'HOM', 'PLANSII'].indexOf(clave) >= 0) return; // estos se cargan desde la API (ver el script final)
         abrirRecuadro(clave);
     });
 
     // Botones "Ver PDF" de la pestaña Reportes: abren el documento imprimible (api/cifrax-tributario-pdf.php).
-    var mapa = { 'Balance': 'BALANCE', 'Homol.': 'HOMOLOGACION', 'Retiros': 'RETIROS','R4': 'R4', 'R6': 'R6', 'R17': 'R17', 'RLI': 'RLI', 'R18': 'R18', 'R19': 'R19', 'CPT': 'CPT', 'R20': 'R20', 'R21': 'R21', 'RTRE': 'RTRE', 'DJ 1948': 'DJ1948' };
+    var mapa = { 'Balance': 'BALANCE', 'Homol.': 'HOMOLOGACION', 'Retiros': 'RETIROS','R4': 'R4', 'R6': 'R6', 'R17': 'R17', 'RLI': 'RLI', 'R18': 'R18', 'R19': 'R19', 'CPT': 'CPT', 'R20': 'R20', 'R21': 'R21', 'RTRE': 'RTRE', 'F22': 'F22', 'DJ 1948': 'DJ1948' };
     document.querySelectorAll('.cv-rep').forEach(function (fila) {
         var cod = fila.querySelector('.cv-cod');
         var btn = fila.querySelector('.cv-btn-pdf');
@@ -587,7 +589,7 @@
         var etiquetas = {
             CUENTAS: 'Cuentas', CUENTAS_EXISTENCIAS: 'Cuentas + existencias', MANUAL: 'Manual', CALCULADO: 'Calculado', CALCULADO_CON_TOPE: 'Calculado con tope',
             COPIA_1422: 'Copia del 1422', AUTOMATICO: 'Automático', 'AÑO_ANTERIOR': 'Año anterior',
-            SIN_ANTERIOR_FINALIZADO: 'Sin R19 anterior finalizado', ACTIVO_FIJO: 'Balance (activo fijo)', R22: 'R22', R4: 'R4', RETIROS: 'Retiros', PENDIENTE: 'Pendiente de cálculo', PENDIENTE_CALCULO: 'Pendiente', RESULTADO: 'Resultado',
+            SIN_ANTERIOR_FINALIZADO: 'Sin R19 anterior finalizado', ACTIVO_FIJO: 'Balance (activo fijo)', R1: 'R1', R12: 'R12', R14: 'R14', R17: 'R17', R22: 'R22', R4: 'R4', L57: 'L57', NEGOCIO_EI: 'Negocio propio (EI)', PARTICIPACIONES: 'Empresas (DJ)', RETIROS: 'Retiros', PENDIENTE: 'Pendiente de cálculo', PENDIENTE_CALCULO: 'Pendiente', RESULTADO: 'Resultado',
             vouchers: 'Vouchers de contabilidad', itributario: 'Captura de iTributario', excel: 'Excel', csv: 'CSV'
         };
         return etiquetas[o] || o;
@@ -645,7 +647,7 @@
 
     // ---------- Recuadro 17 y 19 ----------
     function editable(clave, l) {
-        if (clave === 'R4' || clave === 'R22' || clave === 'R23') return l.naturaleza === 'MANUAL';
+        if (clave === 'R4' || clave === 'R12' || clave === 'R13' || clave === 'R14' || clave === 'R22' || clave === 'R23') return l.naturaleza === 'MANUAL';
         if (clave === 'R6') return ['122', '123', '102', '1193'].indexOf(l.codigo) < 0;
         if (clave === 'R17') return l.naturaleza === 'MANUAL';
         return l.origen === 'MANUAL' || ['1445', '1446', '1377', '1378', '1380', '1381'].indexOf(l.codigo) >= 0;
@@ -765,7 +767,7 @@
         html += '<table class="cv-modal-tabla"><thead><tr><th>Concepto</th><th class="num">Código</th><th class="num">Valor</th><th>Origen</th></tr></thead><tbody>';
         var seccionPrevia = null;
         r.lineas.forEach(function (l) {
-            if (clave === 'R17' || clave === 'R22') {
+            if (clave === 'R17' || clave === 'R22' || clave === 'R12') {
                 var seccion = l.seccion || 'Cálculos';
                 if (seccion !== seccionPrevia) {
                     html += '<tr class="cv-seccion"><td colspan="4">▾ ' + esc(seccion) + '</td></tr>';
@@ -800,9 +802,11 @@
                 '</td><td>' + (l.origen ? '<span class="cv-chip">' + esc(origenEtiqueta(l.origen)) + '</span>' : '') + '</td></tr>';
         });
         html += '</tbody></table>';
-        if (clave === 'R17' && r.idpcEstimado) {
+        if ((clave === 'R17' || clave === 'R12') && r.idpcEstimado) {
             var idpc = r.idpcEstimado;
-            html += '<p class="cv-texto" data-idpc style="margin-top:10px;font-size:12.5px"><strong>IDPC estimado (14 D N°3):</strong> ' + fmtDec(idpc.tasa) + ' % del 1440 ($' +
+            var labelReg = clave === 'R12' ? (idpc.regimen === '14G' ? '14 G' : '14 A') : '14 D N°3';
+            var codBase = clave === 'R12' ? '1690' : '1440';
+            html += '<p class="cv-texto" data-idpc style="margin-top:10px;font-size:12.5px"><strong>IDPC estimado (' + labelReg + '):</strong> ' + fmtDec(idpc.tasa) + ' % del ' + codBase + ' ($' +
                 fmt(idpc.base) + ') = <strong>$' + fmt(idpc.monto) + '</strong> · sin PPM ni créditos.</p>';
         }
         if (clave === 'R22') html += tablaPropietarios(r.propietarios);
@@ -868,9 +872,19 @@
         R6: 'Recuadro 6 — Datos Informativos (Pro Pyme)',
         CIERRE: 'Cierre anual',
         R18: 'Recuadro 18 — Determinación del RAI',
+        R12: 'Recuadro 12 — Base imponible de primera categoría (14 A)',
+        R13: 'Recuadro 13 — Determinación del RAI (14 A)',
+        R14: 'Recuadro 14 — Razonabilidad del capital propio tributario (14 A)',
+        R15: 'Recuadro 15 — RTRE y movimiento STUT (14 A)',
+        R16: 'Recuadro 16 — Registro SAC (14 A)',
+        DJ1847: 'DJ 1847 — Balance de 8 columnas (Anexo N° 1 SII)',
+        DJ1926: 'DJ 1926 — Base imponible de primera categoría (Anexo N° 1 SII)',
         R22: 'Recuadro 22 — Base imponible del régimen de transparencia (14 D N°8)',
         R23: 'Recuadro 23 — CPTS del régimen de transparencia (14 D N°8)',
-        DJ1947: 'DJ 1947 — Base imponible asignada a los propietarios'
+        DJ1947: 'DJ 1947 — Base imponible asignada a los propietarios',
+        L57: 'Renta presunta (Art. 34 LIR) — Línea 57 y Línea 4 F22',
+        R1: 'Recuadro 1 — Honorarios (arts. 42 N° 2 y 48 LIR)',
+        F22: 'Formulario 22 — Impuestos anuales, créditos, PPM y resultado'
     };
 
     function estadoPill(r) {
@@ -1156,8 +1170,8 @@
 
     // Composición y retiros del año: titular, socios o accionistas con su participación, la utilidad que les
     // corresponde y lo retirado en el año. EIRL: un solo titular con el 100%. 14 D N°8: se retira la totalidad.
-    var TIPOS_CONTRIBUYENTE = [['EIRL', 'EIRL (un solo titular)'], ['SPA', 'SpA'], ['LTDA', 'Sociedad de responsabilidad limitada'], ['SA', 'Sociedad anónima'], ['PERSONA_NATURAL', 'Persona natural'], ['OTRO', 'Otro']];
-    var REGIMENES = [['14D3', 'Pro Pyme General (14 D N°3)'], ['14D8', 'Pro Pyme Transparente (14 D N°8)'], ['14A', 'Régimen general (14 A)'], ['14G', '14 G (fundaciones y corporaciones)'], ['PERSONA', 'Persona natural (honorarios)']];
+    var TIPOS_CONTRIBUYENTE = [['EI', 'Empresario individual (EI)'], ['EIRL', 'EIRL (un solo titular)'], ['SPA', 'SpA'], ['LTDA', 'Sociedad de responsabilidad limitada'], ['SA', 'Sociedad anónima'], ['PERSONA_NATURAL', 'Persona natural'], ['OTRO', 'Otro']];
+    var REGIMENES = [['14D3', 'Pro Pyme General (14 D N°3)'], ['14D8', 'Pro Pyme Transparente (14 D N°8)'], ['14A', 'Régimen general (14 A)'], ['14G', '14 G (fundaciones y corporaciones)'], ['PRESUNTA', 'Renta presunta (Art. 34 LIR)'], ['PERSONA', 'Persona natural (honorarios)']];
     var ESTILO_CAMPO = 'style="width:100%;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font:inherit"';
 
     function opcionesSelect(lista, actual) {
@@ -1168,10 +1182,11 @@
 
     function filaComposicion(s, tipo, regimen) {
         var vacio = function (v) { return v === undefined || v === null ? '' : v; };
+        var unico = tipo === 'EIRL' || tipo === 'EI';
         return '<tr><td><input data-campo="rut" placeholder="RUT" ' + ESTILO_CAMPO + ' value="' + esc(vacio(s.rut)) + '"></td>' +
             '<td><input data-campo="nombre" ' + ESTILO_CAMPO + ' value="' + esc(vacio(s.nombre)) + '"></td>' +
             '<td class="num"><input data-campo="participacion" type="number" min="0" max="100" step="0.01" ' + ESTILO_CAMPO +
-            ' value="' + esc(tipo === 'EIRL' ? 100 : vacio(s.participacion)) + '"' + (tipo === 'EIRL' ? ' readonly' : '') + '></td>' +
+            ' value="' + esc(unico ? 100 : vacio(s.participacion)) + '"' + (unico ? ' readonly' : '') + '></td>' +
             '<td class="num">$' + fmt(s.utilidad || 0) + '</td>' +
             '<td class="num"><input data-campo="monto" type="number" min="0" step="1" ' + ESTILO_CAMPO + ' value="' + esc(s.retirado || 0) + '"' +
             (regimen === '14D8' ? ' readonly title="14 D N°8: se retira la totalidad"' : '') + '></td></tr>';
@@ -1179,8 +1194,9 @@
 
     function seccionComposicion(c) {
         var socios = c.socios.length ? c.socios : [{}];
+        var unico = c.tipo === 'EIRL' || c.tipo === 'EI';
         var nota = c.regimen === '14D8' ? 'En 14 D N°8 se atribuye y retira la totalidad de la base imponible: el monto se calcula solo.'
-            : (c.tipo === 'EIRL' ? 'EIRL: un solo titular con el 100%; todo lo retirado se le atribuye a él o ella.' : 'Ingrese lo que retiró cada socio o accionista durante el año.');
+            : (unico ? c.tipo + ': un solo titular con el 100%; todo lo retirado se le atribuye a él o ella.' : 'Ingrese lo que retiró cada socio o accionista durante el año.');
         var html = '<div class="cv-card" data-composicion style="margin:6px 0 12px;padding:10px 12px"><strong style="display:block;margin-bottom:6px">Composición y retiros del año</strong>' +
             '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px">' +
             '<label style="font-size:12.5px">Tipo de contribuyente<br><select data-comp="tipo" style="padding:4px 6px;font:inherit">' + opcionesSelect(TIPOS_CONTRIBUYENTE, c.tipo) + '</select></label>' +
@@ -1190,7 +1206,7 @@
             '<tbody data-comp-filas>' + socios.map(function (s) { return filaComposicion(s, c.tipo, c.regimen); }).join('') + '</tbody></table>' +
             '<p class="cv-texto" data-comp-nota style="font-size:12px;margin:6px 0">' + esc(nota) + '</p>' +
             '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">' +
-            '<button type="button" class="cv-btn-pdf" data-comp-agregar style="cursor:pointer"' + (c.tipo === 'EIRL' ? ' hidden' : '') + '>Agregar socio</button>' +
+            '<button type="button" class="cv-btn-pdf" data-comp-agregar style="cursor:pointer"' + (unico ? ' hidden' : '') + '>Agregar socio</button>' +
             '<label style="font-size:12.5px;cursor:pointer"><input type="checkbox" data-comp-sin' + (c.modo === 'sin_retiros' ? ' checked' : '') + '> No hubo retiros en el año</label>' +
             '<button type="button" class="cv-btn-fin" data-comp-guardar style="cursor:pointer;opacity:1">Guardar</button>' +
             '<span class="cv-texto" style="font-size:12px">Utilidad del ejercicio: $' + fmt(c.utilidad) + ' · Retirado: $' + fmt(c.totalRetirado) + '</span></div></div>';
@@ -1205,7 +1221,8 @@
         var tipo = valorComp('tipo');
         var regimen = valorComp('regimen');
         var filas = cuerpo.querySelectorAll('[data-comp-filas] tr');
-        if (tipo === 'EIRL') {
+        var unico = tipo === 'EIRL' || tipo === 'EI';
+        if (unico) {
             filas.forEach(function (tr, i) { if (i > 0) tr.remove(); });
             var p = cuerpo.querySelector('[data-comp-filas] [data-campo="participacion"]');
             if (p) { p.value = 100; p.readOnly = true; }
@@ -1213,7 +1230,7 @@
             cuerpo.querySelectorAll('[data-comp-filas] [data-campo="participacion"]').forEach(function (p) { p.readOnly = false; });
         }
         var agregar = cuerpo.querySelector('[data-comp-agregar]');
-        if (agregar) agregar.hidden = tipo === 'EIRL';
+        if (agregar) agregar.hidden = unico;
         cuerpo.querySelectorAll('[data-comp-filas] [data-campo="monto"]').forEach(function (m) { m.readOnly = regimen === '14D8'; });
     });
 
@@ -1282,8 +1299,365 @@
         cuerpo.innerHTML = html;
     }
 
+    function pintarR15(r) {
+        recuadroActual = 'R15';
+        var fin = r.estado === 'FINALIZADO';
+        titulo.textContent = titulosRecuadro.R15;
+        sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
+        var res = r.resumen;
+        var tarjeta = function (t, v) { return '<div class="cv-rtre-tarjeta"><small>' + t + '</small><strong>$' + fmt(v) + '</strong></div>'; };
+        acc.innerHTML = '<div class="cv-rtre-tarjetas" style="flex-basis:100%">' + tarjeta('RAI final', res.raiFinal) + tarjeta('REX final', res.rexFinal) +
+            tarjeta('SAC disponible', res.sacFinal) + tarjeta('Retiros del ejercicio', res.retirosEjercicio) + '</div>' +
+            '<div class="cv-rtre-barra" style="flex-basis:100%"><button type="button" class="cv-btn-pdf" data-abrir="R16">Ver R16 (SAC)</button>' +
+            '<span style="flex:1"></span><button type="button" class="cv-btn-pdf" data-pdf="R15">Ver PDF R15</button> ' + estadoPill(r) + ' ' +
+            (fin ? '<button type="button" class="cv-btn-pdf" data-reabrir>Reabrir</button>'
+                : '<button type="button" class="cv-btn-fin" data-fin' + (r.puedeFinalizar ? ' style="cursor:pointer;opacity:1"' : ' disabled') + '>Finalizar declaración</button>') + '</div>';
+
+        var html = '';
+        (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+        (r.avisos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: reábralo y finalícelo nuevamente.</div>';
+
+        var tablaGrupo = function (tituloTabla, cols) {
+            var h = '<h3 style="font-size:13.5px;margin:10px 0 6px">' + esc(tituloTabla) + '</h3>' +
+                '<div style="overflow-x:auto"><table class="cv-modal-tabla cv-rtre-tabla"><thead><tr><th>Movimiento</th>' +
+                cols.map(function (c) { return '<th class="num" style="font-size:11px">' + esc(c.label) + '</th>'; }).join('') + '</tr></thead><tbody>';
+            r.filasDefinicion.forEach(function (f) {
+                h += '<tr><td style="white-space:normal">' + esc(f.fila + ' ' + f.glosa) + '</td>' + cols.map(function (c) {
+                    var cell = (r.celdas[f.fila] && r.celdas[f.fila][c.id]) || { monto: 0, origen: 'AUTO' };
+                    if (fin) return '<td class="num">$' + fmt(cell.monto) + '</td>';
+                    return '<td class="num"><input type="number" step="1" class="cv-celda' + (cell.origen === 'MANUAL' ? ' cv-manual' : '') + '" data-r15-fila="' + esc(f.fila) +
+                        '" data-r15-col="' + esc(c.id) + '" value="' + esc(cell.monto) + '"></td>';
+                }).join('') + '</tr>';
+            });
+            h += '<tr class="cv-saldo"><td>Remanente ejercicio siguiente</td>' + cols.map(function (c) {
+                var val = (r.celdas.REMANENTE_FINAL && r.celdas.REMANENTE_FINAL[c.id]) ? r.celdas.REMANENTE_FINAL[c.id].monto : 0;
+                return '<td class="num">$' + fmt(val) + '</td>';
+            }).join('') + '</tr></tbody></table></div>';
+            return h;
+        };
+
+        html += tablaGrupo('Hoja de trabajo RTRE · Rentas (R15)', r.columnasR15);
+        html += tablaGrupo('Hoja de trabajo SAC · Créditos (R16)', r.columnasR16);
+        if (!fin) html += '<p class="cv-texto" style="font-size:12px;margin:8px 0 0">Las celdas editables se guardan al salir del campo. Déjelas vacías para volver al cálculo automático.</p>';
+        cuerpo.innerHTML = html;
+    }
+
+    function pintarR16(r) {
+        recuadroActual = null;
+        titulo.textContent = titulosRecuadro.R16;
+        sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
+        acc.innerHTML = '<span class="cv-chip">Se vacía desde el RTRE (R15)</span> <button type="button" class="cv-btn-pdf" data-abrir="R15">Abrir R15</button> <button type="button" class="cv-btn-pdf" data-pdf="R16">Ver PDF</button> ' + estadoPill(r);
+        var cols = r.formulario.columnas.map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('');
+        var html = '<div style="overflow-x:auto"><table class="cv-grilla"><thead><tr><th style="text-align:left">Concepto</th>' + cols + '</tr></thead><tbody>' +
+            r.formulario.filas.map(function (fila) {
+                return '<tr><td>' + esc(fila.glosa) + '</td>' + fila.celdas.map(function (c) {
+                    if (!c) return '<td class="cv-nulo"></td>';
+                    return '<td class="num' + (c.monto ? ' cv-con-valor' : '') + '"><small>' + esc(c.codigo) + '</small>$' + fmt(c.monto) + '</td>';
+                }).join('') + '</tr>';
+            }).join('') + '</tbody></table></div>';
+        cuerpo.innerHTML = html;
+    }
+
+    function pintarDJ1847(d) {
+        recuadroActual = 'DJ1847';
+        var fin = d.estado === 'FINALIZADO';
+        titulo.textContent = titulosRecuadro.DJ1847;
+        sub.textContent = 'Año comercial ' + d.anioComercial + ' · AT ' + d.anio;
+        acc.innerHTML = estadoPill(d) + ' ' +
+            (fin ? '<button type="button" class="cv-btn-pdf" data-reabrir>Reabrir</button>'
+                : '<button type="button" class="cv-btn-fin" data-fin' + (d.puedeFinalizar ? '' : ' disabled') + '>Finalizar declaración</button>') +
+            ' <button type="button" class="cv-btn-pdf" data-pdf="DJ1847" style="cursor:pointer">Ver PDF</button>';
+        var t = d.totales;
+        var html = '';
+        (d.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+        if (d.desactualizado) html += '<div class="cv-aviso-ok">El balance cambió después de finalizar la DJ 1847: reábrala y finalícela nuevamente.</div>';
+        html += '<div class="cv-rtre-tarjetas" style="margin-bottom:10px">' +
+            '<div class="cv-rtre-tarjeta"><small>Cuentas informadas</small><strong>' + fmt(t.cuentasInformadas) + '</strong></div>' +
+            '<div class="cv-rtre-tarjeta"><small>Resultado del ejercicio</small><strong>$' + fmt(t.resultadoEjercicio) + '</strong></div>' +
+            '<div class="cv-rtre-tarjeta"><small>CPT final (R14)</small><strong>$' + fmt(t.cptPositivo - t.cptNegativo) + '</strong></div>' +
+            '</div>';
+        var opcionesHtml = function (actual) {
+            return d.clasificador.map(function (c) {
+                return '<option value="' + esc(c.codigo) + '"' + (c.codigo === actual ? ' selected' : '') + '>' + esc(c.codigo + ' — ' + c.descripcion) + '</option>';
+            }).join('');
+        };
+        html += '<div style="overflow-x:auto"><table class="cv-modal-tabla"><thead><tr><th>Cuenta</th><th>Nombre</th><th>Tipo</th><th>Clasificador SII (Anexo N° 1)</th><th class="num">Activo</th><th class="num">Pasivo</th><th class="num">Pérdida</th><th class="num">Ganancia</th></tr></thead><tbody>' +
+            (d.cuentas.length ? d.cuentas.map(function (c) {
+                var ctrl = fin ? esc(c.codigoIfrs + ' ' + c.nombreIfrs)
+                    : '<select data-dj1847-cuenta="' + esc(c.codigo) + '" style="max-width:240px;padding:3px 6px;font:inherit;border:1px solid #d1d5db;border-radius:4px">' + opcionesHtml(c.codigoIfrs) + '</select>';
+                return '<tr><td>' + esc(c.codigo) + '</td><td style="white-space:normal">' + esc(c.nombre) + '</td><td>' + esc(c.tipo) + '</td><td>' + ctrl + '</td>' +
+                    '<td class="num">$' + fmt(c.activo) + '</td><td class="num">$' + fmt(c.pasivo) + '</td><td class="num">$' + fmt(c.perdida) + '</td><td class="num">$' + fmt(c.ganancia) + '</td></tr>';
+            }).join('') : '<tr><td colspan="8">Sin cuentas en el balance.</td></tr>') +
+            '</tbody></table></div>';
+        cuerpo.innerHTML = html;
+    }
+
+    function pintarDJ1926(d) {
+        recuadroActual = 'DJ1926';
+        var fin = d.estado === 'FINALIZADO';
+        titulo.textContent = titulosRecuadro.DJ1926;
+        sub.textContent = 'Año comercial ' + d.anioComercial + ' · AT ' + d.anio;
+        acc.innerHTML = estadoPill(d) + ' ' +
+            (fin ? '<button type="button" class="cv-btn-pdf" data-reabrir>Reabrir</button>'
+                : '<button type="button" class="cv-btn-fin" data-fin' + (d.puedeFinalizar ? '' : ' disabled') + '>Finalizar declaración</button>') +
+            ' <button type="button" class="cv-btn-pdf" data-pdf="DJ1926" style="cursor:pointer">Ver PDF</button>';
+        var r = d.resumen;
+        var html = '';
+        (d.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+        if (d.desactualizado) html += '<div class="cv-aviso-ok">El Recuadro 12 cambió después de finalizar la DJ 1926: reábrala y finalícela nuevamente.</div>';
+        html += '<div class="cv-rtre-tarjetas" style="margin-bottom:10px">' +
+            '<div class="cv-rtre-tarjeta"><small>Resultado Financiero [9]</small><strong>$' + fmt(r.resultadoFinanciero) + '</strong></div>' +
+            '<div class="cv-rtre-tarjeta"><small>Total Agregados [1]</small><strong>$' + fmt(r.totalAgregados) + '</strong></div>' +
+            '<div class="cv-rtre-tarjeta"><small>Total Deducciones [2]</small><strong>$' + fmt(r.totalDeducciones) + '</strong></div>' +
+            '<div class="cv-rtre-tarjeta"><small>RLI Final (1690)</small><strong>$' + fmt(r.rli) + '</strong></div>' +
+            '</div>';
+        html += '<table class="cv-modal-tabla"><thead><tr><th>N°</th><th>Cód. R12</th><th>Anexo N° 1</th><th>Nombre partida SII</th><th>Descripción</th><th>Tipo</th><th class="num">Monto</th></tr></thead><tbody>' +
+            d.seccionB.map(function (f) {
+                return '<tr><td>' + f.numero + '</td><td>' + esc(f.codigoR12) + '</td><td>' + esc(f.codigoAnexo || '—') + '</td><td style="white-space:normal">' + esc(f.nombreAnexo) +
+                    '</td><td style="white-space:normal">' + esc(f.descripcion) + '</td><td><span class="cv-chip">' + esc(f.tipoNombre) + '</span></td><td class="num">$' + fmt(f.monto) + '</td></tr>';
+            }).join('') + '</tbody></table>';
+        cuerpo.innerHTML = html;
+    }
+
+    function pintarL57(r) {
+        recuadroActual = 'L57';
+        var fin = r.estado === 'FINALIZADO';
+        titulo.textContent = titulosRecuadro.L57;
+        sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
+        acc.innerHTML = estadoPill(r) + ' ' +
+            (fin ? '<button type="button" class="cv-btn-pdf" data-reabrir>Reabrir</button>'
+                : '<button type="button" class="cv-btn-fin" data-fin' + (r.puedeFinalizar ? '' : ' disabled') + '>Finalizar declaración</button>') +
+            ' <button type="button" class="cv-btn-pdf" data-pdf="L57" style="cursor:pointer">Ver PDF</button>';
+        var html = '<div class="cv-aviso-ok" style="background:#fefce8;border-color:#facc15;color:#854d0e">' + esc(r.notaValidacion) + '</div>';
+        (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+        (r.avisos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: reábralo y finalícelo nuevamente.</div>';
+
+        var b = r.bases;
+        var campoBase = function (clave, etq, val, paso) {
+            return '<label style="font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 0">' +
+                '<span>' + esc(etq) + '</span>' +
+                '<input type="number" min="0" step="' + paso + '" data-l57-base="' + clave + '" value="' + esc(val) + '"' + (fin ? ' disabled' : '') +
+                ' style="width:130px;text-align:right;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font:inherit"></label>';
+        };
+        html += '<div class="cv-card" style="margin:8px 0 12px;padding:10px 12px">' +
+            '<strong style="display:block;margin-bottom:6px;font-size:13px">Bases de determinación (art. 34 LIR)</strong>' +
+            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:4px 18px">' +
+            campoBase('BAGR', 'Avalúo fiscal agrícola 01.01 ($)', b.avaluoAgricola, '1') +
+            campoBase('CAGR', 'Contribuciones agrícolas pagadas ($)', b.contribucionesAgricolas, '1') +
+            campoBase('BPAS', 'Tasación SII vehículos pasajeros ($)', b.tasacionPasajeros, '1') +
+            campoBase('BCAR', 'Tasación SII vehículos carga ($)', b.tasacionCarga, '1') +
+            campoBase('BMIN', 'Ventas netas reajustadas minería ($)', b.ventasMineria, '1') +
+            campoBase('PMIN', '% presunción minería (SII o 6%)', b.porcentajeMineria, '0.01') +
+            '</div><small style="color:#6b7280">Calcula 10% en agrícola/transporte y el % indicado en minería; si edita un código F22 abajo, se guarda ese monto directo (borre la casilla para volver al cálculo desde la base).</small></div>';
+
+        html += '<table class="cv-modal-tabla"><thead><tr><th>Concepto (Línea 57 F22 · Tasa IDPC ' + fmtDec(r.tasaIdpc) + '%)</th><th class="num">Código</th><th class="num">Valor</th><th>Origen</th></tr></thead><tbody>';
+        var sec = null;
+        r.lineas.forEach(function (l) {
+            if (l.seccion !== sec) {
+                html += '<tr class="cv-seccion"><td colspan="4">▾ ' + esc(l.seccion) + '</td></tr>';
+                sec = l.seccion;
+            }
+            var puedeEditar = !fin && l.naturaleza === 'MANUAL';
+            var valor = puedeEditar
+                ? '<input type="number" min="0" step="1" data-codigo="' + esc(l.codigo) + '" value="' + esc(l.monto) + '" style="width:120px;text-align:right;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font:inherit">'
+                : '$' + fmt(l.monto);
+            html += '<tr><td style="white-space:normal">' + esc(l.glosa) + '</td><td class="num">' + esc(l.codigo) + '</td><td class="num" style="white-space:nowrap">' + valor +
+                '</td><td><span class="cv-chip">' + esc(origenEtiqueta(l.origen)) + '</span></td></tr>';
+        });
+        html += '</tbody></table>';
+
+        var p = r.propietarios;
+        html += '<h3 style="font-size:14px;margin:14px 0 6px">Línea 4 F22 (' + esc(p.letra) + ') — Códigos ' + esc(p.codigoRenta) + ' / ' + esc(p.codigoCredito) +
+            (p.requiereDj1943 ? ' · DJ 1943' : ' · EI excluida DJ 1943') + (p.requiereCertificado58 ? ' y Cert. N° 58' : '') + '</h3>';
+        (p.avisos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+        if (!p.filas.length) {
+            html += '<p class="cv-texto"><button type="button" class="cv-btn-pdf" data-abrir="DJ1948" style="cursor:pointer">Registrar propietarios y retiros</button></p>';
+        } else {
+            html += '<table class="cv-modal-tabla"><thead><tr><th>RUT</th><th>Propietario</th><th class="num">%</th>' +
+                '<th class="num">Renta (' + esc(p.codigoRenta) + ')</th><th class="num">Créd. IDPC (' + esc(p.codigoCredito) + ')</th><th class="num">Retiros año</th><th class="num">Exceso retiros</th></tr></thead><tbody>' +
+                p.filas.map(function (f) {
+                    return '<tr><td style="white-space:nowrap">' + esc(f.rut || '—') + '</td><td style="white-space:normal">' + esc(f.nombre) + '</td><td class="num">' + fmtDec(f.participacion) +
+                        '</td><td class="num">$' + fmt(f.rentaPresunta) + '</td><td class="num">$' + fmt(f.creditoIdpc) + '</td><td class="num">$' + fmt(f.retiros) + '</td><td class="num">$' + fmt(f.excesoRetiros) + '</td></tr>';
+                }).join('') +
+                '<tr><td></td><td><strong>Totales Línea 4 (108 / 603 → 610)</strong></td><td></td>' +
+                '<td class="num"><strong>$' + fmt(p.totalRenta108) + '</strong></td><td class="num"><strong>$' + fmt(p.totalCredito603) + '</strong></td>' +
+                '<td class="num"><strong>$' + fmt(p.filas.reduce(function (s, f) { return s + f.retiros; }, 0)) + '</strong></td>' +
+                '<td class="num"><strong>$' + fmt(p.filas.reduce(function (s, f) { return s + f.excesoRetiros; }, 0)) + '</strong></td></tr></tbody></table>';
+        }
+        cuerpo.innerHTML = html;
+    }
+
+    function pintarF22(r) {
+        recuadroActual = 'F22';
+        var fin = r.estado === 'FINALIZADO';
+        titulo.textContent = titulosRecuadro.F22;
+        sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio + ' · Régimen ' + r.regimen;
+        acc.innerHTML = estadoPill(r) + ' ' +
+            (fin ? '<button type="button" class="cv-btn-pdf" data-reabrir>Reabrir</button>'
+                : '<button type="button" class="cv-btn-fin" data-fin' + (r.puedeFinalizar ? '' : ' disabled') + '>Finalizar declaración</button>') +
+            ' <button type="button" class="cv-btn-pdf" data-pdf="F22" style="cursor:pointer">Ver PDF</button>';
+        var res = r.resumen;
+        var html = '';
+        (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+        (r.avisos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: reábralo y finalícelo nuevamente.</div>';
+        if (r.sii && r.sii.disponible) {
+            html += '<div class="cv-aviso-ok" style="background:#eff6ff;border-color:#93c5fd;color:#1e40af">Comparando con F22 SII folio ' + esc(r.sii.folio || '—') + ' (' + esc(r.sii.estado || 'Consultado') + ').</div>';
+        }
+        html += '<div class="cv-rtre-tarjetas" style="margin-bottom:10px">' +
+            '<div class="cv-rtre-tarjeta"><small>Impuestos determinados</small><strong>$' + fmt(res.impuestosDeterminados) + '</strong></div>' +
+            '<div class="cv-rtre-tarjeta"><small>Deducciones y PPM</small><strong>$' + fmt(res.deducciones) + '</strong></div>' +
+            '<div class="cv-rtre-tarjeta"><small>Resultado (cód. 305)</small><strong>$' + fmt(res.resultado305) + '</strong></div>' +
+            '<div class="cv-rtre-tarjeta"><small>' + (res.resultado305 < 0 ? 'Devolución (cód. 87)' : 'Total a pagar (cód. 91)') + '</small><strong>$' + fmt(res.resultado305 < 0 ? res.devolucion87 : res.totalPagar91) + '</strong></div>' +
+            '</div>';
+        var conSii = r.sii && r.sii.disponible;
+        var cols = conSii ? 7 : 5;
+        html += '<table class="cv-modal-tabla"><thead><tr><th>Línea</th><th>Concepto</th><th class="num">Código</th><th class="num">Valor</th><th>Origen</th>' +
+            (conSii ? '<th class="num">SII</th><th class="num">Dif.</th>' : '') + '</tr></thead><tbody>';
+        var sec = null;
+        r.lineas.forEach(function (l) {
+            if (l.seccion !== sec) {
+                html += '<tr class="cv-seccion"><td colspan="' + cols + '">▾ ' + esc(l.seccion) + '</td></tr>';
+                sec = l.seccion;
+            }
+            var puedeEditar = !fin && l.naturaleza === 'MANUAL';
+            var valor = puedeEditar
+                ? '<input type="number" min="0" step="1" data-codigo="' + esc(l.codigo) + '" value="' + esc(l.monto) + '" style="width:120px;text-align:right;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font:inherit">'
+                : '$' + fmt(l.monto);
+            var extraSii = '';
+            if (conSii) {
+                var difEstilo = l.diferenciaSii && l.diferenciaSii !== 0 ? ' style="color:#b91c1c;font-weight:700"' : '';
+                extraSii = '<td class="num">' + (l.valorSii !== null ? '$' + fmt(l.valorSii) : '—') + '</td>' +
+                    '<td class="num"' + difEstilo + '>' + (l.diferenciaSii !== null ? '$' + fmt(l.diferenciaSii) : '—') + '</td>';
+            }
+            html += '<tr><td>' + esc(l.linea) + '</td><td style="white-space:normal">' + esc(l.glosa) + '</td><td class="num">' + esc(l.codigo) +
+                '</td><td class="num" style="white-space:nowrap">' + valor + '</td><td><span class="cv-chip">' + esc(origenEtiqueta(l.origen)) + '</span></td>' + extraSii + '</tr>';
+        });
+        html += '</tbody></table>';
+        if (r.esEmpresarioIndividual && r.negocioEI) {
+            html += '<div class="cv-aviso-ok" style="background:#f0fdf4;border-color:#86efac;color:#166534"><strong>Empresario Individual (EI):</strong> este mismo F22 une los recuadros del negocio (' + esc(r.negocioEI.fuente) + ') con las líneas personales de IGC.</div>';
+        }
+        var fuentes = [];
+        if (r.negocioEI) fuentes.push(r.negocioEI);
+        if (r.participaciones && r.participaciones.filas) fuentes = fuentes.concat(r.participaciones.filas);
+        if (fuentes.length) {
+            var tituloFuentes = r.esEmpresarioIndividual ? 'Negocio propio (EI) y participaciones consolidadas al F22'
+                : 'Participaciones en empresas consolidadas por RUT (' + esc(r.participaciones.rut) + ')';
+            html += '<h3 style="font-size:14px;margin:14px 0 6px">' + tituloFuentes + '</h3>' +
+                '<table class="cv-modal-tabla"><thead><tr><th>Origen / Empresa</th><th>Régimen</th><th>Fuente</th><th class="num">Ret./Div.</th><th class="num">14D8 / Pres.</th><th class="num">Créditos</th><th class="num">PPM 1645</th><th>Estado</th></tr></thead><tbody>' +
+                fuentes.map(function (pf) {
+                    var ret = (pf.retiro104 || 0) + (pf.dividendo105 || 0);
+                    var atr = (pf.baseAtribuida1632 || 0) + (pf.rentaPresunta108 || 0);
+                    var cred = (pf.creditoConDev610 || 0) + (pf.creditoSinDev612 || 0) + (pf.credito33bis1638 || 0);
+                    return '<tr><td style="white-space:normal">' + esc(pf.razonSocial) + (pf.rutEmpresa ? '<br><small>' + esc(pf.rutEmpresa) + '</small>' : '') + '</td>' +
+                        '<td>' + esc(pf.regimen) + '</td><td>' + esc(pf.fuente + (pf.certificado ? ' N° ' + pf.certificado : '')) + '</td>' +
+                        '<td class="num">$' + fmt(ret) + '</td><td class="num">$' + fmt(atr) + '</td><td class="num">$' + fmt(cred) + '</td>' +
+                        '<td class="num">$' + fmt(pf.ppm1645 || 0) + '</td><td><span class="cv-chip">' + esc(origenEtiqueta(pf.estadoOrigen)) + '</span></td></tr>';
+                }).join('') + '</tbody></table>';
+        }
+        cuerpo.innerHTML = html;
+    }
+
+    function pintarR1(r) {
+        recuadroActual = 'R1';
+        var fin = r.estado === 'FINALIZADO';
+        titulo.textContent = titulosRecuadro.R1;
+        sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
+        acc.innerHTML = estadoPill(r) + ' ' +
+            (fin ? '<button type="button" class="cv-btn-pdf" data-reabrir>Reabrir</button>'
+                : '<button type="button" class="cv-btn-fin" data-fin' + (r.puedeFinalizar ? '' : ' disabled') + '>Finalizar declaración</button>') +
+            ' <button type="button" class="cv-btn-pdf" data-pdf="R1" style="cursor:pointer">Ver PDF</button>';
+        var t = r.totales;
+        var html = '';
+        (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+        (r.avisos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: reábralo y finalícelo nuevamente.</div>';
+        html += '<div class="cv-rtre-tarjetas" style="margin-bottom:10px">' +
+            '<div class="cv-rtre-tarjeta"><small>Boletas emitidas vigentes</small><strong>' + fmt(r.boletas.vigentes) + '</strong></div>' +
+            '<div class="cv-rtre-tarjeta"><small>Ingresos brutos act. (547)</small><strong>$' + fmt(t['547']) + '</strong></div>' +
+            '<div class="cv-rtre-tarjeta"><small>Total rentas → Cód. 110 (618)</small><strong>$' + fmt(t['618']) + '</strong></div>' +
+            '<div class="cv-rtre-tarjeta"><small>Retenciones → Cód. 198 (619)</small><strong>$' + fmt(t['619']) + '</strong></div>' +
+            '</div>';
+        html += '<div class="cv-card" style="margin:6px 0 10px;padding:8px 12px;display:flex;gap:16px;align-items:center;flex-wrap:wrap">' +
+            '<strong style="font-size:13px">Modalidad de gastos:</strong>' +
+            '<label style="font-size:12.5px;cursor:pointer"><input type="radio" name="r1-gmod" data-r1-modo="PRESUNTOS"' + (r.gastosModo === 'PRESUNTOS' ? ' checked' : '') + (fin ? ' disabled' : '') + '> Gastos presuntos (30%, tope 15 UTA = $' + fmt(r.parametros.topeGastosPresuntos) + ')</label>' +
+            '<label style="font-size:12.5px;cursor:pointer"><input type="radio" name="r1-gmod" data-r1-modo="EFECTIVOS"' + (r.gastosModo === 'EFECTIVOS' ? ' checked' : '') + (fin ? ' disabled' : '') + '> Gastos efectivos (Libro Entradas y Gastos)</label>' +
+            '<button type="button" class="cv-btn-pdf" data-abrir="F22" style="margin-left:auto;cursor:pointer">Abrir F22</button></div>';
+
+        html += '<table class="cv-modal-tabla"><thead><tr><th>Concepto (Recuadro N° 1)</th><th class="num">Código</th><th class="num">Valor</th><th>Origen</th></tr></thead><tbody>';
+        var sec = null;
+        r.lineas.forEach(function (l) {
+            if (l.seccion !== sec) {
+                html += '<tr class="cv-seccion"><td colspan="4">▾ ' + esc(l.seccion) + '</td></tr>';
+                sec = l.seccion;
+            }
+            var puedeEditar = !fin && l.naturaleza === 'MANUAL';
+            var valor = puedeEditar
+                ? '<input type="number" min="0" step="1" data-codigo="' + esc(l.codigo) + '" value="' + esc(l.monto) + '" style="width:120px;text-align:right;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font:inherit">'
+                : '$' + fmt(l.monto);
+            html += '<tr><td style="white-space:normal">' + esc(l.glosa) + '</td><td class="num">' + esc(l.codigo) +
+                '</td><td class="num" style="white-space:nowrap">' + valor + '</td><td><span class="cv-chip">' + esc(origenEtiqueta(l.origen)) + '</span></td></tr>';
+        });
+        html += '</tbody></table>';
+
+        var activos = (r.boletas.mensual || []).filter(function (m) { return m.boletas > 0; });
+        if (activos.length) {
+            html += '<h3 style="font-size:14px;margin:14px 0 6px">Detalle mensual desde boletas emitidas (' + fmt(r.boletas.vigentes) + ' vigentes, ' + fmt(r.boletas.anuladas) + ' anuladas)</h3>' +
+                '<table class="cv-modal-tabla"><thead><tr><th>Mes</th><th class="num">Boletas</th><th class="num">Factor IPC</th><th class="num">Con ret. act.</th><th class="num">Retenido act.</th><th class="num">Sin ret. act.</th></tr></thead><tbody>' +
+                activos.map(function (m) {
+                    return '<tr><td>' + esc(m.nombre) + '</td><td class="num">' + fmt(m.boletas) + '</td><td class="num">' + Number(m.factor).toLocaleString('es-CL', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) +
+                        '</td><td class="num">$' + fmt(m.brutoConRetAct) + '</td><td class="num">$' + fmt(m.retenidoAct) + '</td><td class="num">$' + fmt(m.brutoSinRetAct) + '</td></tr>';
+                }).join('') + '</tbody></table>';
+        }
+        var cot = r.cotizacionesReferencia;
+        html += '<p class="cv-texto" style="margin-top:10px;font-size:12px"><strong>Cotizaciones previsionales (referencia):</strong> Base imponible 80% s/547 = $' + fmt(cot.baseImponiblePrevisional) +
+            ' · Retenciones art. 74 N°2 (492) = $' + fmt(cot.retencionesArt74N2) + '. ' + esc(cot.nota) + '</p>';
+        cuerpo.innerHTML = html;
+    }
+
+    cuerpo.addEventListener('change', function (e) {
+        var el = e.target;
+        if (!el.matches) return;
+        if (el.matches('input[data-l57-base]')) {
+            var campoBase = el.getAttribute('data-l57-base');
+            var raw = el.value.trim();
+            var val = raw === '' ? null : Number(raw);
+            if (val !== null && (campoBase === 'PMIN' ? (!Number.isFinite(val) || val < 0 || val > 100) : (!Number.isInteger(val) || val < 0))) {
+                mostrarError(campoBase === 'PMIN' ? 'El porcentaje debe estar entre 0 y 100.' : 'Ingrese un monto entero mayor o igual a cero.');
+                return;
+            }
+            enviar('l57_guardar_base', { campo: campoBase, valor: val })
+                .then(pintarL57)
+                .catch(function (err) { cargarRecuadro('L57').then(function () { mostrarError(err.message); }); });
+        } else if (el.matches('input[data-r15-fila]')) {
+            var texto = el.value.trim();
+            var monto = texto === '' ? null : Number(texto);
+            if (monto !== null && !Number.isInteger(monto)) { mostrarError('El monto debe ser un número entero.'); return; }
+            enviar('r15_guardar_celda', { fila: el.getAttribute('data-r15-fila'), columna: el.getAttribute('data-r15-col'), monto: monto })
+                .then(pintarR15)
+                .catch(function (err) { cargarRecuadro('R15').then(function () { mostrarError(err.message); }); });
+        } else if (el.matches('select[data-dj1847-cuenta]')) {
+            enviar('dj1847_guardar_cuenta', { cuenta: el.getAttribute('data-dj1847-cuenta'), codigoIfrs: el.value })
+                .then(pintarDJ1847)
+                .catch(function (err) { cargarRecuadro('DJ1847').then(function () { mostrarError(err.message); }); });
+        } else if (el.matches('input[data-r1-modo]')) {
+            enviar('r1_modo_gastos', { modo: el.getAttribute('data-r1-modo') })
+                .then(pintarR1)
+                .catch(function (err) { cargarRecuadro('R1').then(function () { mostrarError(err.message); }); });
+        }
+    });
+
     function pintarSegun(clave, r) {
         if (clave === 'CIERRE') pintarCierre(r);
+        else if (clave === 'R1') pintarR1(r);
+        else if (clave === 'R15') pintarR15(r);
+        else if (clave === 'R16') pintarR16(r);
+        else if (clave === 'DJ1847') pintarDJ1847(r);
+        else if (clave === 'DJ1926') pintarDJ1926(r);
+        else if (clave === 'L57') pintarL57(r);
+        else if (clave === 'F22') pintarF22(r);
         else if (clave === 'R20') pintarR20(r);
         else if (clave === 'R21') pintarR21(r);
         else if (clave === 'DJ1948') pintarDJ(r);
@@ -1315,7 +1689,7 @@
         else if (clave === 'CPT') abrirCpt();
         else if (clave === 'RLI') abrirRli();
         else if (clave === 'R20' && dialogo) abrirRecuadro('R20').then(function (ok) { if (ok) abrirGrilla(dialogo); });
-        else if (['R4', 'R6', 'R17', 'R18', 'R19', 'R20', 'R21', 'R22', 'R23', 'DJ1947', 'DJ1948', 'CIERRE'].indexOf(clave) >= 0) abrirRecuadro(clave);
+        else if (['R4', 'R6', 'R12', 'R13', 'R14', 'R15', 'R16', 'DJ1847', 'DJ1926', 'R17', 'R18', 'R19', 'R20', 'R21', 'R22', 'R23', 'DJ1947', 'DJ1948', 'CIERRE'].indexOf(clave) >= 0) abrirRecuadro(clave);
         else if (clave === 'HOM') abrirHomologacion();
         else if (clave === 'PLANSII') abrirPlanSii();
     });
@@ -1393,8 +1767,8 @@
         if (monto !== null && !Number.isInteger(monto)) { mostrarError('El monto debe ser un número entero.'); return; }
         var datos = { codigo: campo.getAttribute('data-codigo'), monto: monto };
         if (clave === 'R17' && monto === null) datos.monto = 0;
-        var endpoint = { R4: 'r4_guardar_valor', R6: 'r6_guardar_valor', R17: 'r17_guardar_manual', R19: 'r19_guardar_manual',
-            R22: 'r22_guardar_manual', R23: 'r23_guardar_manual' }[clave];
+        var endpoint = { R1: 'r1_guardar_manual', R4: 'r4_guardar_valor', R6: 'r6_guardar_valor', R12: 'r12_guardar_manual', R13: 'r13_guardar_manual', R14: 'r14_guardar_manual',
+            R17: 'r17_guardar_manual', R19: 'r19_guardar_manual', R22: 'r22_guardar_manual', R23: 'r23_guardar_manual', L57: 'l57_guardar_manual', F22: 'f22_guardar_manual' }[clave];
         enviar(endpoint, datos)
             .then(function (r) { pintarSegun(clave, r); })
             .catch(function (err) { cargarRecuadro(clave).then(function () { mostrarError(err.message); }); });
@@ -1466,7 +1840,7 @@
         if (h.alertas) {
             html += '<div class="cv-aviso-ok">Hay ' + h.alertas + ' cuenta(s) asignada(s) a un código de la sección contraria (ingreso o gasto). Corríjalas: el Recuadro 17 no se finaliza mientras existan.</div>';
         }
-        html += '<table class="cv-modal-tabla"><thead><tr><th>Cuenta</th><th>Nombre</th><th>Tipo</th><th class="num">Saldo</th><th>Código del R17</th><th>Sugerencia (plan SII)</th></tr></thead><tbody>';
+        html += '<table class="cv-modal-tabla"><thead><tr><th>Cuenta</th><th>Nombre</th><th>Tipo</th><th class="num">Saldo</th><th>Código recuadro</th><th>Sugerencia (plan SII)</th></tr></thead><tbody>';
         if (!h.cuentasResultado.length) {
             html += '<tr><td colspan="6">No hay cuentas de resultado en el balance de este año.</td></tr>';
         }
@@ -1914,7 +2288,7 @@
     });
 })();
 </script>
-<script src="../assets/cifrax-14a.js?v=6"></script>
+<script src="../assets/cifrax-14a.js?v=9"></script>
 <script src="../assets/cifrax-inicio.js?v=3"></script>
 <script src="../assets/cifrax-sii.js?v=6"></script>
 </body>

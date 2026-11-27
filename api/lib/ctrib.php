@@ -21,6 +21,7 @@ function ctrib_schema(PDO $pdo): void
     $mysql = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
     $motor = $mysql ? ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4' : '';
     $id = $mysql ? 'INT AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
+    $snapshot = $mysql ? 'MEDIUMTEXT NULL' : 'TEXT NULL';
     // Cuentas de ajuste (CXC / CXP) de los códigos del R17 y sus saldos inicial y final escritos a mano.
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_ajuste_cuentas (
         empresa_id INT NOT NULL DEFAULT 0,
@@ -112,17 +113,22 @@ function ctrib_schema(PDO $pdo): void
         estado VARCHAR(12) NOT NULL DEFAULT 'BORRADOR',
         finalizado VARCHAR(25) NOT NULL DEFAULT '',
         usuario VARCHAR(120) NOT NULL DEFAULT '',
-        snapshot TEXT NULL,
+        snapshot $snapshot,
         PRIMARY KEY (empresa_id, anio, recuadro)
     )$motor");
-    // 'CIERRE' (el sello del año) tiene 6 letras. Amplía la columna en las bases MySQL creadas con 4 y recupera
-    // los sellos que un servidor sin modo estricto haya guardado recortados.
+    // 'CIERRE' (el sello del año) tiene 6 letras y los snapshots pueden superar 64 KB (TEXT en MySQL).
+    // Amplía las columnas en las bases MySQL anteriores y recupera sellos recortados sin modo estricto.
     if ($mysql) {
         $largo = $pdo->query("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS
             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ctrib_recuadros' AND COLUMN_NAME = 'recuadro'")->fetchColumn();
-        if ((int) $largo < 10) {
+        if ($largo !== false && (int) $largo < 10) {
             $pdo->exec('ALTER TABLE ctrib_recuadros MODIFY recuadro VARCHAR(10) NOT NULL');
             $pdo->exec("UPDATE ctrib_recuadros SET recuadro = 'CIERRE' WHERE recuadro = 'CIER'");
+        }
+        $tipoSnap = $pdo->query("SELECT DATA_TYPE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ctrib_recuadros' AND COLUMN_NAME = 'snapshot'")->fetchColumn();
+        if (strtolower((string) $tipoSnap) === 'text') {
+            $pdo->exec('ALTER TABLE ctrib_recuadros MODIFY snapshot MEDIUMTEXT NULL');
         }
     }
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_rtre_celdas (
@@ -158,6 +164,13 @@ function ctrib_schema(PDO $pdo): void
         concepto VARCHAR(8) NOT NULL,
         PRIMARY KEY (empresa_id, cuenta)
     )$motor");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_ifrs_cuentas (
+        empresa_id INT NOT NULL DEFAULT 0,
+        anio INT NOT NULL,
+        cuenta VARCHAR(20) NOT NULL,
+        codigo_ifrs VARCHAR(20) NOT NULL,
+        PRIMARY KEY (empresa_id, anio, cuenta)
+    )$motor");
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_incentivo (
         empresa_id INT NOT NULL DEFAULT 0,
         anio INT NOT NULL,
@@ -171,11 +184,20 @@ function ctrib_schema(PDO $pdo): void
     )$motor");
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_empresa_config (
         empresa_id INT NOT NULL PRIMARY KEY,
-        tipo VARCHAR(12) NOT NULL DEFAULT '',
+        tipo VARCHAR(20) NOT NULL DEFAULT '',
         regimen VARCHAR(12) NOT NULL DEFAULT '',
         usuario VARCHAR(120) NOT NULL DEFAULT '',
         actualizado VARCHAR(25) NOT NULL
     )$motor");
+    // 'PERSONA_NATURAL' tiene 15 caracteres: amplía MySQL si se creó con VARCHAR(12) y recupera truncados.
+    if ($mysql) {
+        $largoTipo = $pdo->query("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ctrib_empresa_config' AND COLUMN_NAME = 'tipo'")->fetchColumn();
+        if ($largoTipo !== false && (int) $largoTipo < 20) {
+            $pdo->exec("ALTER TABLE ctrib_empresa_config MODIFY tipo VARCHAR(20) NOT NULL DEFAULT ''");
+            $pdo->exec("UPDATE ctrib_empresa_config SET tipo = 'PERSONA_NATURAL' WHERE tipo = 'PERSONA_NATU'");
+        }
+    }
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_retiros_config (
         empresa_id INT NOT NULL DEFAULT 0,
         anio INT NOT NULL,
@@ -240,10 +262,30 @@ function ctrib_catalogo_r17(): array
     return $catalogo;
 }
 
-/** Códigos del R17 que se alimentan con cuentas del balance (naturaleza CUENTA_DEPENDIENTE). */
-function ctrib_codigos_dependientes(): array
+/** Catálogo de códigos del Recuadro 12 (14 A), indexado por código. */
+function ctrib_catalogo_r12(): array
 {
-    return array_filter(ctrib_catalogo_r17(), fn($c) => $c['naturalezaConfiguracion'] === 'CUENTA_DEPENDIENTE');
+    static $catalogo = null;
+    if ($catalogo === null) {
+        $datos = json_decode((string) file_get_contents(__DIR__ . '/ctrib/recuadro12.json'), true);
+        $catalogo = [];
+        foreach ($datos ?: [] as $fila) {
+            $catalogo[(string) $fila['codigo']] = $fila;
+        }
+    }
+    return $catalogo;
+}
+
+/** Catálogo usado en la homologación de cuentas según el régimen de la empresa (R12 para 14 A y 14 G, R17 para Pro Pyme). */
+function ctrib_catalogo_homologacion(PDO $pdo, int $empresa): array
+{
+    return in_array(ctrib_empresa_config($pdo, $empresa)['regimen'], ['14A', '14G'], true) ? ctrib_catalogo_r12() : ctrib_catalogo_r17();
+}
+
+/** Códigos del catálogo que se alimentan con cuentas del balance (naturaleza CUENTA_DEPENDIENTE). */
+function ctrib_codigos_dependientes(?array $catalogo = null): array
+{
+    return array_filter($catalogo ?? ctrib_catalogo_r17(), fn($c) => $c['naturalezaConfiguracion'] === 'CUENTA_DEPENDIENTE');
 }
 
 // ---------- Mapeo de dígitos ----------
@@ -305,7 +347,7 @@ function ctrib_registrar_historial(PDO $pdo, int $empresa, int $anio, string $en
     $pdo->prepare('INSERT INTO ctrib_historial (empresa_id, anio, entidad, referencia, antes, despues, motivo, usuario, creado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
         // Se recorta al tamaño de cada columna: MySQL en modo estricto rechaza los textos más largos.
         ->execute([$empresa, $anio, $entidad, mb_substr($referencia, 0, 100), mb_substr($antes, 0, 255), mb_substr($despues, 0, 255),
-            mb_substr($motivo, 0, 255), $usuario, ctrib_ahora()]);
+            mb_substr($motivo, 0, 255), mb_substr($usuario, 0, 120), ctrib_ahora()]);
 }
 
 function ctrib_historial_listar(PDO $pdo, int $empresa, int $anio, string $entidad = '', int $limite = 50): array
@@ -425,7 +467,7 @@ function ctrib_balance_guardar(PDO $pdo, int $empresa, int $anio, string $origen
         $pdo->prepare('DELETE FROM ctrib_balance_cuentas WHERE empresa_id = ? AND anio = ?')->execute([$empresa, $anio]);
         $pdo->prepare('DELETE FROM ctrib_balance WHERE empresa_id = ? AND anio = ?')->execute([$empresa, $anio]);
         $pdo->prepare('INSERT INTO ctrib_balance (empresa_id, anio, origen, archivo, importado, usuario) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([$empresa, $anio, $origen, $archivo, ctrib_ahora(), $usuario]);
+            ->execute([$empresa, $anio, $origen, mb_substr($archivo, 0, 255), ctrib_ahora(), mb_substr($usuario, 0, 120)]);
         $insertar = $pdo->prepare('INSERT INTO ctrib_balance_cuentas (empresa_id, anio, codigo, nombre, debitos, creditos) VALUES (?, ?, ?, ?, ?, ?)');
         foreach ($balance['cuentas'] as $c) {
             $insertar->execute([$empresa, $anio, $c['codigo'], $c['nombre'], $c['debitos'], $c['creditos']]);
@@ -663,8 +705,8 @@ function ctrib_rut(string $rut): string
 
 // Tipo de contribuyente y régimen de la empresa: definen las reglas del cuadro de retiros
 // (EIRL: un solo titular con el 100%; 14 D N°8: se atribuye y retira la totalidad).
-const CTRIB_TIPOS_CONTRIBUYENTE = ['EIRL', 'SPA', 'LTDA', 'SA', 'OTRO', 'PERSONA_NATURAL'];
-const CTRIB_REGIMENES = ['14D3', '14D8', '14A', '14G', 'PERSONA'];
+const CTRIB_TIPOS_CONTRIBUYENTE = ['EI', 'EIRL', 'SPA', 'LTDA', 'SA', 'OTRO', 'PERSONA_NATURAL'];
+const CTRIB_REGIMENES = ['14D3', '14D8', '14A', '14G', 'PRESUNTA', 'PERSONA'];
 
 function ctrib_empresa_config(PDO $pdo, int $empresa): array
 {
@@ -955,25 +997,27 @@ function ctrib_asignaciones(PDO $pdo, int $empresa, int $anio): array
     $st->execute([$empresa, $anio]);
     $salida = [];
     foreach ($st as $f) {
-        $salida[$f['cuenta']] = $f['codigo'];
+        $salida[$f['cuenta']] = trim((string) $f['codigo']);
     }
     return $salida;
 }
 
 /** Revisa que una cuenta de resultado sea compatible con el código: ingresos con ganancias, egresos con pérdidas. */
-function ctrib_compatible(string $tipoCuenta, string $codigo): ?string
+function ctrib_compatible(string $tipoCuenta, string $codigo, ?array $catalogo = null): ?string
 {
-    $c = ctrib_catalogo_r17()[$codigo] ?? null;
+    $catalogo ??= ctrib_catalogo_r17();
+    $c = $catalogo[$codigo] ?? null;
     if (!$c) {
-        return "El código $codigo no existe en el Recuadro 17.";
+        return "El código $codigo no existe en el recuadro de homologación.";
     }
     if ($c['naturalezaConfiguracion'] !== 'CUENTA_DEPENDIENTE') {
         return "El código $codigo se calcula solo y no admite cuentas.";
     }
-    if ($c['seccion'] === 'INGRESOS' && $tipoCuenta !== 'GANANCIA') {
+    $grupo = $c['grupo'] ?? $c['seccion'];
+    if ($grupo === 'INGRESOS' && $tipoCuenta !== 'GANANCIA') {
         return "El código $codigo es de ingresos y la cuenta no es de ingresos (ganancias).";
     }
-    if ($c['seccion'] === 'EGRESOS' && $tipoCuenta !== 'PERDIDA') {
+    if ($grupo === 'EGRESOS' && $tipoCuenta !== 'PERDIDA') {
         return "El código $codigo es de egresos y la cuenta no es de gastos (pérdidas).";
     }
     return null;
@@ -986,6 +1030,7 @@ function ctrib_homologacion_cuentas(PDO $pdo, int $empresa, int $anio): array
     if (!$balance) {
         return [];
     }
+    $catalogo = ctrib_catalogo_homologacion($pdo, $empresa);
     $asignaciones = ctrib_asignaciones($pdo, $empresa, $anio);
     $salida = [];
     foreach ($balance['cuentas'] as $c) {
@@ -997,7 +1042,7 @@ function ctrib_homologacion_cuentas(PDO $pdo, int $empresa, int $anio): array
             'cuenta' => $c['codigo'], 'nombre' => $c['nombre'], 'tipo' => $c['tipo'],
             'saldo' => $c['tipo'] === 'PERDIDA' ? $c['deudor'] - $c['acreedor'] : $c['acreedor'] - $c['deudor'],
             'codigo' => $codigo,
-            'alerta' => $codigo ? ctrib_compatible($c['tipo'], $codigo) : null,
+            'alerta' => $codigo ? ctrib_compatible($c['tipo'], $codigo, $catalogo) : null,
         ];
     }
     return $salida;
@@ -1006,6 +1051,7 @@ function ctrib_homologacion_cuentas(PDO $pdo, int $empresa, int $anio): array
 /** Vista de la homologación: códigos dependientes con sus cuentas, cuentas de resultado y el estado general. */
 function ctrib_homologacion(PDO $pdo, int $empresa, int $anio): array
 {
+    $catalogo = ctrib_catalogo_homologacion($pdo, $empresa);
     $cuentas = ctrib_homologacion_cuentas($pdo, $empresa, $anio);
     $porCodigo = [];
     foreach ($cuentas as $c) {
@@ -1014,10 +1060,10 @@ function ctrib_homologacion(PDO $pdo, int $empresa, int $anio): array
         }
     }
     $codigos = [];
-    foreach (ctrib_codigos_dependientes() as $codigo => $c) {
+    foreach (ctrib_codigos_dependientes($catalogo) as $codigo => $c) {
         $codigos[] = [
-            'codigo' => (string) $codigo, 'glosa' => $c['glosa'], 'seccion' => $c['seccion'], 'signo' => $c['signo'],
-            'requiereCuentaAjuste' => $c['requiereCuentaAjuste'], 'cuentaAjusteTipo' => $c['cuentaAjusteTipo'],
+            'codigo' => (string) $codigo, 'glosa' => $c['glosa'], 'seccion' => $c['grupo'] ?? $c['seccion'], 'signo' => $c['signo'],
+            'requiereCuentaAjuste' => $c['requiereCuentaAjuste'] ?? false, 'cuentaAjusteTipo' => $c['cuentaAjusteTipo'] ?? null,
             'cuentas' => $porCodigo[$codigo] ?? [],
         ];
     }
@@ -1027,7 +1073,7 @@ function ctrib_homologacion(PDO $pdo, int $empresa, int $anio): array
 }
 
 /**
- * Asigna una cuenta de resultado a un código dependiente del R17 (o la quita con codigo vacío).
+ * Asigna una cuenta de resultado a un código dependiente del R17 o R12 (o la quita con codigo vacío).
  * Corregir siempre está permitido; cada cambio queda en el historial (caso ENYEL 406001: 1402 → 1419).
  */
 function ctrib_homologar(PDO $pdo, int $empresa, int $anio, string $cuenta, string $codigo, string $usuario = '', string $motivo = ''): array
@@ -1047,20 +1093,21 @@ function ctrib_homologar(PDO $pdo, int $empresa, int $anio, string $cuenta, stri
         throw new CtribError("La cuenta $cuenta no está en el balance del año.");
     }
     if (!in_array($fila['tipo'], CTRIB_TIPOS_RESULTADO, true)) {
-        throw new CtribError("La cuenta $cuenta es de balance y no se homologa al Recuadro 17.");
+        throw new CtribError("La cuenta $cuenta es de balance y no se homologa a resultado.");
     }
     $codigo = trim($codigo);
+    $catalogo = ctrib_catalogo_homologacion($pdo, $empresa);
     $antes = ctrib_asignaciones($pdo, $empresa, $anio)[$cuenta] ?? '';
     if ($codigo === '') {
         $pdo->prepare('DELETE FROM ctrib_homologacion WHERE empresa_id = ? AND anio = ? AND cuenta = ?')->execute([$empresa, $anio, $cuenta]);
     } else {
-        if (!isset(ctrib_catalogo_r17()[$codigo])) {
-            throw new CtribError("El código $codigo no existe en el Recuadro 17.");
+        if (!isset($catalogo[$codigo])) {
+            throw new CtribError("El código $codigo no existe en el recuadro de homologación.");
         }
-        if (!isset(ctrib_codigos_dependientes()[$codigo])) {
+        if (!isset(ctrib_codigos_dependientes($catalogo)[$codigo])) {
             throw new CtribError("El código $codigo se calcula solo y no admite cuentas.");
         }
-        if ($error = ctrib_compatible($fila['tipo'], $codigo)) {
+        if ($error = ctrib_compatible($fila['tipo'], $codigo, $catalogo)) {
             throw new CtribError($error);
         }
         if ($antes === $codigo) {
