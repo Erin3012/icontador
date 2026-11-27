@@ -248,8 +248,8 @@ class Dashboard {
                 FROM rcv_compras rc
                 WHERE rc.empresa_id = ?
                 AND rc.fecha_import IS NULL
-                AND rc.fecha >= DATE_SUB(NOW(), INTERVAL 30 DAY)",
-                [$this->empresa_id]
+                AND rc.fecha >= ?",
+                [$this->empresa_id, date('Y-m-d', strtotime('-30 days'))]
             )->fetch();
 
             if (($rcvPendiente['cantidad'] ?? 0) > 0) {

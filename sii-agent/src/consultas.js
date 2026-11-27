@@ -40,7 +40,7 @@ function estadoF22(situacion) {
   const t = limpiar(situacion).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   if (/devolucion[^.]*(retenid|retuvo)|(retenid|retuvo)[^.]*devolucion/.test(t)) return 'Devolución retenida';
   if (/observad|inconsistenc|(?<!no )presenta diferencias|no ha sido aceptad|rechazad|impugnad/.test(t)) return 'Con inconsistencia';
-  if (/aceptad/.test(t)) return 'Aceptada';
+  if (/aceptad|autoriz.*devolucion/.test(t)) return 'Aceptada';
   if (/proceso|revision|recibida/.test(t)) return 'En proceso';
   return 'Otro';
 }
@@ -99,9 +99,10 @@ function parsearDdjj(anio, detalle, observaciones = {}) {
     }
   }
   let estado = 'En revisión';
+  const vigentes = declaraciones.filter((d) => !/anulad/i.test(d.estado));
   if (!declaraciones.length) estado = 'Sin DJ presentadas';
   else if (declaraciones.some((d) => DJ_OBSERVADA.test(d.estado))) estado = 'Con observadas';
-  else if (declaraciones.every((d) => /aceptad/i.test(d.estado))) estado = 'Todas aceptadas';
+  else if (vigentes.length && vigentes.every((d) => /aceptad/i.test(d.estado))) estado = 'Todas aceptadas';
   return { tipo: 'ddjj', anio, estado, declaraciones };
 }
 

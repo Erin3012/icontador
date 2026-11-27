@@ -163,7 +163,7 @@ class CRM {
         $stmt = $this->db->prepare(
             "INSERT INTO crm_interacciones
              (contacto_id, empresa_id, tipo_interaccion, descripcion, resultado, duracion_minutos, fecha_interaccion, creado_en)
-             VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)"
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
 
         $stmt->execute([
@@ -174,12 +174,13 @@ class CRM {
             $resultado,
             $duracion,
             $creado_en,
+            $creado_en,
         ]);
 
         // Actualizar última interacción en contacto
         $this->db->prepare(
-            "UPDATE crm_contactos SET ultima_interaccion = CURDATE(), actualizado_en = ? WHERE id = ? AND empresa_id = ?"
-        )->execute([date('Y-m-d H:i:s'), $contactoId, $this->empresa_id]);
+            "UPDATE crm_contactos SET ultima_interaccion = ?, actualizado_en = ? WHERE id = ? AND empresa_id = ?"
+        )->execute([date('Y-m-d'), date('Y-m-d H:i:s'), $contactoId, $this->empresa_id]);
 
         return $this->db->lastInsertId();
     }

@@ -269,17 +269,26 @@ class Notificaciones {
      */
     public function actualizarPreferencias($usuarioId, $preferencias): bool {
         try {
-            $stmt = $this->db->prepare(
-                "INSERT INTO preferencias_notificacion 
-                 (usuario_id, empresa_id, notificaciones_email, notificaciones_sistema, 
-                  resumen_diario, alertas_criticas, actualizado_en)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)
-                 ON DUPLICATE KEY UPDATE
+            $mysql = $this->db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $upsert = $mysql
+                ? "ON DUPLICATE KEY UPDATE
                  notificaciones_email = VALUES(notificaciones_email),
                  notificaciones_sistema = VALUES(notificaciones_sistema),
                  resumen_diario = VALUES(resumen_diario),
                  alertas_criticas = VALUES(alertas_criticas),
                  actualizado_en = VALUES(actualizado_en)"
+                : "ON CONFLICT(usuario_id, empresa_id) DO UPDATE SET
+                 notificaciones_email = excluded.notificaciones_email,
+                 notificaciones_sistema = excluded.notificaciones_sistema,
+                 resumen_diario = excluded.resumen_diario,
+                 alertas_criticas = excluded.alertas_criticas,
+                 actualizado_en = excluded.actualizado_en";
+            $stmt = $this->db->prepare(
+                "INSERT INTO preferencias_notificacion 
+                 (usuario_id, empresa_id, notificaciones_email, notificaciones_sistema, 
+                  resumen_diario, alertas_criticas, actualizado_en)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)
+                 $upsert"
             );
 
             return $stmt->execute([
