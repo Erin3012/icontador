@@ -553,7 +553,8 @@
     var empresaActiva = null;
     try { empresaActiva = JSON.parse(localStorage.getItem('icontador.empresaSeleccionada') || 'null'); } catch (e) { empresaActiva = null; }
     var empresaId = new URLSearchParams(window.location.search).get('empresa_id') || (empresaActiva && empresaActiva.id) || '';
-    var anio = 2026; // año tributario
+    var selectorAnio = document.getElementById('cf-anio');
+    var anio = Number(selectorAnio.value) || new Date().getFullYear(); // año tributario elegido arriba
     var recuadroActual = null; // 'R17' o 'R19' cuando la ventana muestra un recuadro
 
     function esc(s) {
@@ -744,10 +745,7 @@
         if (clave === 'R17') r17Actual = r;
         titulo.textContent = titulosRecuadro[clave] || clave;
         sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
-        var estadoHtml = r.estado === 'FINALIZADO'
-            ? '<span class="cv-pill cv-disp">Finalizado</span>'
-            : (r.desactualizado ? '<span class="cv-pill cv-borr">Desactualizado</span>' : '<span class="cv-pill cv-borr">Borrador</span>');
-        acc.innerHTML = estadoHtml + ' ' +
+        acc.innerHTML = estadoPill(r) + ' ' +
             (r.estado === 'FINALIZADO'
                 ? '<button type="button" class="cv-btn-pdf" data-reabrir>Reabrir</button>'
                 : '<button type="button" class="cv-btn-fin" data-fin' + (r.puedeFinalizar ? '' : ' disabled') + '>Finalizar declaración</button>') +
@@ -755,7 +753,10 @@
 
         var html = '';
         (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
-        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: finalícelo nuevamente para actualizar el snapshot.</div>';
+        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: reábralo y finalícelo nuevamente.</div>';
+        if (clave === 'R22' && r.confirmar1618 !== null && r.estado !== 'FINALIZADO') {
+            html += '<p style="margin:0 0 8px"><button type="button" class="cv-btn-pdf" data-confirmar-1618="' + esc(r.confirmar1618) + '" style="cursor:pointer">Confirmar el 1618 en $' + fmt(r.confirmar1618) + '</button></p>';
+        }
         if (clave === 'R22' || clave === 'R23') {
             (r.avisos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
             html += '<p class="cv-texto" style="font-size:12.5px;margin:0 0 8px">Los montos con casilla se pueden corregir; si borra una casilla vuelve el valor automático.' +
@@ -878,9 +879,8 @@
     };
 
     function estadoPill(r) {
-        return r.estado === 'FINALIZADO'
-            ? '<span class="cv-pill cv-disp">Finalizado</span>'
-            : (r.desactualizado ? '<span class="cv-pill cv-borr">Desactualizado</span>' : '<span class="cv-pill cv-borr">Borrador</span>');
+        if (r.desactualizado) return '<span class="cv-pill cv-borr">Desactualizado</span>';
+        return r.estado === 'FINALIZADO' ? '<span class="cv-pill cv-disp">Finalizado</span>' : '<span class="cv-pill cv-borr">Borrador</span>';
     }
 
     // RTRE como en iTributario: tarjetas (RAI final, REX final, SAC disponible, retiros), botones R20 y R21 que abren
@@ -918,7 +918,7 @@
 
         var html = '';
         (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
-        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: finalícelo nuevamente.</div>';
+        if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: reábralo y finalícelo nuevamente.</div>';
         html += '<table class="cv-modal-tabla cv-rtre-tabla"><thead><tr><th>Movimiento</th>' + GRUPOS_RTRE.map(function (g) { return '<th class="num">' + g + '</th>'; }).join('') + '</tr></thead><tbody>';
         r.secciones.secciones.forEach(function (s) {
             var cerrada = !!seccionesCerradas[s.bloque];
@@ -1161,8 +1161,8 @@
 
     // Composición y retiros del año: titular, socios o accionistas con su participación, la utilidad que les
     // corresponde y lo retirado en el año. EIRL: un solo titular con el 100%. 14 D N°8: se retira la totalidad.
-    var TIPOS_CONTRIBUYENTE = [['EIRL', 'EIRL (un solo titular)'], ['SPA', 'SpA'], ['LTDA', 'Sociedad de responsabilidad limitada'], ['SA', 'Sociedad anónima'], ['OTRO', 'Otro']];
-    var REGIMENES = [['14D3', 'Pro Pyme General (14 D N°3)'], ['14D8', 'Pro Pyme Transparente (14 D N°8)'], ['14A', 'Régimen general (14 A)']];
+    var TIPOS_CONTRIBUYENTE = [['EIRL', 'EIRL (un solo titular)'], ['SPA', 'SpA'], ['LTDA', 'Sociedad de responsabilidad limitada'], ['SA', 'Sociedad anónima'], ['PERSONA_NATURAL', 'Persona natural'], ['OTRO', 'Otro']];
+    var REGIMENES = [['14D3', 'Pro Pyme General (14 D N°3)'], ['14D8', 'Pro Pyme Transparente (14 D N°8)'], ['14A', 'Régimen general (14 A)'], ['14G', '14 G (fundaciones y corporaciones)'], ['PERSONA', 'Persona natural (honorarios)']];
     var ESTILO_CAMPO = 'style="width:100%;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font:inherit"';
 
     function opcionesSelect(lista, actual) {
@@ -1405,6 +1405,15 @@
             .catch(function (err) { cargarRecuadro(clave).then(function () { mostrarError(err.message); }); });
     });
 
+    cuerpo.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('[data-confirmar-1618]') : null;
+        if (!b) return;
+        b.disabled = true;
+        enviar('r22_guardar_manual', { codigo: '1618', monto: Number(b.getAttribute('data-confirmar-1618')) })
+            .then(function (r) { pintarSegun('R22', r); })
+            .catch(function (err) { cargarRecuadro('R22').then(function () { mostrarError(err.message); }); });
+    });
+
     // ---------- Homologación de cuentas (cuenta de resultado → código del R17) ----------
     function opcionesCodigo(codigos, tipo, actual) {
         var seccion = tipo === 'GANANCIA' ? 'INGRESOS' : 'EGRESOS';
@@ -1457,7 +1466,7 @@
     function pintarHomologacion(h) {
         recuadroActual = null;
         acc.innerHTML = '<span class="cv-pill ' + (h.pendientes || h.alertas ? 'cv-borr' : 'cv-disp') + '">Pendientes: ' + h.pendientes + ' · Alertas: ' + h.alertas + '</span>' +
-            (h.sugerenciasAplicables ? ' <button type="button" class="cv-btn-fin" data-aplicar-sugerencias style="cursor:pointer;opacity:1">Usar sugerencias en cuentas sin código (' + h.sugerenciasAplicables + ')</button>' : '');
+            (h.sugerenciasAplicables ? ' <button type="button" class="cv-btn-fin" data-aplicar-sugerencias style="cursor:pointer;opacity:1">Usar sugerencias de confianza alta o media (' + h.sugerenciasAplicables + ')</button>' : '');
         var html = '';
         if (h.alertas) {
             html += '<div class="cv-aviso-ok">Hay ' + h.alertas + ' cuenta(s) asignada(s) a un código de la sección contraria (ingreso o gasto). Corríjalas: el Recuadro 17 no se finaliza mientras existan.</div>';
@@ -1528,15 +1537,37 @@
     function estadoRecuadro(clave, r) {
         if (!r) return;
         var fin = r.estado === 'FINALIZADO';
-        ponerEstado('.cv-fila[data-abrir="' + clave + '"] .cv-estado', fin ? 'FINALIZADO' : 'EN PROCESO', fin ? 'ok' : 'proceso');
+        ponerEstado('.cv-fila[data-abrir="' + clave + '"] .cv-estado', r.desactualizado ? 'DESACTUALIZADO' : (fin ? 'FINALIZADO' : 'EN PROCESO'),
+            r.desactualizado ? 'pend' : (fin ? 'ok' : 'proceso'));
+    }
+    // Etiquetas de la pestaña Reportes según los datos del año (antes eran fijas).
+    function ponerPildora(codigo, texto, clase) {
+        document.querySelectorAll('.cv-rep').forEach(function (fila) {
+            var cod = fila.querySelector('.cv-cod');
+            var pildora = fila.querySelector('.cv-pill');
+            if (!cod || !pildora || cod.textContent.trim() !== codigo) return;
+            pildora.textContent = texto;
+            pildora.className = 'cv-pill ' + clase;
+        });
+    }
+    var CODIGOS_REPORTE = ['Balance', 'Homol.', 'Retiros', 'RLI', 'CPT', 'R4', 'R6', 'R17', 'R19', 'R18', 'R20', 'R21', 'RTRE', 'DJ 1948'];
+    function reporteDisponible(codigos, hay) {
+        codigos.forEach(function (c) { ponerPildora(c, hay ? 'Disponible' : 'Sin datos', hay ? 'cv-disp' : 'cv-sin'); });
+    }
+    function reporteRecuadro(codigos, r) {
+        var texto = !r ? 'Sin datos' : (r.desactualizado ? 'Desactualizado' : (r.estado === 'FINALIZADO' ? 'Finalizado' : 'Borrador'));
+        var clase = !r ? 'cv-sin' : (texto === 'Finalizado' ? 'cv-disp' : 'cv-borr');
+        codigos.forEach(function (c) { ponerPildora(c, texto, clase); });
     }
     function nada() { return null; }
     function actualizarInicio() {
+        var anioPedido = anio;
         Promise.all([
             pedir('r17').catch(nada), pedir('r19').catch(nada), pedir('homologacion').catch(nada), pedir('r20').catch(nada),
             pedir('balance').catch(nada), pedir('retiros').catch(nada), pedir('cierre').catch(nada), pedir('r4').catch(nada), pedir('r6').catch(nada),
             pedir('dj1948').catch(nada)
         ]).then(function (res) {
+            if (anioPedido !== anio) return; // se cambió de año mientras llegaba la respuesta
             // DJ 1948: completada con el RTRE finalizado y todos los socios con certificado (o sin retiros en el año).
             var dj = res[9];
             if (dj) {
@@ -1550,14 +1581,23 @@
             estadoRecuadro('R20', res[3]);
             estadoRecuadro('R4', res[7]);
             estadoRecuadro('R6', res[8]);
+            reporteRecuadro(['R17'], res[0]);
+            reporteRecuadro(['R19'], res[1]);
+            reporteRecuadro(['R18', 'R20', 'R21', 'RTRE'], res[3]);
+            reporteRecuadro(['R4'], res[7]);
+            reporteRecuadro(['R6'], res[8]);
+            ponerPildora('DJ 1948', !dj ? 'Sin datos' : (dj.paso1.listo ? 'Disponible' : 'Borrador'), !dj ? 'cv-sin' : (dj.paso1.listo ? 'cv-disp' : 'cv-borr'));
             if (res[2]) {
                 var pendiente = res[2].pendientes > 0 || res[2].alertas > 0;
                 ponerEstado('.cv-fila[data-abrir="HOM"] .cv-estado', pendiente ? 'PENDIENTE' : 'AL DÍA', pendiente ? 'pend' : 'ok');
             }
             var hayBalance = !!(res[4] && res[4].cuentas && res[4].cuentas.length);
             ponerEstado('.cv-fila[data-estado="balance"] .cv-estado', hayBalance ? 'COMPLETADO' : 'PENDIENTE', hayBalance ? 'ok' : 'pend');
-            var hayRetiros = !!(res[5] && (res[5].modo === 'sin_retiros' || (res[5].retiros && res[5].retiros.length)));
+            var hayRetiros = !!(res[5] && (res[5].modo === 'sin_retiros' || (res[5].retiros && res[5].retiros.length) ||
+                (res[5].modo === 'totalidad' && res[5].socios && res[5].socios.length)));
             ponerEstado('.cv-fila[data-estado="retiros"] .cv-estado', hayRetiros ? 'COMPLETADO' : 'PENDIENTE', hayRetiros ? 'ok' : 'pend');
+            reporteDisponible(['Balance', 'Homol.', 'RLI', 'CPT'], hayBalance);
+            reporteDisponible(['Retiros'], hayRetiros);
             var c = res[6];
             if (c) {
                 var nombres = {};
@@ -1571,6 +1611,22 @@
             }
         });
     }
+    function marcarCargando() {
+        CODIGOS_REPORTE.forEach(function (c) { ponerPildora(c, 'Cargando', 'cv-sin'); });
+        ['.cv-fila[data-abrir] .cv-estado', '.cv-fila[data-estado] .cv-estado'].forEach(function (s) {
+            document.querySelectorAll(s).forEach(function (e) {
+                if (e.textContent.trim() !== '—') { e.textContent = 'CARGANDO'; e.className = 'cv-estado proceso'; }
+            });
+        });
+        document.querySelectorAll('[data-cierre-texto]').forEach(function (p) { p.textContent = 'Revisando el estado de los recuadros…'; });
+    }
+    selectorAnio.addEventListener('change', function () {
+        anio = Number(selectorAnio.value);
+        recuadroActual = null;
+        marcarCargando();
+        actualizarInicio();
+    });
+    CODIGOS_REPORTE.forEach(function (c) { ponerPildora(c, 'Cargando', 'cv-sin'); });
     actualizarInicio();
     new MutationObserver(function () { if (modal.hidden) actualizarInicio(); }).observe(modal, { attributes: true, attributeFilter: ['hidden'] });
 
@@ -1864,7 +1920,7 @@
 })();
 </script>
 <script src="../assets/cifrax-14a.js?v=6"></script>
-<script src="../assets/cifrax-inicio.js?v=2"></script>
+<script src="../assets/cifrax-inicio.js?v=3"></script>
 <script src="../assets/cifrax-sii.js?v=6"></script>
 </body>
 </html>

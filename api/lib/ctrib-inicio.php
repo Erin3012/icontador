@@ -26,7 +26,9 @@ function ctrib_inicio_estado(PDO $pdo, int $empresa, int $anio, array $fila): ar
             return !empty($balance['cuentas']) ? ['texto' => 'COMPLETADO', 'clase' => 'ok'] : ['texto' => 'PENDIENTE', 'clase' => 'pend'];
         case 'retiros':
             $r = ctrib_retiros_del_anio($pdo, $empresa, $anio);
-            $hay = in_array($r['modo'], ['sin_retiros', 'totalidad'], true) || !empty($r['retiros']);
+            // La atribución total solo está completa cuando hay a quién atribuir.
+            $hay = $r['modo'] === 'sin_retiros' || !empty($r['retiros'])
+                || ($r['modo'] === 'totalidad' && ctrib_socios($pdo, $empresa, $anio) !== []);
             return $hay ? ['texto' => 'COMPLETADO', 'clase' => 'ok'] : ['texto' => 'PENDIENTE', 'clase' => 'pend'];
         case 'dj1948':
             $dj = ctrib_dj1948($pdo, $empresa, $anio);
@@ -50,10 +52,19 @@ function ctrib_inicio_estado(PDO $pdo, int $empresa, int $anio, array $fila): ar
             return $completos && ctrib_estado_recuadro($pdo, $empresa, $anio, 'R22')['estado'] === 'FINALIZADO'
                 ? ['texto' => 'COMPLETADO', 'clase' => 'ok'] : ['texto' => 'PENDIENTE', 'clase' => 'pend'];
         case 'sii_consulta':
-            $st = $pdo->prepare('SELECT estado FROM sii_consultas WHERE empresa_id = ? AND tipo = ? AND anio = ? ORDER BY id DESC LIMIT 1');
-            $st->execute([$empresa, $fila['consulta'], $anio]);
-            $estado = trim((string) $st->fetchColumn());
-            return $estado !== '' ? ['texto' => mb_strtoupper($estado), 'clase' => 'ok'] : ['texto' => 'SIN CONSULTAR', 'clase' => 'pend'];
+            try {
+                $st = $pdo->prepare('SELECT estado FROM sii_consultas WHERE empresa_id = ? AND tipo = ? AND anio = ? ORDER BY id DESC LIMIT 1');
+                $st->execute([$empresa, $fila['consulta'], $anio]);
+                $estado = trim((string) $st->fetchColumn());
+            } catch (PDOException $ex) {
+                $estado = ''; // instalación cuyo módulo SII no guarda consultas: Inicio sigue funcionando
+            }
+            if ($estado === '') {
+                return ['texto' => 'SIN CONSULTAR', 'clase' => 'pend'];
+            }
+            $clase = in_array($estado, ['Aceptada', 'Todas aceptadas'], true) ? 'ok'
+                : (in_array($estado, ['En proceso', 'En revisión'], true) ? 'proceso' : 'pend');
+            return ['texto' => mb_strtoupper($estado), 'clase' => $clase];
         default:
             // Todavía no calculado: pendiente hasta su etapa del plan.
             return ['texto' => 'POR CALCULAR', 'clase' => 'pend'];

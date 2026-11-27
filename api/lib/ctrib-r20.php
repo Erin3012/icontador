@@ -515,6 +515,7 @@ function ctrib_r21(PDO $pdo, int $empresa, int $anio): array
         'formulario' => $formulario,
         'lineas' => $lineas,
         'estado' => $r20['estado'],
+        'desactualizado' => $r20['desactualizado'],
         'pendientesDeCalculo' => ['Créditos de IDPC voluntario y del art. 21 (CREDITO_ART21) no tienen columna en el formulario en esta versión.'],
     ];
 }

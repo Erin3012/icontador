@@ -127,6 +127,12 @@ function ctrib_sugerencia_para_14a(array $s, string $nombre, string $tipo): arra
     ];
 }
 
+/** Se asigna en bloque solo con confianza alta o media: la baja es un relleno genérico que se revisa una a una. */
+function ctrib_sugerencia_masiva(array $cuenta): bool
+{
+    return $cuenta['codigo'] === null && $cuenta['sugerencia']['codigo'] !== null && $cuenta['sugerencia']['confianza'] !== 'baja';
+}
+
 /** Homologación del año con la sugerencia de cada cuenta de resultado. */
 function ctrib_homologacion_con_sugerencias(PDO $pdo, int $empresa, int $anio): array
 {
@@ -139,7 +145,7 @@ function ctrib_homologacion_con_sugerencias(PDO $pdo, int $empresa, int $anio): 
             $s = ctrib_sugerencia_para_14a($s, (string) $c['nombre'], (string) $c['tipo']);
         }
         $h['cuentasResultado'][$i]['sugerencia'] = $s;
-        if ($c['codigo'] === null && $s['codigo'] !== null) {
+        if (ctrib_sugerencia_masiva($h['cuentasResultado'][$i])) {
             $aplicables++;
         }
     }
@@ -147,7 +153,7 @@ function ctrib_homologacion_con_sugerencias(PDO $pdo, int $empresa, int $anio): 
     return $h;
 }
 
-/** Asigna la sugerencia a las cuentas que aún no tienen código (nunca cambia una asignación hecha). Queda en el historial. */
+/** Asigna las sugerencias de confianza alta o media a las cuentas sin código (nunca cambia una asignación hecha). Queda en el historial. */
 function ctrib_homologacion_aplicar_sugerencias(PDO $pdo, int $empresa, int $anio, string $usuario): array
 {
     $h = ctrib_homologacion_con_sugerencias($pdo, $empresa, $anio);
@@ -155,7 +161,7 @@ function ctrib_homologacion_aplicar_sugerencias(PDO $pdo, int $empresa, int $ani
     $pdo->beginTransaction();
     try {
         foreach ($h['cuentasResultado'] as $c) {
-            if ($c['codigo'] === null && $c['sugerencia']['codigo'] !== null) {
+            if (ctrib_sugerencia_masiva($c)) {
                 ctrib_homologar($pdo, $empresa, $anio, (string) $c['cuenta'], $c['sugerencia']['codigo'], $usuario, 'Sugerencia aplicada (plan SII)');
                 $aplicadas++;
             }

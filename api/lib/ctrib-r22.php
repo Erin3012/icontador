@@ -95,6 +95,14 @@ function ctrib_r22_calculo(PDO $pdo, int $empresa, int $anio): array
     if ($homologacion['alertas'] > 0) {
         $bloqueos[] = "Hay {$homologacion['alertas']} cuenta(s) con código incompatible: corríjalas en la homologación.";
     }
+    $sinExistenciaInicial = ctrib_existencias_bloqueo($pdo, $empresa, $anio);
+    if ($sinExistenciaInicial !== null) {
+        $bloqueos[] = $sinExistenciaInicial;
+    }
+    $confirmar1618 = !$activoFijo['conAnterior'] && $activoFijo['total'] > 0 && !array_key_exists('1618', $manuales);
+    if ($confirmar1618) {
+        $bloqueos[] = 'No hay balance del año anterior: el 1618 puede incluir activo fijo comprado antes. Importe ese balance, o confirme o corrija el 1618.';
+    }
     // Instrucción del 1609: el crédito no excede el IDPC que habría gravado la base, y con pérdida no se anota.
     $tope = (int) round(max(0, $montos['1630']) * ctrib_tasa_pro_pyme(ctrib_anio_comercial($anio)) / 100, 0, PHP_ROUND_HALF_UP);
     if ($montos['1609'] > $tope) {
@@ -114,7 +122,8 @@ function ctrib_r22_calculo(PDO $pdo, int $empresa, int $anio): array
     }
 
     return ['lineas' => $lineas, 'montos' => $montos, 'totales' => ['1610' => $totales['1610'], '1629' => $totales['1629'], '1630' => $montos['1630']],
-        'bloqueos' => $bloqueos, 'avisos' => $avisos, 'gastosRechazados' => $rechazados];
+        'bloqueos' => $bloqueos, 'avisos' => $avisos, 'gastosRechazados' => $rechazados,
+        'confirmar1618' => $confirmar1618 ? $montos['1618'] : null];
 }
 
 /** Asignación de la base imponible y sus datos a cada propietario según su participación (datos de la DJ 1947). */
@@ -160,7 +169,7 @@ function ctrib_r22(PDO $pdo, int $empresa, int $anio): array
         'propietarios' => ctrib_r22_propietarios($pdo, $empresa, $anio, $calculo['montos']),
         'estado' => $estado['estado'], 'finalizado' => $estado['finalizado'], 'usuario' => $estado['usuario'],
         'desactualizado' => ctrib_desactualizado($estado, $calculo['montos']),
-        'avisos' => $calculo['avisos'], 'bloqueos' => $calculo['bloqueos'],
+        'avisos' => $calculo['avisos'], 'bloqueos' => $calculo['bloqueos'], 'confirmar1618' => $calculo['confirmar1618'],
         'pendientesDeCalculo' => ['Dividendos (1604 y 1605), ingreso diferido (1608), crédito por activo fijo (1609) y gastos del cambio de régimen (1611 a 1613) se escriben a mano.'],
         'puedeFinalizar' => $calculo['bloqueos'] === [] && !$finalizado,
     ];

@@ -228,6 +228,10 @@ function ctrib_r17(PDO $pdo, int $empresa, int $anio): array
     $desactualizado = ctrib_desactualizado($estado, $actual);
 
     $bloqueos = [];
+    $sinExistenciaInicial = ctrib_existencias_bloqueo($pdo, $empresa, $anio);
+    if ($sinExistenciaInicial !== null) {
+        $bloqueos[] = $sinExistenciaInicial;
+    }
     if ($homologacion['pendientes'] > 0) {
         $bloqueos[] = "Hay {$homologacion['pendientes']} cuenta(s) de resultado sin código: asígnelas en la homologación.";
     }

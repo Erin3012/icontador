@@ -34,27 +34,30 @@ try {
         if (!is_array($datos) || !is_string($datos['codigo'] ?? null)) responder(400, ['error' => 'Falta el código de emparejamiento.']);
         responder(200, ['token' => sii_codigo_canjear($db, $datos['codigo'], (string) ($datos['nombre'] ?? ''))]);
     }
-    sii_autorizar_agente($db);
+    $usuarioAgente = sii_autorizar_agente($db);
     if ($metodo === 'GET' && $accion === 'pendientes') {
         // Funcionalidades extra que declara el agente (por ejemplo "f22,ddjj"). Sin la cabecera: solo RCV y datos de empresa.
         $funciones = array_filter(array_map('trim', explode(',', (string) ($_SERVER['HTTP_X_AGENTE_FUNCIONES'] ?? ''))));
-        responder(200, ['tareas' => sii_reclamar($db, 3, $funciones)]);
+        responder(200, ['tareas' => sii_reclamar($db, 3, $funciones, $usuarioAgente)]);
     }
     if ($metodo === 'POST' && $accion === 'resultado_consulta') {
         $datos = json_decode(file_get_contents('php://input'), true);
         if (!is_array($datos) || !is_int($datos['tarea_id'] ?? null) || !is_array($datos['resultado'] ?? null)) {
             responder(400, ['error' => 'Falta tarea_id o resultado.']);
         }
+        sii_exigir_tarea_del_agente($db, $usuarioAgente, $datos['tarea_id']);
         responder(200, sii_resultado_consulta($db, $datos['tarea_id'], $datos['resultado']));
     }
     if ($metodo === 'POST' && $accion === 'resultado_empresa') {
         $datos = json_decode(file_get_contents('php://input'), true);
         if (!is_array($datos) || !is_int($datos['tarea_id'] ?? null)) responder(400, ['error' => 'Falta tarea_id.']);
+        sii_exigir_tarea_del_agente($db, $usuarioAgente, $datos['tarea_id']);
         responder(200, ['empresa' => sii_resultado_empresa($db, $datos['tarea_id'], $datos)]);
     }
     if ($metodo === 'POST' && in_array($accion, ['importar', 'error'], true)) {
         $datos = json_decode(file_get_contents('php://input'), true);
         if (!is_array($datos) || !is_int($datos['tarea_id'] ?? null)) responder(400, ['error' => 'Falta tarea_id.']);
+        sii_exigir_tarea_del_agente($db, $usuarioAgente, $datos['tarea_id']);
         if ($accion === 'importar') {
             responder(200, ['guardados' => sii_importar($db, $datos['tarea_id'], $datos)]);
         }

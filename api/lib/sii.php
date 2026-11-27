@@ -98,15 +98,19 @@ function sii_listar(PDO $db, int $empresa): array {
  * Entrega hasta $maximo tareas pendientes al agente y las marca 'en_proceso'. Las que quedaron reservadas hace mucho vuelven a pendiente.
  * El RCV va primero. Las funcionalidades extra (F22 y declaraciones juradas) solo se entregan a un agente que las declara
  * en $funciones: un agente instalado antes sigue haciendo solo RCV y datos de empresa.
+ * Con $usuarioAgente (PC emparejado) solo se entregan las tareas que ese usuario puede usar; null es el token del servidor.
  */
-function sii_reclamar(PDO $db, int $maximo = 3, array $funciones = []): array {
+function sii_reclamar(PDO $db, int $maximo = 3, array $funciones = [], ?int $usuarioAgente = null): array {
     $ahora = sii_ahora();
     $limite = date('Y-m-d H:i:s', time() - SII_RECLAMO_MINUTOS * 60);
     $db->prepare("UPDATE sii_tareas SET estado = 'pendiente', actualizado_en = ? WHERE estado = 'en_proceso' AND reclamado_en < ?")->execute([$ahora, $limite]);
     $extras = array_keys(SII_CONSULTAS);
     $candidatas = [];
     $despues = [];
-    foreach ($db->query("SELECT id, tipo FROM sii_tareas WHERE estado = 'pendiente' ORDER BY id")->fetchAll() as $fila) {
+    foreach ($db->query("SELECT id, tipo, empresa_id, creado_por FROM sii_tareas WHERE estado = 'pendiente' ORDER BY id")->fetchAll() as $fila) {
+        if (!sii_agente_puede($db, $usuarioAgente, $fila)) {
+            continue;
+        }
         if (!in_array($fila['tipo'], $extras, true)) {
             $candidatas[] = $fila['id'];
         } elseif (in_array($fila['tipo'], $funciones, true)) {
@@ -352,10 +356,11 @@ function sii_clave_descifrar(PDO $db, int $empresa): ?string {
 }
 
 /** Acepta el token compartido de api/config.php (instalaciones anteriores) o el token propio de un agente emparejado. */
-function sii_autorizar_agente(PDO $db): void {
+function sii_autorizar_agente(PDO $db): ?int {
     $recibido = (string) ($_SERVER['HTTP_X_AGENTE_TOKEN'] ?? '');
     if ($recibido === '' && preg_match('/^Bearer\s+(.+)$/i', $_SERVER['HTTP_AUTHORIZATION'] ?? '', $m)) $recibido = $m[1];
-    if ($recibido !== '' && (sii_token_valido($recibido) || sii_agente_por_token($db, $recibido))) return;
+    if ($recibido !== '' && sii_token_valido($recibido)) return null;
+    if ($recibido !== '' && ($usuario = sii_agente_por_token($db, $recibido)) !== null) return $usuario;
     if (sii_token_configurado() === '' && sii_agentes_activos($db) === 0) {
         auth_json(503, ['error' => 'La sincronización con el SII no está configurada en el servidor (falta emparejar un agente).']);
     }
@@ -404,13 +409,36 @@ function sii_codigo_canjear(PDO $db, string $codigo, string $nombre): string {
 }
 
 /** Si el token pertenece a un agente activo, anota su último uso y devuelve true. */
-function sii_agente_por_token(PDO $db, string $token): bool {
-    $st = $db->prepare('SELECT id FROM sii_agentes WHERE token_hash = ? AND revocado_en IS NULL');
+/** Usuario que emparejó el PC dueño del token, o null si el token no corresponde a un PC activo. */
+function sii_agente_por_token(PDO $db, string $token): ?int {
+    $st = $db->prepare('SELECT id, usuario_id FROM sii_agentes WHERE token_hash = ? AND revocado_en IS NULL');
     $st->execute([hash('sha256', $token)]);
-    $id = $st->fetchColumn();
-    if ($id === false) return false;
-    $db->prepare('UPDATE sii_agentes SET ultimo_uso = ? WHERE id = ?')->execute([sii_ahora(), (int) $id]);
-    return true;
+    $agente = $st->fetch();
+    if (!$agente) return null;
+    $db->prepare('UPDATE sii_agentes SET ultimo_uso = ? WHERE id = ?')->execute([sii_ahora(), (int) $agente['id']]);
+    return (int) $agente['usuario_id'];
+}
+
+/**
+ * ¿El PC puede trabajar esta tarea? Un administrador, todas; los demás usuarios activos, las de sus empresas asignadas
+ * (las consultas de datos de una empresa nueva, solo si las pidieron ellos). null es el token del servidor.
+ */
+function sii_agente_puede(PDO $db, ?int $usuarioAgente, array $tarea): bool {
+    if ($usuarioAgente === null) return true;
+    $usuario = auth_usuario($db, $usuarioAgente);
+    if (!$usuario || $usuario['estado'] !== 'activo') return false;
+    if (empresa_es_admin($usuario)) return true;
+    if ($tarea['tipo'] === 'datos_empresa') return (int) $tarea['creado_por'] === $usuarioAgente;
+    empresas_schema($db);
+    return empresa_usuario_puede($db, $usuario, (int) $tarea['empresa_id']);
+}
+
+/** Corta la petición si el PC informa sobre una tarea que no le corresponde. */
+function sii_exigir_tarea_del_agente(PDO $db, ?int $usuarioAgente, int $id): void {
+    $st = $db->prepare('SELECT tipo, empresa_id, creado_por FROM sii_tareas WHERE id = ?');
+    $st->execute([$id]);
+    $tarea = $st->fetch();
+    if (!$tarea || !sii_agente_puede($db, $usuarioAgente, $tarea)) throw new SiiError('La tarea no está disponible para este PC.');
 }
 
 function sii_agentes_activos(PDO $db): int {
