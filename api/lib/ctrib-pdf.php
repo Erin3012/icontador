@@ -35,11 +35,14 @@ const CTRIB_DOCUMENTOS = [
     'R16' => 'Recuadro N° 16. Registro SAC (art. 14 letra A) LIR)',
     'DJ1847' => 'DJ 1847 — Balance de 8 columnas y clasificador Anexo N° 1',
     'DJ1926' => 'DJ 1926 — Base imponible de Primera Categoría (Anexo N° 1)',
+    'L57' => 'Línea 57 y Línea 4 F22 — Renta presunta (art. 34 LIR)',
+    'R1' => 'Recuadro N° 1. Honorarios (arts. 42 N° 2 y 48 LIR)',
+    'F22' => 'Formulario 22 — Impuestos anuales, créditos, PPM y resultado',
 ];
 // Documentos en hoja horizontal, como en iTributario.
 const CTRIB_DOC_HORIZONTAL = ['BALANCE', 'HOMOLOGACION', 'RETIROS', 'R20', 'RTRE', 'R21', 'DJ1947', 'R15', 'R16', 'DJ1847', 'DJ1926'];
 const CTRIB_REGIMEN_TEXTO = [
-    '14D3' => 'Pro Pyme General (Art. 14D N°3)', '14D8' => 'Pro Pyme Transparente (Art. 14D N°8)', '14A' => 'Régimen General (Art. 14A)', 'PERSONA' => 'Persona natural (honorarios)', '14G' => 'Fundación o régimen especial (Art. 14 G)',
+    '14D3' => 'Pro Pyme General (Art. 14D N°3)', '14D8' => 'Pro Pyme Transparente (Art. 14D N°8)', '14A' => 'Régimen General (Art. 14A)', 'PERSONA' => 'Persona natural (honorarios)', '14G' => 'Fundación o régimen especial (Art. 14 G)', 'PRESUNTA' => 'Renta presunta (Art. 34 LIR)',
 ];
 const CTRIB_SIGNOS = ['POSITIVO' => '+', 'NEGATIVO' => '-', 'IGUAL' => '='];
 // Subtítulos del R4 (el catálogo no los trae) por el primer código de cada grupo.
@@ -426,6 +429,129 @@ function ctrib_documento_cuerpo(PDO $pdo, int $empresa, int $anio, string $doc, 
             $filas[] = array_merge(['', 'Totales', ''], array_map(fn($k) => ctrib_num((int) array_sum(array_column($r['propietarios']['filas'], $k))), $claves));
             return ['estado' => $r['estado'], 'html' => ctrib_pdf_tabla($columnas, $filas, [count($filas) - 1 => 'total'])
                 . ctrib_pdf_notas(array_merge($r['propietarios']['avisos'], ['Resumen de apoyo para preparar la declaración jurada: no reemplaza el formulario del SII.']))];
+
+        case 'L57':
+            $r = ctrib_l57($pdo, $empresa, $anio);
+            $b = $r['bases'];
+            $p = $r['propietarios'];
+            $tarjetas = '<div class="tarjetas">'
+                . '<div class="tarjeta"><small>Avalúo agrícola (10%)</small><strong>' . ctrib_pesos($b['avaluoAgricola']) . '</strong></div>'
+                . '<div class="tarjeta"><small>Vehículos pasaj. / carga (10%)</small><strong>' . ctrib_pesos($b['tasacionPasajeros'] + $b['tasacionCarga']) . '</strong></div>'
+                . '<div class="tarjeta"><small>Ventas minería (' . str_replace('.', ',', (string) $b['porcentajeMineria']) . '%)</small><strong>' . ctrib_pesos($b['ventasMineria']) . '</strong></div>'
+                . '<div class="tarjeta"><small>Total IDPC Línea 57 (189)</small><strong>' . ctrib_pesos($r['totales']['189']) . '</strong></div>'
+                . '</div>';
+            $colsL57 = [['Cód.', 'c'], ['Concepto Línea 57 F22', ''], ['Signo', 'c'], ['Monto ($)', 'num']];
+            $filasL57 = array_map(fn($l) => [
+                ctrib_h($l['codigo']),
+                ctrib_h($l['glosa']),
+                ctrib_h(CTRIB_SIGNOS[$l['signo']] ?? ''),
+                ctrib_num((int) $l['monto']),
+            ], $r['lineas']);
+            $colsProp = [['RUT', ''], ['Propietario', ''], ['%', 'num'], ['Renta (' . $p['codigoRenta'] . ')', 'num'],
+                ['Créd. IDPC (' . $p['codigoCredito'] . ')', 'num'], ['Retiros año', 'num'], ['Exceso retiros', 'num']];
+            $clavesProp = ['rentaPresunta', 'creditoIdpc', 'retiros', 'excesoRetiros'];
+            $filasProp = array_map(fn($x) => array_merge([ctrib_h($x['rut']), ctrib_h($x['nombre']), ctrib_h(str_replace('.', ',', (string) $x['participacion']))],
+                array_map(fn($k) => ctrib_num((int) $x[$k]), $clavesProp)), $p['filas']);
+            $filasProp[] = array_merge(['', 'Totales (108 / 603)', ''], array_map(fn($k) => ctrib_num((int) array_sum(array_column($p['filas'], $k))), $clavesProp));
+            $html = $tarjetas . '<h3>Línea 57 F22 — IDPC sobre rentas presuntas (tasa ' . str_replace('.', ',', (string) $r['tasaIdpc']) . '%)</h3>'
+                . ctrib_pdf_tabla($colsL57, $filasL57, [9 => 'total', 11 => 'total'])
+                . '<h3>Línea 4 F22 (' . ctrib_h($p['letra']) . ') — Asignación a propietarios'
+                . ($p['requiereDj1943'] ? ' · DJ 1943' : ' · EI excluida DJ 1943')
+                . ($p['requiereCertificado58'] ? ' / Cert. N° 58' : '') . '</h3>'
+                . ctrib_pdf_tabla($colsProp, $filasProp, [count($filasProp) - 1 => 'total'])
+                . '<div class="obs aviso">' . ctrib_h($r['notaValidacion']) . '</div>';
+            return ['estado' => $r['estado'], 'html' => $html . ctrib_pdf_notas(array_merge($r['bloqueos'], $r['avisos'], $p['avisos']))];
+
+        case 'F22':
+            $r = ctrib_f22($pdo, $empresa, $anio);
+            $res = $r['resumen'];
+            $tarjetas = '<div class="tarjetas">'
+                . '<div class="tarjeta"><small>Impuestos determinados</small><strong>' . ctrib_pesos($res['impuestosDeterminados']) . '</strong></div>'
+                . '<div class="tarjeta"><small>Deducciones / PPM</small><strong>' . ctrib_pesos($res['deducciones']) . '</strong></div>'
+                . '<div class="tarjeta"><small>Resultado (cód. 305)</small><strong>' . ctrib_pesos($res['resultado305']) . '</strong></div>'
+                . '<div class="tarjeta"><small>' . ($res['resultado305'] < 0 ? 'Devolución (cód. 87)' : 'Total a pagar (cód. 91)') . '</small><strong>'
+                . ctrib_pesos($res['resultado305'] < 0 ? $res['devolucion87'] : $res['totalPagar91']) . '</strong></div>'
+                . '</div>';
+            $conSii = $r['sii']['disponible'];
+            $cols = $conSii
+                ? [['Línea', 'c'], ['Cód.', 'c'], ['Concepto', ''], ['Signo', 'c'], ['Calculado ($)', 'num'], ['SII ($)', 'num'], ['Dif. ($)', 'num']]
+                : [['Línea', 'c'], ['Cód.', 'c'], ['Concepto', ''], ['Signo', 'c'], ['Monto ($)', 'num']];
+            $filas = [];
+            $clases = [];
+            $secPrev = null;
+            foreach ($r['lineas'] as $l) {
+                if ($l['seccion'] !== $secPrev) {
+                    $secPrev = $l['seccion'];
+                    $clases[count($filas)] = 'seccion';
+                    $filas[] = array_merge(['', '', ctrib_h($secPrev)], array_fill(0, count($cols) - 3, ''));
+                }
+                if (in_array($l['codigo'], ['170', '304', '305', '87', '91'], true)) {
+                    $clases[count($filas)] = 'total';
+                }
+                $fila = [ctrib_h($l['linea']), ctrib_h($l['codigo']), ctrib_h($l['glosa']), ctrib_h(CTRIB_SIGNOS[$l['signo']] ?? ''), ctrib_num((int) $l['monto'])];
+                if ($conSii) {
+                    $fila[] = $l['valorSii'] !== null ? ctrib_num((int) $l['valorSii']) : '—';
+                    $fila[] = $l['diferenciaSii'] !== null ? ctrib_num((int) $l['diferenciaSii']) : '—';
+                }
+                $filas[] = $fila;
+            }
+            $htmlPart = '';
+            $todasFuentes = [];
+            if (!empty($r['negocioEI'])) {
+                $todasFuentes[] = $r['negocioEI'];
+            }
+            foreach ($r['participaciones']['filas'] ?? [] as $pf) {
+                $todasFuentes[] = $pf;
+            }
+            if ($todasFuentes !== []) {
+                $colsP = [['Origen / Empresa', ''], ['Régimen', 'c'], ['Fuente / Cert.', ''], ['Ret./Div.', 'num'], ['Base 14D8 / Pres.', 'num'], ['Créd. 610/612/1638', 'num'], ['PPM 1645', 'num']];
+                $filasP = array_map(fn($pf) => [
+                    ctrib_h($pf['razonSocial'] . ($pf['rutEmpresa'] ? ' (' . $pf['rutEmpresa'] . ')' : '')),
+                    ctrib_h($pf['regimen']),
+                    ctrib_h($pf['fuente'] . ($pf['certificado'] ? ' N° ' . $pf['certificado'] : '')),
+                    ctrib_num((int) $pf['retiro104'] + (int) $pf['dividendo105']),
+                    ctrib_num((int) $pf['baseAtribuida1632'] + (int) $pf['rentaPresunta108']),
+                    ctrib_num((int) $pf['creditoConDev610'] + (int) $pf['creditoSinDev612'] + (int) $pf['credito33bis1638']),
+                    ctrib_num((int) $pf['ppm1645']),
+                ], $todasFuentes);
+                $subtituloFuentes = $r['esEmpresarioIndividual']
+                    ? 'Negocio propio (EI) y participaciones en empresas consolidadas al mismo F22'
+                    : 'Participaciones en empresas consolidadas por RUT (' . $r['participaciones']['rut'] . ')';
+                $htmlPart = '<h3>' . ctrib_h($subtituloFuentes) . '</h3>' . ctrib_pdf_tabla($colsP, $filasP);
+            }
+            return ['estado' => $r['estado'], 'html' => $tarjetas . ctrib_pdf_tabla($cols, $filas, $clases) . $htmlPart . ctrib_pdf_notas(array_merge($r['bloqueos'], $r['avisos']))];
+
+        case 'R1':
+            $r = ctrib_r1($pdo, $empresa, $anio);
+            $t = $r['totales'];
+            $tarjetas = '<div class="tarjetas">'
+                . '<div class="tarjeta"><small>Boletas emitidas vigentes</small><strong>' . (int) $r['boletas']['vigentes'] . '</strong></div>'
+                . '<div class="tarjeta"><small>Ingresos brutos act. (547)</small><strong>' . ctrib_pesos($t['547']) . '</strong></div>'
+                . '<div class="tarjeta"><small>Total rentas → Cód. 110 (618)</small><strong>' . ctrib_pesos($t['618']) . '</strong></div>'
+                . '<div class="tarjeta"><small>Retenciones → Cód. 198 (619)</small><strong>' . ctrib_pesos($t['619']) . '</strong></div>'
+                . '</div>';
+            $colsR1 = [['Cód.', 'c'], ['Concepto Recuadro N° 1', ''], ['Signo', 'c'], ['Monto actualizado ($)', 'num']];
+            $filasR1 = array_map(fn($l) => [
+                ctrib_h($l['codigo']),
+                ctrib_h($l['glosa']),
+                ctrib_h(CTRIB_SIGNOS[$l['signo']] ?? ''),
+                ctrib_num((int) $l['monto']),
+            ], $r['lineas']);
+            $htmlMes = '';
+            $mesesActivos = array_values(array_filter($r['boletas']['mensual'], fn($m) => $m['boletas'] > 0));
+            if ($mesesActivos !== []) {
+                $colsM = [['Mes', ''], ['Boletas', 'num'], ['Factor IPC', 'num'], ['Con ret. act.', 'num'], ['Retenido act.', 'num'], ['Sin ret. act.', 'num']];
+                $filasM = array_map(fn($m) => [
+                    ctrib_h($m['nombre']), (string) $m['boletas'], number_format((float) $m['factor'], 3, ',', ''),
+                    ctrib_num($m['brutoConRetAct']), ctrib_num($m['retenidoAct']), ctrib_num($m['brutoSinRetAct']),
+                ], $mesesActivos);
+                $htmlMes = '<h3>Detalle mensual de boletas emitidas</h3>' . ctrib_pdf_tabla($colsM, $filasM);
+            }
+            $notaCot = 'Base imponible previsional referencial (80% s/547): ' . ctrib_pesos($r['cotizacionesReferencia']['baseImponiblePrevisional'])
+                . ' · Retenciones art. 74 N°2 (cód. 492): ' . ctrib_pesos($r['cotizacionesReferencia']['retencionesArt74N2']) . '.';
+            return ['estado' => $r['estado'], 'numero' => '1', 'html' => $tarjetas
+                . ctrib_pdf_tabla($colsR1, $filasR1, [5 => 'total', 12 => 'total', 15 => 'total', 16 => 'total'])
+                . $htmlMes . ctrib_pdf_notas(array_merge([$notaCot], $r['bloqueos'], $r['avisos']))];
 
         case 'R19':
             $r = ctrib_r19($pdo, $empresa, $anio);

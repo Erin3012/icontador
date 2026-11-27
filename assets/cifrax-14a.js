@@ -242,7 +242,7 @@
         // El inicio de 14 A, 14 G y persona natural lo pinta cifrax-inicio.js desde la API.
         // En #cv-vista-reportes se reemplazan los reportes de Pro Pyme por los del régimen activo.
         var cards = document.querySelectorAll('#cv-vista-reportes .cv-card');
-        if (regimen !== '14A' && regimen !== '14G') {
+        if (regimen !== '14A' && regimen !== '14G' && regimen !== 'PRESUNTA' && regimen !== 'PERSONA') {
             cards.forEach(function (c, i) { if (i > 0) c.hidden = true; });
             return;
         }
@@ -251,15 +251,34 @@
                 '<span class="cv-rep-nombre">' + esc(nombre) + '</span>' +
                 '<span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" data-pdf="' + esc(doc) + '"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>';
         };
+        if (regimen === 'PERSONA') {
+            if (cards[1]) cards[1].hidden = true;
+            if (cards[2]) cards[2].innerHTML = '<h2>Declaración personal · F22 <span class="cv-count">2</span></h2>' +
+                repFila('R1', 'Honorarios — Recuadro N° 1 (boletas emitidas, gastos y retenciones)', 'R1', false) +
+                repFila('F22', 'Formulario 22 — Impuestos anuales, créditos, PPM y resultado', 'F22', false);
+            if (cards[3]) cards[3].hidden = true;
+            return;
+        }
+        if (regimen === 'PRESUNTA') {
+            if (cards[1]) cards[1].innerHTML = '<h2>Gestión General <span class="cv-count">1</span></h2>' +
+                repFila('Retiros', 'Propietarios y retiros por socio y mes', 'RETIROS', false);
+            if (cards[2]) cards[2].innerHTML = '<h2>Declaración F22 · Renta presunta <span class="cv-count">2</span></h2>' +
+                repFila('L57', 'Línea 57 y Línea 4 F22 — Renta presunta (art. 34 LIR)', 'L57', false) +
+                repFila('F22', 'Formulario 22 — Impuestos anuales, créditos, PPM y resultado', 'F22', false);
+            if (cards[3]) cards[3].innerHTML = '<h2>Declaraciones Juradas · Renta presunta <span class="cv-count">1</span></h2>' +
+                repFila('DJ 1943', 'Rentas presuntas asignadas (Certificado N° 58)', 'L57', true);
+            return;
+        }
         if (regimen === '14G') {
             if (cards[1]) cards[1].innerHTML = '<h2>Gestión General <span class="cv-count">2</span></h2>' +
                 repFila('Balance', 'Balance General importado', 'BALANCE', false) +
                 repFila('Homol.', 'Homologación de cuentas (cuenta → R12)', 'HOMOLOGACION', false);
-            if (cards[2]) cards[2].innerHTML = '<h2>Recuadros F22 · 14 G <span class="cv-count">4</span></h2>' +
+            if (cards[2]) cards[2].innerHTML = '<h2>Recuadros F22 · 14 G <span class="cv-count">5</span></h2>' +
                 repFila('R4', 'Enajenación de acciones y derechos sociales', 'R4', false) +
                 repFila('R6', 'Datos Informativos', 'R6', false) +
                 repFila('R12', 'Base Imponible (RLI)', 'R12', false) +
-                repFila('R14', 'Razonabilidad del Capital Propio Tributario', 'R14', false);
+                repFila('R14', 'Razonabilidad del Capital Propio Tributario', 'R14', false) +
+                repFila('F22', 'Formulario 22 — Impuestos anuales, créditos, PPM y resultado', 'F22', false);
             if (cards[3]) cards[3].hidden = true;
             return;
         }
@@ -267,14 +286,15 @@
             repFila('Balance', 'Balance General importado', 'BALANCE', false) +
             repFila('Homol.', 'Homologación de cuentas (cuenta → R12)', 'HOMOLOGACION', false) +
             repFila('Retiros', 'Retiros y Dividendos por socio y mes', 'RETIROS', false);
-        if (cards[2]) cards[2].innerHTML = '<h2>Recuadros F22 · 14 A <span class="cv-count">7</span></h2>' +
+        if (cards[2]) cards[2].innerHTML = '<h2>Recuadros F22 · 14 A <span class="cv-count">8</span></h2>' +
             repFila('R4', 'Enajenación de acciones y derechos sociales', 'R4', false) +
             repFila('R6', 'Datos Informativos', 'R6', false) +
             repFila('R12', 'Base Imponible (RLI)', 'R12', false) +
             repFila('R13', 'Determinación del RAI', 'R13', false) +
             repFila('R14', 'Razonabilidad del Capital Propio Tributario', 'R14', false) +
             repFila('R15', 'RTRE y movimiento STUT', 'R15', false) +
-            repFila('R16', 'Registro SAC', 'R16', false);
+            repFila('R16', 'Registro SAC', 'R16', false) +
+            repFila('F22', 'Formulario 22 — Impuestos anuales, créditos, PPM y resultado', 'F22', false);
         if (cards[3]) cards[3].innerHTML = '<h2>Declaraciones Juradas (DJ) · 14 A <span class="cv-count">3</span></h2>' +
             repFila('DJ 1847', 'Balance 8 columnas y clasificador Anexo N° 1', 'DJ1847', true) +
             repFila('DJ 1926', 'Base imponible de Primera Categoría', 'DJ1926', true) +
@@ -450,6 +470,12 @@
             activar('PERSONA');
             return;
         }
+        if (regimen === 'PRESUNTA') {
+            if (selector && !selector.querySelector('option[value="PRESUNTA"]')) selector.add(new Option('Renta presunta (Art. 34)', 'PRESUNTA'));
+            if (selector) selector.value = 'PRESUNTA';
+            activar('PRESUNTA');
+            return;
+        }
         var vista = regimen === '14G' ? 'ESP' : regimen;
         if (selector) selector.value = vista === '14A' || vista === 'ESP' || vista === '14D8' ? vista : '14D3';
         if (vista === '14D8') activarTransparente();
@@ -458,7 +484,7 @@
     }
     if (selector) selector.addEventListener('change', function () { recargarCon(selector.value); });
     // Vista (URL o selector) -> régimen que se guarda en la empresa, y al revés.
-    var CONFIG_DE_VISTA = { 'ESP': '14G', '14D3': '14D3', '14D8': '14D8', '14A': '14A', 'PERSONA': 'PERSONA' };
+    var CONFIG_DE_VISTA = { 'ESP': '14G', '14D3': '14D3', '14D8': '14D8', '14A': '14A', 'PRESUNTA': 'PRESUNTA', 'PERSONA': 'PERSONA' };
     var VISTA_DE_CONFIG = { '14G': 'ESP' };
     function ofrecerGuardar(configurado) {
         var boton = document.getElementById('cf-guardar-regimen');

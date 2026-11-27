@@ -97,6 +97,16 @@
               }
             ],
             "ayuda": "Saldos de rentas con y sin tributación (R15), y el registro SAC de créditos por impuesto (R16)."
+          },
+          {
+            "codigo": "F22",
+            "nombre": "Líneas del Formulario 22 y resultado (impuestos, créditos, PPM y resultado)",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "F22",
+            "abrir": "F22",
+            "etapa": 7,
+            "ayuda": "Resumen del anverso del F22: impuestos determinados, PPM, créditos, devolución o impuesto a pagar y comparación con el SII."
           }
         ]
       },
@@ -148,18 +158,23 @@
           },
           {
             "codigo": "R1",
-            "nombre": "Honorarios (boletas recibidas)",
+            "nombre": "Honorarios — Recuadro N° 1 (boletas emitidas, gastos y retenciones)",
             "tipo": "Cálculos",
-            "fuente": "pendiente",
+            "fuente": "recuadro",
             "etapa": 10,
-            "ayuda": "Boletas de honorarios recibidas, con sus retenciones."
+            "ayuda": "Boletas de honorarios emitidas (solo lectura, con factor IPC), gastos efectivos o presuntos 30% (tope 15 UTA) y retenciones.",
+            "recuadro": "R1",
+            "abrir": "R1"
           },
           {
             "nombre": "Líneas personales del Formulario 22 (impuesto anual, créditos y PPM)",
             "tipo": "Cálculos",
-            "fuente": "pendiente",
+            "fuente": "recuadro",
             "etapa": 7,
-            "ayuda": "Impuesto anual, créditos y pagos provisionales de la declaración personal."
+            "ayuda": "Impuesto anual, créditos y pagos provisionales de la declaración personal.",
+            "codigo": "F22",
+            "recuadro": "F22",
+            "abrir": "F22"
           }
         ]
       }
@@ -279,6 +294,16 @@
             "recuadro": "R20",
             "abrir": "R18",
             "ayuda": "Rentas afectas a impuestos (RAI). Sale del registro de rentas (RTRE): se finaliza junto con él."
+          },
+          {
+            "codigo": "F22",
+            "nombre": "Líneas del Formulario 22 y resultado (impuestos, créditos, PPM y resultado)",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "F22",
+            "abrir": "F22",
+            "etapa": 7,
+            "ayuda": "Resumen del anverso del F22: impuestos determinados, PPM, créditos, devolución o impuesto a pagar y comparación con el SII."
           }
         ]
       },
@@ -368,6 +393,16 @@
             "abrir": "R23",
             "ayuda": "Capital propio tributario simplificado al cierre del año.",
             "recuadro": "R23"
+          },
+          {
+            "codigo": "F22",
+            "nombre": "Líneas del Formulario 22 y resultado (impuestos, créditos, PPM y resultado)",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "F22",
+            "abrir": "F22",
+            "etapa": 7,
+            "ayuda": "Resumen del anverso del F22: impuestos determinados, PPM, créditos, devolución o impuesto a pagar y comparación con el SII."
           }
         ]
       },
@@ -457,6 +492,90 @@
             "recuadro": "R14",
             "abrir": "R14",
             "ayuda": "Verifica la razonabilidad del capital propio tributario de la entidad (no determina RAI ni RTRE)."
+          },
+          {
+            "codigo": "F22",
+            "nombre": "Líneas del Formulario 22 y resultado (impuestos, créditos, PPM y resultado)",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "F22",
+            "abrir": "F22",
+            "etapa": 7,
+            "ayuda": "Resumen del anverso del F22: impuestos determinados, PPM, créditos, devolución o impuesto a pagar y comparación con el SII."
+          }
+        ]
+      }
+    ]
+  },
+  "PRESUNTA": {
+    "nombre": "Renta presunta (Art. 34 LIR)",
+    "cierre": true,
+    "grupos": [
+      {
+        "slot": "gestion",
+        "titulo": "Gestión General",
+        "filas": [
+          {
+            "nombre": "Propietarios y retiros",
+            "tipo": "Configuración",
+            "fuente": "retiros",
+            "abrir": "DJ1948",
+            "ayuda": "Tipo de contribuyente, socios o comuneros con su % de participación y retiros del año para asignar la Línea 4 y DJ 1943."
+          }
+        ]
+      },
+      {
+        "slot": "f22",
+        "titulo": "Declaración F22 · Renta presunta",
+        "filas": [
+          {
+            "nombre": "Consulta del Formulario 22 en el SII",
+            "tipo": "Consulta SII",
+            "fuente": "sii_consulta",
+            "consulta": "f22",
+            "ayuda": "Última consulta del F22 hecha por el agente del PC (solo lectura)."
+          },
+          {
+            "codigo": "L57",
+            "nombre": "Renta presunta (art. 34 LIR) — Línea 57 y Línea 4 F22",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "L57",
+            "abrir": "L57",
+            "etapa": 6,
+            "ayuda": "Ingreso de bases (agrícola, transporte, minería), crédito contribuciones (1925), IDPC 25% y asignación a propietarios. Por validar con el contador (sin ejercicio AT 2026)."
+          },
+          {
+            "codigo": "F22",
+            "nombre": "Líneas del Formulario 22 y resultado (impuestos, créditos, PPM y resultado)",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "F22",
+            "abrir": "F22",
+            "etapa": 7,
+            "ayuda": "Resumen del anverso del F22: impuestos determinados, PPM, créditos, devolución o impuesto a pagar y comparación con el SII."
+          }
+        ]
+      },
+      {
+        "slot": "dj",
+        "titulo": "Declaraciones juradas · Renta presunta",
+        "filas": [
+          {
+            "nombre": "Consulta de declaraciones juradas en el SII",
+            "tipo": "Consulta SII",
+            "fuente": "sii_consulta",
+            "consulta": "ddjj",
+            "ayuda": "Última consulta de las DJ presentadas ante el SII."
+          },
+          {
+            "codigo": "DJ 1943",
+            "nombre": "Rentas presuntas asignadas y retiros en exceso (Certificado N° 58)",
+            "tipo": "Cálculos",
+            "fuente": "derivado",
+            "abrir": "L57",
+            "etapa": 6,
+            "ayuda": "Resumen por propietario calculado desde la Línea 57 (aplica a EIRL, SP, SpA, Cooperativas y CM; excluye EI)."
           }
         ]
       }

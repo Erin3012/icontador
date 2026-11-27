@@ -690,8 +690,8 @@ function ctrib_rut(string $rut): string
 
 // Tipo de contribuyente y régimen de la empresa: definen las reglas del cuadro de retiros
 // (EIRL: un solo titular con el 100%; 14 D N°8: se atribuye y retira la totalidad).
-const CTRIB_TIPOS_CONTRIBUYENTE = ['EIRL', 'SPA', 'LTDA', 'SA', 'OTRO', 'PERSONA_NATURAL'];
-const CTRIB_REGIMENES = ['14D3', '14D8', '14A', '14G', 'PERSONA'];
+const CTRIB_TIPOS_CONTRIBUYENTE = ['EI', 'EIRL', 'SPA', 'LTDA', 'SA', 'OTRO', 'PERSONA_NATURAL'];
+const CTRIB_REGIMENES = ['14D3', '14D8', '14A', '14G', 'PRESUNTA', 'PERSONA'];
 
 function ctrib_empresa_config(PDO $pdo, int $empresa): array
 {
