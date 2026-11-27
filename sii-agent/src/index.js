@@ -9,7 +9,9 @@ const { cargarEnv, actualizarEnv } = require('./env');
 const { crearServidor, emparejarAgente } = require('./api');
 const { descargarLibro, consultarEmpresa, explorarSii } = require('./sii');
 const { consultarF22, consultarDdjj } = require('./sii-renta'); // funcionalidad extra: F22 y declaraciones juradas
-const { parseRcv } = require('../../assets/rcv-import.js');
+const rcvImportRuta = ['../../assets/rcv-import.js', './rcv-import.js']
+  .find((r) => fs.existsSync(path.resolve(__dirname, r)));
+const { parseRcv } = require(rcvImportRuta || '../../assets/rcv-import.js');
 
 /** "76.000.000-0" -> "76000000-0" (la forma en que se busca la clave). */
 function normalizarRut(rut) {

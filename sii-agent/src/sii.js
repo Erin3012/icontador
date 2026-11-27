@@ -19,7 +19,7 @@ const SII = {
     ingresar: '#bt_ingresar, button:has-text("INGRESAR")',
     empresaRcv: 'select[name="rut"]:visible',
     mesRcv: '#periodoMes:visible',
-    anioRcv: 'select:has(option:text-is("2026")):visible',
+    anioRcv: (anio) => `select:has(option:text-is("${anio}")):visible`,
     consultarRcv: 'button:has-text("Consultar"):visible',
     // El botón de descarga aparece después de consultar; aún no verificado en pantalla.
     descargarDetalle: 'text=Descargar Detalles >> visible=true',
@@ -220,7 +220,7 @@ async function descargarLibro({ rut, clave, periodo, libro, carpeta, headless = 
     await page.locator(SII.selectores.empresaRcv).first().selectOption({ label: empresa });
     const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     await page.locator(SII.selectores.mesRcv).selectOption({ label: meses[Number(mes) - 1] });
-    await page.locator(SII.selectores.anioRcv).first().selectOption({ label: anio });
+    await page.locator(SII.selectores.anioRcv(anio)).first().selectOption({ label: anio });
     await esperarCapaRcvLibre(page);
     // El SII consulta COMPRA por defecto y crea las pestañas con el resultado; VENTA se elige después de consultar.
     await page.click(SII.selectores.consultarRcv);
