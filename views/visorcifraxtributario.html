@@ -41,7 +41,8 @@
             <label for="cf-regimen">Régimen</label>
             <select id="cf-regimen" title="Cambia la vista de los recuadros; no modifica la configuración de la empresa">
                 <option value="14D3">Pro Pyme General (14 D N°3)</option>
-                <option value="14A">Semi Integrado (14 A) · maqueta</option>
+                <option value="14D8">Pro Pyme Transparente (14 D N°8)</option>
+                <option value="14A">Semi Integrado (14 A)</option>
             </select>
         </div>
         <div class="cv-campo">
@@ -57,7 +58,6 @@
 
     <div class="cv-contenido">
     <main class="cf-contenido">
-        <div class="cf-aviso">Maqueta visual con datos de ejemplo. Los botones se conectan en la siguiente fase.</div>
 
         <!-- Inicio: tareas de declaracion (diseño de la pantalla de referencia) -->
         <section class="cf-panel activo" id="p-home">
@@ -161,7 +161,7 @@
                         <p></p>
                         <button type="button" class="cv-btn-ancho" disabled>Ver videos Tutoriales</button>
                     </div>
-                    <div class="cv-aviso-ok"><i class="fa fa-lightbulb-o" aria-hidden="true"></i> Todo al día: no hay advertencias críticas para este período.</div>
+                    <div class="cv-aviso-ok" id="cv-aviso-inicio"><i class="fa fa-lightbulb-o" aria-hidden="true"></i> Todo al día: no hay advertencias críticas para este período.</div>
                 </aside>
             </div>
         </section>
@@ -524,7 +524,7 @@
         var b = e.target.closest('[data-abrir]');
         if (!b || b.disabled) return;
         var clave = b.getAttribute('data-abrir');
-        if (['balance', 'R4', 'R6', 'R17', 'R19', 'R20', 'R21', 'DJ1948', 'CIERRE', 'CPT', 'RLI', 'HOM', 'PLANSII'].indexOf(clave) >= 0) return; // estos se cargan desde la API (ver el script final)
+        if (['balance', 'R4', 'R6', 'R17', 'R18', 'R19', 'R20', 'R21', 'R22', 'R23', 'DJ1947', 'DJ1948', 'CIERRE', 'CPT', 'RLI', 'HOM', 'PLANSII'].indexOf(clave) >= 0) return; // estos se cargan desde la API (ver el script final)
         abrirRecuadro(clave);
     });
 
@@ -586,7 +586,7 @@
         var etiquetas = {
             CUENTAS: 'Cuentas', CUENTAS_EXISTENCIAS: 'Cuentas + existencias', MANUAL: 'Manual', CALCULADO: 'Calculado', CALCULADO_CON_TOPE: 'Calculado con tope',
             COPIA_1422: 'Copia del 1422', AUTOMATICO: 'Automático', 'AÑO_ANTERIOR': 'Año anterior',
-            SIN_ANTERIOR_FINALIZADO: 'Sin R19 anterior finalizado', PENDIENTE: 'Pendiente de cálculo', PENDIENTE_CALCULO: 'Pendiente', RESULTADO: 'Resultado',
+            SIN_ANTERIOR_FINALIZADO: 'Sin R19 anterior finalizado', ACTIVO_FIJO: 'Balance (activo fijo)', R22: 'R22', R4: 'R4', RETIROS: 'Retiros', PENDIENTE: 'Pendiente de cálculo', PENDIENTE_CALCULO: 'Pendiente', RESULTADO: 'Resultado',
             vouchers: 'Vouchers de contabilidad', itributario: 'Captura de iTributario', excel: 'Excel', csv: 'CSV'
         };
         return etiquetas[o] || o;
@@ -644,7 +644,7 @@
 
     // ---------- Recuadro 17 y 19 ----------
     function editable(clave, l) {
-        if (clave === 'R4') return l.naturaleza === 'MANUAL';
+        if (clave === 'R4' || clave === 'R22' || clave === 'R23') return l.naturaleza === 'MANUAL';
         if (clave === 'R6') return ['122', '123', '102', '1193'].indexOf(l.codigo) < 0;
         if (clave === 'R17') return l.naturaleza === 'MANUAL';
         return l.origen === 'MANUAL' || ['1445', '1446', '1377', '1378', '1380', '1381'].indexOf(l.codigo) >= 0;
@@ -756,10 +756,15 @@
         var html = '';
         (r.bloqueos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
         if (r.desactualizado) html += '<div class="cv-aviso-ok">Cambió algún dato después de finalizarlo: finalícelo nuevamente para actualizar el snapshot.</div>';
+        if (clave === 'R22' || clave === 'R23') {
+            (r.avisos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+            html += '<p class="cv-texto" style="font-size:12.5px;margin:0 0 8px">Los montos con casilla se pueden corregir; si borra una casilla vuelve el valor automático.' +
+                (clave === 'R22' ? ' <button type="button" class="cv-btn-pdf" data-abrir="R17" style="padding:2px 8px;cursor:pointer">Cuentas por cobrar, por pagar y existencias (R17)</button>' : '') + '</p>';
+        }
         html += '<table class="cv-modal-tabla"><thead><tr><th>Concepto</th><th class="num">Código</th><th class="num">Valor</th><th>Origen</th></tr></thead><tbody>';
         var seccionPrevia = null;
         r.lineas.forEach(function (l) {
-            if (clave === 'R17') {
+            if (clave === 'R17' || clave === 'R22') {
                 var seccion = l.seccion || 'Cálculos';
                 if (seccion !== seccionPrevia) {
                     html += '<tr class="cv-seccion"><td colspan="4">▾ ' + esc(seccion) + '</td></tr>';
@@ -799,10 +804,56 @@
             html += '<p class="cv-texto" data-idpc style="margin-top:10px;font-size:12.5px"><strong>IDPC estimado (14 D N°3):</strong> ' + fmtDec(idpc.tasa) + ' % del 1440 ($' +
                 fmt(idpc.base) + ') = <strong>$' + fmt(idpc.monto) + '</strong> · sin PPM ni créditos.</p>';
         }
+        if (clave === 'R22') html += tablaPropietarios(r.propietarios);
         if (r.pendientesDeCalculo && r.pendientesDeCalculo.length) {
-            html += '<p class="cv-texto" style="margin-top:10px;font-size:12px">Pendiente de cálculo en esta versión: ' + esc(r.pendientesDeCalculo.join('; ')) + '.</p>';
+            var rotulo = clave === 'R22' || clave === 'R23' ? '' : 'Pendiente de cálculo en esta versión: ';
+            html += '<p class="cv-texto" style="margin-top:10px;font-size:12px">' + esc(rotulo + r.pendientesDeCalculo.join('; ').replace(/\.$/, '')) + '.</p>';
         }
         cuerpo.innerHTML = html;
+    }
+
+    // ---------- 14 D N°8: asignación a los propietarios (R22 y DJ 1947) y R18 de Pro Pyme ----------
+    function tablaPropietarios(p) {
+        var columnas = [['baseImponible', 'Base imponible'], ['ingresoDiferido', 'Ingreso diferido incluido'], ['retiros', 'Retiros del año'],
+            ['creditoIdpc', 'Crédito IDPC'], ['credito33bis', 'Crédito art. 33 bis']];
+        var html = '<h3 style="font-size:14px;margin:14px 0 6px">Asignación a los propietarios</h3>';
+        (p.avisos || []).forEach(function (m) { html += '<div class="cv-aviso-ok">' + esc(m) + '</div>'; });
+        if (!p.filas.length) return html + '<p class="cv-texto"><button type="button" class="cv-btn-pdf" data-abrir="DJ1948" style="cursor:pointer">Registrar propietarios y retiros</button></p>';
+        html += '<table class="cv-modal-tabla"><thead><tr><th>RUT</th><th>Propietario</th><th class="num">%</th>' +
+            columnas.map(function (c) { return '<th class="num">' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>';
+        p.filas.forEach(function (f) {
+            html += '<tr><td style="white-space:nowrap">' + esc(f.rut || '—') + '</td><td style="white-space:normal">' + esc(f.nombre) + '</td><td class="num">' + fmtDec(f.participacion) + '</td>' +
+                columnas.map(function (c) { return '<td class="num">$' + fmt(f[c[0]]) + '</td>'; }).join('') + '</tr>';
+        });
+        html += '<tr><td></td><td><strong>Totales</strong></td><td></td>' + columnas.map(function (c) {
+            return '<td class="num"><strong>$' + fmt(p.filas.reduce(function (s, f) { return s + f[c[0]]; }, 0)) + '</strong></td>';
+        }).join('') + '</tr></tbody></table>';
+        return html;
+    }
+
+    function pintarDJ1947(r) {
+        recuadroActual = null;
+        titulo.textContent = titulosRecuadro.DJ1947;
+        sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
+        acc.innerHTML = estadoPill(r) + ' <button type="button" class="cv-btn-pdf" data-abrir="R22" style="cursor:pointer">Abrir R22</button>' +
+            ' <button type="button" class="cv-btn-pdf" data-pdf="DJ1947" style="cursor:pointer">Ver PDF</button>';
+        cuerpo.innerHTML = (r.estado === 'FINALIZADO' ? '' : '<div class="cv-aviso-ok">El R22 no está finalizado: estas cifras todavía pueden cambiar.</div>') +
+            tablaPropietarios(r.propietarios) +
+            '<p class="cv-texto" style="margin-top:10px;font-size:12px">Resumen de apoyo para preparar la declaración jurada: no reemplaza el formulario del SII.</p>';
+    }
+
+    function pintarR18(r) {
+        recuadroActual = null;
+        titulo.textContent = titulosRecuadro.R18;
+        sub.textContent = 'Año comercial ' + r.anioComercial + ' · AT ' + r.anio;
+        acc.innerHTML = '<span class="cv-chip">Sale del RTRE (R20)</span> ' + estadoPill(r) +
+            ' <button type="button" class="cv-btn-pdf" data-abrir="R20" style="cursor:pointer">Abrir RTRE</button>' +
+            ' <button type="button" class="cv-btn-pdf" data-pdf="R18" style="cursor:pointer">Ver PDF</button>';
+        cuerpo.innerHTML = '<table class="cv-modal-tabla"><thead><tr><th>Concepto</th><th class="num">Código</th><th>Signo</th><th class="num">Valor</th></tr></thead><tbody>' +
+            r.lineas.map(function (l) {
+                return '<tr><td style="white-space:normal">' + esc(l.glosa) + '</td><td class="num">' + esc(l.codigo) + '</td><td>' + esc(l.signo === '-' ? '−' : l.signo) +
+                    '</td><td class="num" style="white-space:nowrap">$' + fmt(l.monto) + '</td></tr>';
+            }).join('') + '</tbody></table><p class="cv-texto" style="margin-top:10px;font-size:12px">' + esc(r.nota) + '</p>';
     }
 
     // ---------- RTRE (R20), Registro SAC (R21) y DJ 1948 ----------
@@ -814,7 +865,11 @@
         DJ1948: 'DJ 1948 — Retiros y Dividendos (Certificado 70)',
         R4: 'Recuadro 4 — Enajenación de acciones y derechos sociales',
         R6: 'Recuadro 6 — Datos Informativos (Pro Pyme)',
-        CIERRE: 'Cierre anual'
+        CIERRE: 'Cierre anual',
+        R18: 'Recuadro 18 — Determinación del RAI',
+        R22: 'Recuadro 22 — Base imponible del régimen de transparencia (14 D N°8)',
+        R23: 'Recuadro 23 — CPTS del régimen de transparencia (14 D N°8)',
+        DJ1947: 'DJ 1947 — Base imponible asignada a los propietarios'
     };
 
     function estadoPill(r) {
@@ -1232,11 +1287,13 @@
         else if (clave === 'R20') pintarR20(r);
         else if (clave === 'R21') pintarR21(r);
         else if (clave === 'DJ1948') pintarDJ(r);
+        else if (clave === 'DJ1947') pintarDJ1947(r);
+        else if (clave === 'R18') pintarR18(r);
         else pintarRecuadro(clave, r);
     }
 
     function cargarRecuadro(clave) {
-        return pedir(clave.toLowerCase()).then(function (r) { pintarSegun(clave, r); });
+        return pedir(clave === 'DJ1947' ? 'r22' : clave.toLowerCase()).then(function (r) { pintarSegun(clave, r); });
     }
 
     function abrirRecuadro(clave) {
@@ -1258,7 +1315,7 @@
         else if (clave === 'CPT') abrirCpt();
         else if (clave === 'RLI') abrirRli();
         else if (clave === 'R20' && dialogo) abrirRecuadro('R20').then(function (ok) { if (ok) abrirGrilla(dialogo); });
-        else if (['R4', 'R6', 'R17', 'R19', 'R20', 'R21', 'DJ1948', 'CIERRE'].indexOf(clave) >= 0) abrirRecuadro(clave);
+        else if (['R4', 'R6', 'R17', 'R18', 'R19', 'R20', 'R21', 'R22', 'R23', 'DJ1947', 'DJ1948', 'CIERRE'].indexOf(clave) >= 0) abrirRecuadro(clave);
         else if (clave === 'HOM') abrirHomologacion();
         else if (clave === 'PLANSII') abrirPlanSii();
     });
@@ -1336,7 +1393,8 @@
         if (monto !== null && !Number.isInteger(monto)) { mostrarError('El monto debe ser un número entero.'); return; }
         var datos = { codigo: campo.getAttribute('data-codigo'), monto: monto };
         if (clave === 'R17' && monto === null) datos.monto = 0;
-        var endpoint = { R4: 'r4_guardar_valor', R6: 'r6_guardar_valor', R17: 'r17_guardar_manual', R19: 'r19_guardar_manual' }[clave];
+        var endpoint = { R4: 'r4_guardar_valor', R6: 'r6_guardar_valor', R17: 'r17_guardar_manual', R19: 'r19_guardar_manual',
+            R22: 'r22_guardar_manual', R23: 'r23_guardar_manual' }[clave];
         enviar(endpoint, datos)
             .then(function (r) { pintarSegun(clave, r); })
             .catch(function (err) { cargarRecuadro(clave).then(function () { mostrarError(err.message); }); });
@@ -1456,6 +1514,7 @@
 
     // Estados de las filas de Inicio según la API. Se actualizan al cargar y cada vez que se cierra una ventana.
     function ponerEstado(selector, texto, clase) {
+        if (window.cvInicioPropio) return; // el inicio por régimen lo pinta cifrax-inicio.js
         document.querySelectorAll(selector).forEach(function (est) {
             est.textContent = texto;
             est.className = 'cv-estado ' + clase;
@@ -1799,7 +1858,8 @@
     });
 })();
 </script>
-<script src="../assets/cifrax-14a.js?v=4"></script>
+<script src="../assets/cifrax-14a.js?v=6"></script>
+<script src="../assets/cifrax-inicio.js?v=2"></script>
 <script src="../assets/cifrax-sii.js?v=6"></script>
 </body>
 </html>

@@ -108,13 +108,23 @@ function ctrib_schema(PDO $pdo): void
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_recuadros (
         empresa_id INT NOT NULL DEFAULT 0,
         anio INT NOT NULL,
-        recuadro VARCHAR(4) NOT NULL,
+        recuadro VARCHAR(10) NOT NULL,
         estado VARCHAR(12) NOT NULL DEFAULT 'BORRADOR',
         finalizado VARCHAR(25) NOT NULL DEFAULT '',
         usuario VARCHAR(120) NOT NULL DEFAULT '',
         snapshot TEXT NULL,
         PRIMARY KEY (empresa_id, anio, recuadro)
     )$motor");
+    // 'CIERRE' (el sello del año) tiene 6 letras. Amplía la columna en las bases MySQL creadas con 4 y recupera
+    // los sellos que un servidor sin modo estricto haya guardado recortados.
+    if ($mysql) {
+        $largo = $pdo->query("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ctrib_recuadros' AND COLUMN_NAME = 'recuadro'")->fetchColumn();
+        if ((int) $largo < 10) {
+            $pdo->exec('ALTER TABLE ctrib_recuadros MODIFY recuadro VARCHAR(10) NOT NULL');
+            $pdo->exec("UPDATE ctrib_recuadros SET recuadro = 'CIERRE' WHERE recuadro = 'CIER'");
+        }
+    }
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_rtre_celdas (
         empresa_id INT NOT NULL DEFAULT 0,
         anio INT NOT NULL,
@@ -653,8 +663,8 @@ function ctrib_rut(string $rut): string
 
 // Tipo de contribuyente y régimen de la empresa: definen las reglas del cuadro de retiros
 // (EIRL: un solo titular con el 100%; 14 D N°8: se atribuye y retira la totalidad).
-const CTRIB_TIPOS_CONTRIBUYENTE = ['EIRL', 'SPA', 'LTDA', 'SA', 'OTRO'];
-const CTRIB_REGIMENES = ['14D3', '14D8', '14A'];
+const CTRIB_TIPOS_CONTRIBUYENTE = ['EIRL', 'SPA', 'LTDA', 'SA', 'OTRO', 'PERSONA_NATURAL'];
+const CTRIB_REGIMENES = ['14D3', '14D8', '14A', '14G', 'PERSONA'];
 
 function ctrib_empresa_config(PDO $pdo, int $empresa): array
 {
@@ -671,6 +681,9 @@ function ctrib_empresa_config_guardar(PDO $pdo, int $empresa, string $tipo, stri
     }
     if (!in_array($regimen, CTRIB_REGIMENES, true)) {
         throw new CtribError('Seleccione el régimen tributario.');
+    }
+    if (($tipo === 'PERSONA_NATURAL') !== ($regimen === 'PERSONA')) {
+        throw new CtribError('La persona natural tiene el régimen Persona natural (honorarios), y ningún otro tipo lo usa.');
     }
     $antes = ctrib_empresa_config($pdo, $empresa);
     $pdo->prepare('DELETE FROM ctrib_empresa_config WHERE empresa_id = ?')->execute([$empresa]);

@@ -1,0 +1,382 @@
+{
+  "14A": {
+    "nombre": "Semi Integrado (Art. 14 A)",
+    "grupos": [
+      {
+        "slot": "gestion",
+        "titulo": "Gestión General",
+        "filas": [
+          {
+            "nombre": "Balance",
+            "tipo": "Configuración",
+            "fuente": "balance",
+            "abrir": "balance",
+            "ayuda": "Balance de 8 columnas de la empresa para el año comercial. Sin balance no se calcula nada."
+          },
+          {
+            "nombre": "Homologación de cuentas IFRS",
+            "tipo": "Configuración",
+            "fuente": "pendiente",
+            "abrir14": "HOM14",
+            "etapa": 4,
+            "ayuda": "Cada cuenta del balance se asigna a una cuenta IFRS del SII; las de resultado también a un código del R12."
+          },
+          {
+            "nombre": "Retiro o Dividendos",
+            "tipo": "Finanzas",
+            "fuente": "retiros",
+            "abrir": "DJ1948",
+            "ayuda": "Retiros y dividendos por socio del año. Si no hubo, se declara así."
+          }
+        ]
+      },
+      {
+        "slot": "f22",
+        "titulo": "Recuadros F22 · 14 A",
+        "filas": [
+          {
+            "codigo": "R4",
+            "nombre": "Enajenación de acciones y derechos sociales",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "R4",
+            "abrir": "R4",
+            "ayuda": "Venta de acciones, cuotas de fondos o derechos sociales. Si no hubo, queda en cero."
+          },
+          {
+            "codigo": "R6",
+            "nombre": "Datos informativos",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "R6",
+            "abrir": "R6",
+            "ayuda": "Préstamos a socios y operaciones internacionales."
+          },
+          {
+            "codigo": "R12",
+            "nombre": "Base imponible de primera categoría",
+            "tipo": "Cálculos",
+            "fuente": "pendiente",
+            "abrir14": "R12",
+            "etapa": 4,
+            "ayuda": "Resultado financiero con sus ajustes tributarios: de aquí sale la base del impuesto."
+          },
+          {
+            "codigo": "R13",
+            "nombre": "Determinación del RAI",
+            "tipo": "Cálculos",
+            "fuente": "pendiente",
+            "abrir14": "R13",
+            "etapa": 4,
+            "ayuda": "Renta atribuible a los propietarios, a partir del capital propio y los retiros."
+          },
+          {
+            "codigo": "R14",
+            "nombre": "Razonabilidad del capital propio tributario",
+            "tipo": "Cálculos",
+            "fuente": "pendiente",
+            "abrir14": "R14",
+            "etapa": 4,
+            "ayuda": "Verifica que el capital propio tributario sea razonable frente a la base imponible."
+          },
+          {
+            "codigo": "R15 y R16",
+            "nombre": "Registro tributario de rentas (RTRE) y registro SAC",
+            "tipo": "Cálculos",
+            "fuente": "pendiente",
+            "abrir14": "RTRE",
+            "etapa": 4,
+            "ayuda": "Saldos de rentas con y sin tributación, y el registro SAC de créditos por impuesto."
+          }
+        ]
+      },
+      {
+        "slot": "dj",
+        "titulo": "Declaraciones Juradas (DJ) · 14 A",
+        "filas": [
+          {
+            "codigo": "DJ 1847",
+            "nombre": "Balance 8 columnas",
+            "tipo": "Cálculos",
+            "fuente": "pendiente",
+            "abrir14": "DJ1847",
+            "etapa": 4,
+            "ayuda": "Declaración jurada con el balance de 8 columnas."
+          },
+          {
+            "codigo": "DJ 1926",
+            "nombre": "Base imponible y balance",
+            "tipo": "Cálculos",
+            "fuente": "pendiente",
+            "abrir14": "DJ1926",
+            "etapa": 4,
+            "ayuda": "Declaración jurada de la base imponible y del balance."
+          },
+          {
+            "codigo": "DJ 1948",
+            "nombre": "Retiros y dividendos (incluye Certificado 70)",
+            "tipo": "Finanzas",
+            "fuente": "dj1948",
+            "abrir": "DJ1948",
+            "ayuda": "Retiros de cada socio con su Certificado 70. Se completa al emitir los certificados."
+          }
+        ]
+      }
+    ]
+  },
+  "PERSONA": {
+    "nombre": "Persona natural con boletas de honorarios",
+    "grupos": [
+      {
+        "slot": "f22",
+        "titulo": "Declaración personal",
+        "filas": [
+          {
+            "nombre": "Consulta del Formulario 22 en el SII",
+            "tipo": "Consulta SII",
+            "fuente": "sii_consulta",
+            "consulta": "f22",
+            "ayuda": "Última consulta del F22 hecha por el agente del PC. Es solo lectura."
+          },
+          {
+            "codigo": "R1",
+            "nombre": "Honorarios (boletas recibidas)",
+            "tipo": "Cálculos",
+            "fuente": "pendiente",
+            "etapa": 10,
+            "ayuda": "Boletas de honorarios recibidas, con sus retenciones."
+          },
+          {
+            "nombre": "Líneas personales del Formulario 22 (impuesto anual, créditos y PPM)",
+            "tipo": "Cálculos",
+            "fuente": "pendiente",
+            "etapa": 7,
+            "ayuda": "Impuesto anual, créditos y pagos provisionales de la declaración personal."
+          }
+        ]
+      }
+    ]
+  },
+  "14D3": {
+    "nombre": "Pro Pyme General (Art. 14 D N°3)",
+    "cierre": true,
+    "grupos": [
+      {
+        "slot": "gestion",
+        "titulo": "Gestión General",
+        "filas": [
+          {
+            "nombre": "Balance",
+            "tipo": "Configuración",
+            "fuente": "balance",
+            "abrir": "balance",
+            "ayuda": "Balance de 8 columnas de la empresa para el año comercial. Sin balance no se calcula nada."
+          },
+          {
+            "nombre": "Homologación de cuentas",
+            "tipo": "Configuración",
+            "fuente": "homologacion",
+            "abrir": "HOM",
+            "ayuda": "Cada cuenta del balance se asigna a un código del Recuadro 17. Las cuentas sin código bloquean el cálculo."
+          },
+          {
+            "nombre": "Retiro o Dividendos",
+            "tipo": "Finanzas",
+            "fuente": "retiros",
+            "abrir": "DJ1948",
+            "ayuda": "Retiros y dividendos por socio del año. Si no hubo, se declara así."
+          }
+        ]
+      },
+      {
+        "slot": "f22",
+        "titulo": "Recuadros F22 · Pro Pyme",
+        "filas": [
+          {
+            "codigo": "R4",
+            "nombre": "Enajenación de acciones y derechos sociales",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "R4",
+            "abrir": "R4",
+            "ayuda": "Venta de acciones, cuotas de fondos o derechos sociales. Si no hubo, queda en cero."
+          },
+          {
+            "codigo": "R6",
+            "nombre": "Datos informativos",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "R6",
+            "abrir": "R6",
+            "ayuda": "Préstamos a socios y operaciones internacionales."
+          },
+          {
+            "codigo": "R17",
+            "nombre": "Base imponible (RLI)",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "R17",
+            "abrir": "R17",
+            "chips": [
+              {
+                "texto": "RLI",
+                "abrir": "RLI",
+                "titulo": "Informe de Renta Líquida Imponible"
+              }
+            ],
+            "ayuda": "Resultado tributario de la empresa, a partir de las cuentas homologadas del balance."
+          },
+          {
+            "codigo": "R19",
+            "nombre": "CPTS régimen Pro Pyme",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "R19",
+            "abrir": "R19",
+            "chips": [
+              {
+                "texto": "CPT Activo",
+                "abrir": "CPT",
+                "titulo": "Capital Propio Tributario a partir del Activo"
+              }
+            ],
+            "ayuda": "Capital propio tributario simplificado al cierre del año."
+          },
+          {
+            "codigo": "RTRE",
+            "nombre": "Registro tributario de rentas empresariales",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "R20",
+            "abrir": "R20",
+            "chips": [
+              {
+                "texto": "R20",
+                "abrir": "R20",
+                "dialogo": "R20"
+              },
+              {
+                "texto": "R21",
+                "abrir": "R20",
+                "dialogo": "R21"
+              }
+            ],
+            "ayuda": "Rentas y créditos de la empresa (R20) y registro SAC (R21)."
+          },
+          {
+            "codigo": "R18",
+            "nombre": "Determinación del RAI",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "recuadro": "R20",
+            "abrir": "R18",
+            "ayuda": "Rentas afectas a impuestos (RAI). Sale del registro de rentas (RTRE): se finaliza junto con él."
+          }
+        ]
+      },
+      {
+        "slot": "dj",
+        "titulo": "Declaraciones Juradas (DJ)",
+        "filas": [
+          {
+            "codigo": "DJ 1948",
+            "nombre": "Retiros y dividendos (incluye Certificado 70)",
+            "tipo": "Finanzas",
+            "fuente": "dj1948",
+            "abrir": "DJ1948",
+            "ayuda": "Retiros de cada socio con su Certificado 70. Se completa al emitir los certificados."
+          }
+        ]
+      }
+    ]
+  },
+  "14D8": {
+    "nombre": "Pro Pyme Transparente (Art. 14 D N°8)",
+    "cierre": true,
+    "grupos": [
+      {
+        "slot": "gestion",
+        "titulo": "Gestión General",
+        "filas": [
+          {
+            "nombre": "Balance",
+            "tipo": "Configuración",
+            "fuente": "balance",
+            "abrir": "balance",
+            "ayuda": "Balance de 8 columnas de la empresa para el año comercial. Sin balance no se calcula nada."
+          },
+          {
+            "nombre": "Homologación de cuentas",
+            "tipo": "Configuración",
+            "fuente": "homologacion",
+            "abrir": "HOM",
+            "ayuda": "Cada cuenta de resultado se asigna a un concepto; los códigos del Recuadro 17 se trasladan solos al Recuadro 22."
+          },
+          {
+            "nombre": "Propietarios y retiros",
+            "tipo": "Finanzas",
+            "fuente": "retiros",
+            "abrir": "DJ1948",
+            "ayuda": "Propietarios con su participación y lo retirado en el año. De aquí sale la asignación de la base."
+          }
+        ]
+      },
+      {
+        "slot": "f22",
+        "titulo": "Recuadros F22 · Transparencia",
+        "filas": [
+          {
+            "codigo": "R4",
+            "nombre": "Enajenación de acciones y derechos sociales",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "abrir": "R4",
+            "ayuda": "Venta de acciones, cuotas de fondos o derechos sociales. Si no hubo, queda en cero.",
+            "recuadro": "R4"
+          },
+          {
+            "codigo": "R6",
+            "nombre": "Datos informativos",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "abrir": "R6",
+            "ayuda": "Préstamos a socios y operaciones internacionales.",
+            "recuadro": "R6"
+          },
+          {
+            "codigo": "R22",
+            "nombre": "Base imponible (percibido y pagado)",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "abrir": "R22",
+            "ayuda": "Ingresos percibidos menos gastos pagados: la base que se asigna a los propietarios.",
+            "recuadro": "R22"
+          },
+          {
+            "codigo": "R23",
+            "nombre": "CPTS régimen de transparencia",
+            "tipo": "Cálculos",
+            "fuente": "recuadro",
+            "abrir": "R23",
+            "ayuda": "Capital propio tributario simplificado al cierre del año.",
+            "recuadro": "R23"
+          }
+        ]
+      },
+      {
+        "slot": "dj",
+        "titulo": "Declaraciones Juradas (DJ)",
+        "filas": [
+          {
+            "codigo": "DJ 1947",
+            "nombre": "Base asignada a los propietarios",
+            "tipo": "Finanzas",
+            "fuente": "dj1947",
+            "abrir": "DJ1947",
+            "ayuda": "Datos por propietario para la declaración jurada. Se completa al finalizar el R22."
+          }
+        ]
+      }
+    ]
+  }
+}

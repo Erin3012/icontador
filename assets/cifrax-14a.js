@@ -239,29 +239,9 @@
     function activar() {
         if (activa) return;
         activa = true;
-        document.getElementById('cv-card-f22').innerHTML = '<h2>Recuadros F22 · 14 A <span class="cv-count">6</span></h2>' +
-            '<div class="cv-cabecera-fila"><span>Nombre del proceso</span><span>Tipo</span><span>Estado</span></div>' +
-            fila(ventana('R12'), 'HOM', 'Homologación de cuentas 14 A').replace(ventana('R12'), ventana('HOM14')) +
-            fila('data-abrir="R4"', 'R4', 'Enajenación de acciones y derechos sociales') +
-            fila(ventana('R6'), 'R6', 'Datos Informativos') +
-            fila(ventana('R12'), 'R12', 'Base Imponible') +
-            fila(ventana('R14'), 'R14', 'Razonabilidad capital propio tributario') +
-            fila(ventana('RTRE'), 'RTRE', 'Registro Tributario de Rentas Empresariales', chipAbrir('R13') + chipAbrir('R15') + chipAbrir('R16'));
-        document.getElementById('cv-card-dj').innerHTML = '<h2>Declaraciones Juradas (DJ) · 14 A <span class="cv-count">3</span></h2>' +
-            '<div class="cv-cabecera-fila"><span>Nombre del proceso</span><span>Plazo límite</span><span>Estado</span></div>' +
-            fila(ventana('DJ1847'), 'DJ 1847', 'Balance 8 Columnas') + fila(ventana('DJ1926'), 'DJ 1926', 'Base Imponible y Balance') +
-            fila('data-abrir="DJ1948"', 'DJ 1948', 'Retiros y Dividendos (incluye Certificado 70)');
-        var resumenDj = document.querySelector('[data-ver="cv-card-dj"] small');
-        if (resumenDj) resumenDj.textContent = '3 procesos';
-        // El cierre y los reportes actuales son de Pro Pyme: no corresponden a 14 A.
-        document.querySelectorAll('.cv-cierre').forEach(function (c) { c.style.display = 'none'; });
+        // El inicio de 14 A y de persona natural lo pinta cifrax-inicio.js desde la API.
+        // Aquí solo se ocultan los reportes de Pro Pyme, que no corresponden.
         document.querySelectorAll('#cv-vista-reportes .cv-card').forEach(function (c, i) { if (i > 0) c.hidden = true; });
-        var banner = document.createElement('div');
-        banner.className = 'cv-maqueta-aviso';
-        banner.setAttribute('data-maqueta-banner', '');
-        banner.innerHTML = '<strong>Régimen 14 A: maqueta sin cálculos.</strong> Los recuadros muestran su forma y sus códigos. El balance y los retiros siguen siendo los de la empresa abierta. Para volver, cambie el régimen arriba.';
-        var inicio = document.querySelector('#p-home .cv-home');
-        inicio.parentNode.insertBefore(banner, inicio);
     }
 
     // ---------- Fundación / régimen especial: lo declarado ante el SII, tomado de la consulta guardada ----------
@@ -376,6 +356,46 @@
         if (pasoInicio) pasoInicio.addEventListener('click', cargarEspecial);
     }
 
+    // 14 D N°8: en Reportes, los recuadros de Pro Pyme General se reemplazan por el R22, el R23 y la DJ 1947.
+    var transparente = false;
+    var SOLO_PRO_PYME = ['R17', 'RLI', 'R18', 'R19', 'CPT', 'R20', 'R21', 'RTRE', 'DJ 1948'];
+    var REPORTES_14D8 = [['R6', 'R22', 'Base imponible del régimen de transparencia', 'R22'], ['R22', 'R23', 'CPTS del régimen de transparencia', 'R23'],
+        ['DJ 1948', 'DJ 1947', 'Base imponible asignada a los propietarios', 'DJ1947']];
+    function activarTransparente() {
+        if (transparente) return;
+        transparente = true;
+        var filas = {};
+        document.querySelectorAll('#cv-vista-reportes .cv-rep').forEach(function (fila) {
+            var cod = fila.querySelector('.cv-cod');
+            if (cod) filas[cod.textContent.trim()] = fila;
+        });
+        REPORTES_14D8.forEach(function (n) {
+            var despues = filas[n[0]];
+            if (!despues) return;
+            // Se copia una fila existente para conservar el ícono y la alineación; sin la etiqueta de estado, que es fija.
+            var nueva = despues.cloneNode(true);
+            var cod = nueva.querySelector('.cv-cod');
+            cod.className = 'cv-cod' + (/^DJ/.test(n[1]) ? ' cv-cod-azul' : '');
+            cod.textContent = n[1];
+            nueva.querySelector('.cv-rep-nombre').textContent = n[2];
+            var pill = nueva.querySelector('.cv-pill');
+            if (pill) pill.style.visibility = 'hidden';
+            var botones = nueva.querySelectorAll('.cv-btn-pdf');
+            for (var k = 1; k < botones.length; k++) botones[k].remove();
+            botones[0].disabled = false;
+            botones[0].removeAttribute('data-informe-sii');
+            botones[0].setAttribute('data-pdf', n[3]);
+            despues.insertAdjacentElement('afterend', nueva);
+            filas[n[1]] = nueva;
+        });
+        SOLO_PRO_PYME.forEach(function (c) { if (filas[c]) filas[c].style.display = 'none'; });
+        document.querySelectorAll('#cv-vista-reportes .cv-card').forEach(function (tarjeta) {
+            var cuenta = tarjeta.querySelector('.cv-count');
+            var filasTarjeta = tarjeta.querySelectorAll('.cv-rep');
+            if (cuenta && filasTarjeta.length) cuenta.textContent = Array.prototype.filter.call(filasTarjeta, function (f) { return f.style.display !== 'none'; }).length;
+        });
+    }
+
     document.addEventListener('click', function (e) {
         var x = e.target.closest ? e.target.closest('[data-esp], [data-esp-panel]') : null;
         if (!x) return;
@@ -405,15 +425,63 @@
             selector.value = '';
             return;
         }
-        if (selector) selector.value = regimen === '14A' || regimen === 'ESP' ? regimen : '14D3';
-        if (regimen === '14A') activar();
-        if (regimen === 'ESP') activarEspecial();
+        if (regimen === 'PERSONA') {
+            if (selector && !selector.querySelector('option[value="PERSONA"]')) selector.add(new Option('Persona natural (honorarios)', 'PERSONA'));
+            if (selector) selector.value = 'PERSONA';
+            activar();
+            return;
+        }
+        var vista = regimen === '14G' ? 'ESP' : regimen;
+        if (selector) selector.value = vista === '14A' || vista === 'ESP' || vista === '14D8' ? vista : '14D3';
+        if (vista === '14D8') activarTransparente();
+        if (vista === '14A') activar();
+        if (vista === 'ESP') activarEspecial();
     }
     if (selector) selector.addEventListener('change', function () { recargarCon(selector.value); });
+    // Vista (URL o selector) -> régimen que se guarda en la empresa, y al revés.
+    var CONFIG_DE_VISTA = { 'ESP': '14G', '14D3': '14D3', '14D8': '14D8', '14A': '14A', 'PERSONA': 'PERSONA' };
+    var VISTA_DE_CONFIG = { '14G': 'ESP' };
+    function ofrecerGuardar(configurado) {
+        var boton = document.getElementById('cf-guardar-regimen');
+        var vistaConfig = VISTA_DE_CONFIG[configurado] || configurado || '';
+        if (!elegida || !CONFIG_DE_VISTA[elegida] || elegida === vistaConfig) {
+            if (boton) boton.remove();
+            return;
+        }
+        if (boton || !selector) return;
+        boton = document.createElement('button');
+        boton.type = 'button';
+        boton.id = 'cf-guardar-regimen';
+        boton.className = 'cv-btn-fin';
+        boton.style.cssText = 'cursor:pointer;opacity:1;margin-left:8px';
+        boton.textContent = 'Guardar como régimen de la empresa';
+        boton.addEventListener('click', guardarRegimen);
+        selector.insertAdjacentElement('afterend', boton);
+    }
+    function guardarRegimen() {
+        var boton = document.getElementById('cf-guardar-regimen');
+        var p = new URLSearchParams(window.location.search);
+        var empresaId = p.get('empresa_id');
+        if (!empresaId) {
+            try { var activa = JSON.parse(localStorage.getItem('icontador.empresaSeleccionada') || 'null'); empresaId = activa && activa.id; } catch (x) { empresaId = null; }
+        }
+        var anioSel = document.getElementById('cf-anio');
+        boton.disabled = true;
+        fetch('../api/cifrax-tributario.php?accion=regimen_config&empresa_id=' + encodeURIComponent(empresaId || ''), {
+            method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ regimen: CONFIG_DE_VISTA[elegida], anio: anioSel ? Number(anioSel.value) : 2026 })
+        }).then(function (r) {
+            return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'No se pudo guardar el régimen.'); return j; });
+        }).then(function () {
+            p.delete('regimen');
+            window.location.search = p.toString();
+        }).catch(function (err) {
+            boton.disabled = false;
+            boton.textContent = err.message;
+        });
+    }
     document.addEventListener('cv:regimen', function (e) {
-        // Con 14 D N°8 configurado, la vista Pro Pyme es la de ese régimen.
-        var proPyme = selector && selector.querySelector('option[value="14D3"]');
-        if (proPyme && e.detail === '14D8') proPyme.textContent = 'Pro Pyme Transparente (14 D N°8)';
+        ofrecerGuardar(e.detail);
         mostrar(elegida || e.detail);
     });
     if (elegida) mostrar(elegida);

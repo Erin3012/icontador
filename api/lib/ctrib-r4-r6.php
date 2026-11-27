@@ -151,8 +151,9 @@ function ctrib_r6(PDO $pdo, int $empresa, int $anio): array
     $activo = (int) ($balance['totales']['activo'] ?? 0);
     $pasivo = (int) ($balance['totales']['pasivo'] ?? 0);
     $manuales = ctrib_valores_manuales($pdo, $empresa, $anio, 'R6');
-    $r20 = ctrib_r20($pdo, $empresa, $anio);
-    $retirosExcedentes = max(0, (int) $r20['retirosNoImputados']); // retiros que no caben en el RAI ni en el REX
+    $transparente = ctrib_empresa_config($pdo, $empresa)['regimen'] === '14D8'; // sin RTRE
+    // Retiros que no caben en el RAI ni en el REX.
+    $retirosExcedentes = $transparente ? 0 : max(0, (int) ctrib_r20($pdo, $empresa, $anio)['retirosNoImputados']);
 
     $montos = [];
     $origen = [];
@@ -165,7 +166,7 @@ function ctrib_r6(PDO $pdo, int $empresa, int $anio): array
         } elseif ($codigo === '102') {
             $montos[$codigo] = $activo; $origen[$codigo] = 'CALCULADO'; // sin exclusiones de intangibles y nominales
         } elseif ($codigo === '1193') {
-            $montos[$codigo] = $retirosExcedentes; $origen[$codigo] = 'RTRE';
+            $montos[$codigo] = $retirosExcedentes; $origen[$codigo] = $transparente ? 'CALCULADO' : 'RTRE';
         } elseif ($codigo === '843' && !array_key_exists($codigo, $manuales)) {
             $montos[$codigo] = $activo - $pasivo; $origen[$codigo] = 'CALCULADO'; // activo menos pasivo con todas las cuentas
         } elseif (array_key_exists($codigo, $manuales)) {

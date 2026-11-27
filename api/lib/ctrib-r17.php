@@ -362,7 +362,7 @@ function ctrib_r17_reabrir(PDO $pdo, int $empresa, int $anio, string $usuario, s
 
 /**
  * Retiros del año según el modo: los importados, ninguno ('sin_retiros'), o en 'totalidad' la base imponible
- * completa (1440 del R17) atribuida a los socios según su participación, al 31-12 del año comercial.
+ * completa (1440 del R17, o 1630 del R22 en 14 D N° 8) atribuida a los socios según su participación, al 31-12.
  * La usan R19 (1479), RTRE, R6 (1193) y la DJ 1948.
  */
 function ctrib_retiros_del_anio(PDO $pdo, int $empresa, int $anio): array
@@ -375,7 +375,12 @@ function ctrib_retiros_del_anio(PDO $pdo, int $empresa, int $anio): array
         $lista = ctrib_retiros_listar($pdo, $empresa, $anio);
         return ['modo' => $modo, 'total' => array_sum(array_column($lista, 'monto')), 'retiros' => $lista];
     }
-    $base = max(0, (int) ctrib_r17($pdo, $empresa, $anio)['totales']['1440']);
+    if (ctrib_empresa_config($pdo, $empresa)['regimen'] === '14D8') {
+        require_once __DIR__ . '/ctrib-r22.php';
+        $base = max(0, (int) ctrib_r22_calculo($pdo, $empresa, $anio)['totales']['1630']);
+    } else {
+        $base = max(0, (int) ctrib_r17($pdo, $empresa, $anio)['totales']['1440']);
+    }
     $socios = ctrib_socios($pdo, $empresa, $anio);
     $partes = ctrib_repartir($base, array_column($socios, 'participacion'));
     $fecha = ctrib_anio_comercial($anio) . '-12-31';

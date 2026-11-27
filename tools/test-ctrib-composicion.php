@@ -71,7 +71,8 @@ check($c['modo'] === 'sin_retiros' && $c['totalRetirado'] === 0 && ctrib_retiros
 
 // --- 14 D N°8: se retira la totalidad ---
 $c = ctrib_composicion_guardar($pdo, 1, $anio, 'EIRL', '14D8', [$angela], false, 'prueba');
-check($c['modo'] === 'totalidad' && $c['socios'][0]['retirado'] === 6905357, '14 D N°8: la titular retira la totalidad de la base (6.905.357)');
+// La base del 14 D N°8 es la del R22 (percibido y pagado): también rebaja las compras de activo fijo del balance (3.139.900).
+check($c['modo'] === 'totalidad' && $c['socios'][0]['retirado'] === 3765457, '14 D N°8: la titular retira la totalidad de la base del R22 (3.765.457)');
 
 // --- Sociedad con dos socios (montos distintos por socio) ---
 $c = ctrib_composicion_guardar($pdo, 1, $anio, 'SPA', '14D3', [

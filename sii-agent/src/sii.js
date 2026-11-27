@@ -17,12 +17,12 @@ const SII = {
     rut: '#rutcntr, input[name="rutcntr"], input[placeholder^="Ej"]',
     clave: '#clave, input[type="password"]',
     ingresar: '#bt_ingresar, button:has-text("INGRESAR")',
-    empresaRcv: 'select[name="rut"]',
-    mesRcv: '#periodoMes',
-    anioRcv: 'select:has(option:text-is("2026"))',
-    consultarRcv: 'button:has-text("Consultar")',
+    empresaRcv: 'select[name="rut"]:visible',
+    mesRcv: '#periodoMes:visible',
+    anioRcv: 'select:has(option:text-is("2026")):visible',
+    consultarRcv: 'button:has-text("Consultar"):visible',
     // El botón de descarga aparece después de consultar; aún no verificado en pantalla.
-    descargarDetalle: 'text=Descargar Detalles',
+    descargarDetalle: 'text=Descargar Detalles >> visible=true',
   },
   // Datos del contribuyente (razón social, giro). Dirección y selectores sin verificar contra el SII real.
   datosContribuyente: 'https://www4.sii.cl/getdatosinternet/',
@@ -109,6 +109,101 @@ async function iniciarSesion(page, { rut, clave, manual = false }) {
   trazar('Login correcto.');
 }
 
+/** Pestañas y esperas del Registro de Compras y Ventas (mismo flujo que el agente del servidor). */
+function normalizarEtiquetaRcv(texto) {
+  return String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
+}
+
+
+async function pestanaRcvActiva(page) {
+  return page.evaluate(() => {
+    const etiquetas = new Map([['COMPRA', 'compras'], ['VENTA', 'ventas']]);
+    const nodos = [...document.querySelectorAll('a,button,[role="tab"],li,[aria-selected]')];
+    for (const nodo of nodos) {
+      const texto = (nodo.innerText || nodo.textContent || '').replace(/\s+/g, ' ').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+      const libro = etiquetas.get(texto);
+      if (!libro) continue;
+      let actual = nodo;
+      for (let i = 0; actual && i < 3; i++, actual = actual.parentElement) {
+        const clases = typeof actual.className === 'string' ? actual.className : '';
+        if (actual.getAttribute('aria-selected') === 'true' || actual.getAttribute('aria-current') === 'page'
+          || /(?:^|\s)(?:active|selected|tab-active)(?:\s|$)/i.test(clases)) return libro;
+      }
+    }
+    const hash = window.location.hash.toLowerCase();
+    if (/venta/.test(hash)) return 'ventas';
+    if (/compra/.test(hash)) return 'compras';
+    return '';
+  }).catch(() => '');
+}
+
+
+async function seleccionarPestanaRcv(page, libro, onProgress = async () => {}) {
+  const nombre = SII.rcvPestana[libro];
+  if (!nombre) throw new Error('Libro RCV inválido; no se seleccionó ninguna pestaña.');
+  let activa = await pestanaRcvActiva(page);
+  if (activa === libro) return;
+  const objetivo = normalizarEtiquetaRcv(nombre);
+  const textos = page.getByText(nombre, { exact: true });
+  const cantidad = await textos.count().catch(() => 0);
+  for (let i = 0; i < cantidad; i++) {
+    const candidato = textos.nth(i);
+    if (await candidato.isVisible().catch(() => false)) {
+      await candidato.click({ timeout: 8000 });
+    } else {
+      await candidato.evaluate((elemento, textoObjetivo) => {
+      const normalizar = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
+      let control = elemento;
+      for (let i = 0; control && i < 5; i++, control = control.parentElement) {
+        if (control.matches('a,button,[role="tab"]') && normalizar(control.innerText || control.textContent) === textoObjetivo) {
+          control.click();
+          return true;
+        }
+      }
+      // El SII también ha servido pestañas dentro de navegación colapsada con el listener en un contenedor.
+      elemento.click();
+      return true;
+      }, objetivo).catch(() => false);
+    }
+    for (let intento = 0; intento < 20; intento++) {
+      activa = await pestanaRcvActiva(page);
+      if (activa === libro) break;
+      await page.waitForTimeout(250);
+    }
+    if (activa === libro) {
+      trazar(`Pestaña ${nombre} seleccionada y verificada.`);
+      await onProgress('seleccionando_libro');
+      return;
+    }
+  }
+  if (!cantidad) throw new Error(`No se encontró un control del SII para seleccionar ${nombre}; no se descargó ningún archivo.`);
+  throw new Error(`El SII no confirmó la pestaña ${nombre}; no se descargó ningún archivo.`);
+}
+
+
+async function esperarConsultaRcv(page, periodo, libro) {
+  const indicador = page.getByText(/consultando información/i).first();
+  const aparecio = typeof indicador.waitFor === 'function'
+    && await indicador.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false);
+  if (aparecio) {
+    await indicador.waitFor({ state: 'hidden', timeout: SII.tiempoMs }).catch(() => {
+      throw new Error(`El SII dejó la consulta de ${SII.rcvPestana[libro]} · ${periodo} cargando; no se solicitó la descarga.`);
+    });
+  } else {
+    await page.waitForTimeout(1000);
+  }
+}
+
+
+async function esperarCapaRcvLibre(page) {
+  const capa = page.locator('.modal-backdrop').first();
+  const existe = await capa.count().catch(() => 0);
+  if (!existe) return;
+  await capa.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {
+    throw new Error('El SII mantiene una ventana modal sobre el Registro de Compras y Ventas; no se pudo continuar con el formulario.');
+  });
+}
+
 /** Descarga el detalle del RCV de un período y libro. Devuelve la ruta del CSV guardado en `carpeta`. */
 async function descargarLibro({ rut, clave, periodo, libro, carpeta, headless = true }) {
   const { chromium } = require('playwright');
@@ -119,14 +214,6 @@ async function descargarLibro({ rut, clave, periodo, libro, carpeta, headless = 
     const page = await contexto.newPage();
     await iniciarSesion(page, { rut, clave });
     await page.goto(SII.rcv, { timeout: SII.tiempoMs });
-    // La pestaña COMPRA/VENTA a veces está oculta en el menú; si no se ve, vamos directo a su ruta de la página.
-    const pestana = page.getByText(SII.rcvPestana[libro], { exact: true }).first();
-    if (await pestana.isVisible().catch(() => false)) {
-      await pestana.click();
-    } else {
-      trazar(`Pestaña ${SII.rcvPestana[libro]} oculta; abriendo su ruta directa.`);
-      await page.goto(`${SII.rcv.split('#')[0]}#${libro === 'ventas' ? 'venta' : 'compra'}/`, { timeout: SII.tiempoMs });
-    }
     await page.locator(SII.selectores.empresaRcv).first().waitFor({ state: 'visible', timeout: SII.tiempoMs });
     const [anio, mes] = String(periodo).split('-');
     const empresa = `${String(rut).replace(/[^0-9kK]/g, '').slice(0, -1)}-${String(rut).slice(-1).toUpperCase()}`;
@@ -134,7 +221,17 @@ async function descargarLibro({ rut, clave, periodo, libro, carpeta, headless = 
     const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     await page.locator(SII.selectores.mesRcv).selectOption({ label: meses[Number(mes) - 1] });
     await page.locator(SII.selectores.anioRcv).first().selectOption({ label: anio });
+    await esperarCapaRcvLibre(page);
+    // El SII consulta COMPRA por defecto y crea las pestañas con el resultado; VENTA se elige después de consultar.
     await page.click(SII.selectores.consultarRcv);
+    await esperarConsultaRcv(page, periodo, 'compras');
+    if (libro !== 'compras') {
+      await seleccionarPestanaRcv(page, libro);
+      await esperarConsultaRcv(page, periodo, libro);
+      if ((await pestanaRcvActiva(page)) !== libro) {
+        throw new Error(`El SII no mantuvo activa la pestaña ${SII.rcvPestana[libro]} después de consultar; no se descargó ningún archivo.`);
+      }
+    }
     const [descarga] = await Promise.all([
       page.waitForEvent('download', { timeout: SII.tiempoMs }).catch(() => {
         throw new Error('El SII no ofreció la descarga del detalle después de consultar. Revisa la pantalla y la sección Descargas Diferidas.');
