@@ -158,6 +158,13 @@ function ctrib_schema(PDO $pdo): void
         concepto VARCHAR(8) NOT NULL,
         PRIMARY KEY (empresa_id, cuenta)
     )$motor");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_ifrs_cuentas (
+        empresa_id INT NOT NULL DEFAULT 0,
+        anio INT NOT NULL,
+        cuenta VARCHAR(20) NOT NULL,
+        codigo_ifrs VARCHAR(20) NOT NULL,
+        PRIMARY KEY (empresa_id, anio, cuenta)
+    )$motor");
     $pdo->exec("CREATE TABLE IF NOT EXISTS ctrib_incentivo (
         empresa_id INT NOT NULL DEFAULT 0,
         anio INT NOT NULL,

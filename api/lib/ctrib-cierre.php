@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/ctrib-r4-r6.php';
 require_once __DIR__ . '/ctrib-r23.php';
-require_once __DIR__ . '/ctrib-r13-r14.php';
+require_once __DIR__ . '/ctrib-dj-14a.php';
 
 const CTRIB_CIERRE_RECUADROS = [
     'R4' => 'Enajenación de acciones', 'R6' => 'Datos informativos', 'R17' => 'Base imponible',
@@ -16,7 +16,7 @@ const CTRIB_CIERRE_RECUADROS_14D8 = [
 ];
 const CTRIB_CIERRE_RECUADROS_14A = [
     'R4' => 'Enajenación de acciones', 'R6' => 'Datos informativos', 'R12' => 'Base imponible (RLI)',
-    'R14' => 'Razonabilidad del CPT', 'R13' => 'Determinación del RAI',
+    'R14' => 'Razonabilidad del CPT', 'R13' => 'Determinación del RAI', 'R15' => 'RTRE (14 A)', 'R16' => 'Registro SAC (14 A)',
 ];
 
 function ctrib_cierre(PDO $pdo, int $empresa, int $anio): array
@@ -24,14 +24,14 @@ function ctrib_cierre(PDO $pdo, int $empresa, int $anio): array
     $recuadros = [];
     $pendientes = [];
     $calculos = ['R4' => 'ctrib_r4', 'R6' => 'ctrib_r6', 'R17' => 'ctrib_r17', 'R19' => 'ctrib_r19', 'R20' => 'ctrib_r20',
-        'R22' => 'ctrib_r22', 'R23' => 'ctrib_r23', 'R12' => 'ctrib_r12', 'R13' => 'ctrib_r13', 'R14' => 'ctrib_r14'];
+        'R22' => 'ctrib_r22', 'R23' => 'ctrib_r23', 'R12' => 'ctrib_r12', 'R13' => 'ctrib_r13', 'R14' => 'ctrib_r14', 'R15' => 'ctrib_r15'];
     $regimen = ctrib_empresa_config($pdo, $empresa)['regimen'];
     $transparente = $regimen === '14D8';
     $semiIntegrado = $regimen === '14A';
     $lista = $transparente ? CTRIB_CIERRE_RECUADROS_14D8 : ($semiIntegrado ? CTRIB_CIERRE_RECUADROS_14A : CTRIB_CIERRE_RECUADROS);
     $desactualizados = [];
     foreach ($lista as $codigo => $nombre) {
-        $referencia = $codigo === 'R21' ? 'R20' : $codigo; // el R21 sigue al RTRE
+        $referencia = match ($codigo) { 'R21' => 'R20', 'R16' => 'R15', default => $codigo };
         $finalizado = ctrib_estado_recuadro($pdo, $empresa, $anio, $referencia)['estado'] === 'FINALIZADO';
         $desactualizado = $finalizado && ($desactualizados[$referencia] ??= $calculos[$referencia]($pdo, $empresa, $anio)['desactualizado']);
         $recuadros[] = ['codigo' => $codigo, 'nombre' => $nombre, 'estado' => $finalizado ? 'FINALIZADO' : 'BORRADOR', 'desactualizado' => $desactualizado];
@@ -51,7 +51,7 @@ function ctrib_cierre(PDO $pdo, int $empresa, int $anio): array
         'cerrado' => $cerrado, 'cerradoEn' => $cierre['finalizado'], 'usuario' => $cierre['usuario'],
         'avisos' => $avisos,
         'nota' => $transparente ? 'El R7 (ingreso diferido) no está en esta versión y no bloquea el cierre.'
-            : ($semiIntegrado ? 'R15 y R16 (RTRE y SAC de 14 A) están en preparación y no bloquean el cierre.'
+            : ($semiIntegrado ? 'El R16 (Registro SAC) sale del RTRE (R15) y no se finaliza aparte.'
                 : 'El R18 (Determinación del RAI) sale del RTRE y no se finaliza aparte.'),
     ];
 }
@@ -126,6 +126,8 @@ function ctrib_documento_desactualizado(PDO $pdo, int $empresa, int $anio, strin
         'R18', 'R20', 'R21', 'RTRE' => 'ctrib_r20',
         'R22', 'DJ1947' => 'ctrib_r22', 'R23' => 'ctrib_r23',
         'R12' => 'ctrib_r12', 'R13' => 'ctrib_r13', 'R14' => 'ctrib_r14',
+        'R15', 'R16' => 'ctrib_r15',
+        'DJ1847' => 'ctrib_dj1847', 'DJ1926' => 'ctrib_dj1926',
         default => null,
     };
     return $calculo !== null && $calculo($pdo, $empresa, $anio)['desactualizado'];

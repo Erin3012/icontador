@@ -51,6 +51,14 @@ function ctrib_inicio_estado(PDO $pdo, int $empresa, int $anio, array $fila): ar
             $completos = $socios !== [] && !array_filter($socios, fn($s) => $s['rut'] === '');
             return $completos && ctrib_estado_recuadro($pdo, $empresa, $anio, 'R22')['estado'] === 'FINALIZADO'
                 ? ['texto' => 'COMPLETADO', 'clase' => 'ok'] : ['texto' => 'PENDIENTE', 'clase' => 'pend'];
+        case 'dj1847':
+        case 'dj1926':
+            $clave = strtoupper($fila['fuente']);
+            $e = ctrib_estado_recuadro($pdo, $empresa, $anio, $clave);
+            if ($e['estado'] === 'FINALIZADO') {
+                return ['texto' => 'COMPLETADO', 'clase' => 'ok'];
+            }
+            return ['texto' => 'PENDIENTE', 'clase' => 'pend'];
         case 'sii_consulta':
             try {
                 $st = $pdo->prepare('SELECT estado FROM sii_consultas WHERE empresa_id = ? AND tipo = ? AND anio = ? ORDER BY id DESC LIMIT 1');

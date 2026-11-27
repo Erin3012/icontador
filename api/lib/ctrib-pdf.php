@@ -31,9 +31,13 @@ const CTRIB_DOCUMENTOS = [
     'R12' => 'Recuadro N° 12. Base imponible de Primera Categoría (art. 14 letra A) LIR)',
     'R13' => 'Recuadro N° 13. Determinación del RAI (art. 14 letra A) LIR)',
     'R14' => 'Recuadro N° 14. Razonabilidad del Capital Propio Tributario (art. 14 letra A) LIR)',
+    'R15' => 'Recuadro N° 15. Registro tributario de rentas empresariales y movimiento de STUT (art. 14 letra A) LIR)',
+    'R16' => 'Recuadro N° 16. Registro SAC (art. 14 letra A) LIR)',
+    'DJ1847' => 'DJ 1847 — Balance de 8 columnas y clasificador Anexo N° 1',
+    'DJ1926' => 'DJ 1926 — Base imponible de Primera Categoría (Anexo N° 1)',
 ];
 // Documentos en hoja horizontal, como en iTributario.
-const CTRIB_DOC_HORIZONTAL = ['BALANCE', 'HOMOLOGACION', 'RETIROS', 'R20', 'RTRE', 'R21', 'DJ1947'];
+const CTRIB_DOC_HORIZONTAL = ['BALANCE', 'HOMOLOGACION', 'RETIROS', 'R20', 'RTRE', 'R21', 'DJ1947', 'R15', 'R16', 'DJ1847', 'DJ1926'];
 const CTRIB_REGIMEN_TEXTO = [
     '14D3' => 'Pro Pyme General (Art. 14D N°3)', '14D8' => 'Pro Pyme Transparente (Art. 14D N°8)', '14A' => 'Régimen General (Art. 14A)', 'PERSONA' => 'Persona natural (honorarios)', '14G' => 'Fundación o régimen especial (Art. 14 G)',
 ];
@@ -359,6 +363,58 @@ function ctrib_documento_cuerpo(PDO $pdo, int $empresa, int $anio, string $doc, 
         case 'R14':
             $r = ctrib_r14($pdo, $empresa, $anio);
             return ['estado' => $r['estado'], 'numero' => '14', 'html' => ctrib_pdf_recuadro('14', $r['lineas'])];
+
+        case 'R15':
+        case 'R16':
+            $r = ctrib_r15($pdo, $empresa, $anio);
+            $form = $doc === 'R15' ? $r['formularioR15'] : $r['formularioR16'];
+            $colsHtml = implode('', array_map(fn($col) => '<th colspan="2">' . ctrib_h($col) . '</th>', $form['columnas']));
+            $html = '<table class="rec grilla"><thead><tr><th class="banda">Recuadro N° ' . substr($doc, 1) . '</th>' . $colsHtml . '</tr></thead><tbody>';
+            foreach ($form['filas'] as $fila) {
+                $html .= '<tr><td class="glosa">' . ctrib_h($fila['glosa']) . '</td>';
+                foreach ($fila['celdas'] as $c) {
+                    $html .= $c === null
+                        ? '<td class="nulo" colspan="2"></td>'
+                        : '<td class="cod">' . ctrib_h($c['codigo']) . '</td><td class="mon">' . ctrib_num($c['monto']) . '</td>';
+                }
+                $html .= '</tr>';
+            }
+            $html .= '</tbody></table>';
+            return ['estado' => $r['estado'], 'numero' => substr($doc, 1), 'html' => $html . ctrib_pdf_notas($r['avisos'] ?? [])];
+
+        case 'DJ1847':
+            $d = ctrib_dj1847($pdo, $empresa, $anio);
+            $t = $d['totales'];
+            $cols = [['Cuenta', ''], ['Nombre', ''], ['Tipo', 'c'], ['Código SII', 'c'], ['Descripción SII', ''],
+                ['Débitos', 'num'], ['Créditos', 'num'], ['Deudor', 'num'], ['Acreedor', 'num'], ['Activo', 'num'], ['Pasivo', 'num'], ['Pérdida', 'num'], ['Ganancia', 'num']];
+            $filas = array_map(fn($c) => [
+                ctrib_h($c['codigo']), ctrib_h($c['nombre']), ctrib_h($c['tipo']), ctrib_h($c['codigoIfrs']), ctrib_h($c['nombreIfrs']),
+                ctrib_num($c['debitos'], false), ctrib_num($c['creditos'], false), ctrib_num($c['deudor'], false), ctrib_num($c['acreedor'], false),
+                ctrib_num($c['activo'], false), ctrib_num($c['pasivo'], false), ctrib_num($c['perdida'], false), ctrib_num($c['ganancia'], false),
+            ], $d['cuentas']);
+            $filas[] = ['<strong>Totales</strong>', '', '', '', '',
+                ctrib_num($t['debitos'], false), ctrib_num($t['creditos'], false), ctrib_num($t['deudor'], false), ctrib_num($t['acreedor'], false),
+                ctrib_num($t['activo'], false), ctrib_num($t['pasivo'], false), ctrib_num($t['perdida'], false), ctrib_num($t['ganancia'], false)];
+            $resumen = '<p class="resumen"><strong>Cuentas informadas:</strong> ' . $t['cuentasInformadas']
+                . ' · <strong>Resultado del ejercicio:</strong> ' . ctrib_pesos($t['resultadoEjercicio'])
+                . ' · <strong>CPT final (R14):</strong> ' . ctrib_pesos($t['cptPositivo'] - $t['cptNegativo']) . '</p>';
+            return ['estado' => $d['estado'], 'html' => $resumen . ctrib_pdf_tabla($cols, $filas, [count($filas) - 1 => 'total'])];
+
+        case 'DJ1926':
+            $d = ctrib_dj1926($pdo, $empresa, $anio);
+            $r = $d['resumen'];
+            $cols = [['N°', 'c'], ['Cód. R12', 'c'], ['Anexo N° 1', 'c'], ['Nombre partida Anexo', ''], ['Descripción del ajuste', ''], ['Tipo', 'c'], ['Monto', 'num']];
+            $filas = array_map(fn($f) => [
+                (string) $f['numero'], ctrib_h($f['codigoR12']), ctrib_h($f['codigoAnexo'] ?: '—'), ctrib_h($f['nombreAnexo']),
+                ctrib_h($f['descripcion']), ctrib_h($f['tipoNombre']), ctrib_pesos($f['monto']),
+            ], $d['seccionB']);
+            $resumen = '<div class="tarjetas">'
+                . '<div class="tarjeta"><small>Resultado Financiero [9]</small><strong>' . ctrib_pesos($r['resultadoFinanciero']) . '</strong></div>'
+                . '<div class="tarjeta"><small>Total Agregados [1]</small><strong>' . ctrib_pesos($r['totalAgregados']) . '</strong></div>'
+                . '<div class="tarjeta"><small>Total Deducciones [2]</small><strong>' . ctrib_pesos($r['totalDeducciones']) . '</strong></div>'
+                . '<div class="tarjeta"><small>RLI Final (cód. 1690)</small><strong>' . ctrib_pesos($r['rli']) . '</strong></div>'
+                . '</div>';
+            return ['estado' => $d['estado'], 'html' => $resumen . ctrib_pdf_tabla($cols, $filas)];
 
         case 'DJ1947':
             $r = ctrib_r22($pdo, $empresa, $anio);

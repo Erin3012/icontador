@@ -520,9 +520,14 @@ function ctrib_r21(PDO $pdo, int $empresa, int $anio): array
     ];
 }
 
-/** El RTRE sirve para certificar solo si está finalizado y no cambió desde entonces. */
+/** El RTRE sirve para certificar solo si está finalizado y no cambió desde entonces (R20 en Pro Pyme, R15 en 14 A). */
 function ctrib_rtre_vigente(PDO $pdo, int $empresa, int $anio): bool
 {
+    $regimen = ctrib_empresa_config($pdo, $empresa)['regimen'];
+    if ($regimen === '14A' && function_exists('ctrib_r15')) {
+        return ctrib_estado_recuadro($pdo, $empresa, $anio, 'R15')['estado'] === 'FINALIZADO'
+            && !ctrib_r15($pdo, $empresa, $anio)['desactualizado'];
+    }
     return ctrib_estado_recuadro($pdo, $empresa, $anio, 'R20')['estado'] === 'FINALIZADO'
         && !ctrib_r20($pdo, $empresa, $anio)['desactualizado'];
 }
@@ -556,9 +561,10 @@ function ctrib_dj1948(PDO $pdo, int $empresa, int $anio): array
             'primera' => $s['primera'], 'ultima' => $s['ultima'], 'certificado' => $cert ? (int) $cert['numero'] : null, 'emitido' => $cert['emitido'] ?? null];
     }
     $paso1 = ctrib_rtre_vigente($pdo, $empresa, $anio);
+    $recRtre = ctrib_empresa_config($pdo, $empresa)['regimen'] === '14A' ? 'R15' : 'R20';
     return [
         'anio' => $anio, 'anioComercial' => ctrib_anio_comercial($anio),
-        'paso1' => ['listo' => $paso1, 'mensaje' => $paso1 ? 'RTRE finalizado: puede emitir certificados.' : 'Paso 1 · Certificado 70: el RTRE (R20) debe estar finalizado y al día antes de emitir certificados o la DJ 1948.'],
+        'paso1' => ['listo' => $paso1, 'mensaje' => $paso1 ? 'RTRE finalizado: puede emitir certificados.' : "Paso 1 · Certificado 70: el RTRE ($recRtre) debe estar finalizado y al día antes de emitir certificados o la DJ 1948."],
         'socios' => $filas,
         'modo' => $efectivos['modo'],
         'total' => $efectivos['total'],

@@ -83,10 +83,20 @@
             "codigo": "R15 y R16",
             "nombre": "Registro tributario de rentas (RTRE) y registro SAC",
             "tipo": "Cálculos",
-            "fuente": "pendiente",
-            "abrir14": "RTRE",
-            "etapa": 4,
-            "ayuda": "Saldos de rentas con y sin tributación, y el registro SAC de créditos por impuesto."
+            "fuente": "recuadro",
+            "recuadro": "R15",
+            "abrir": "R15",
+            "chips": [
+              {
+                "texto": "R15",
+                "abrir": "R15"
+              },
+              {
+                "texto": "R16",
+                "abrir": "R16"
+              }
+            ],
+            "ayuda": "Saldos de rentas con y sin tributación (R15), y el registro SAC de créditos por impuesto (R16)."
           }
         ]
       },
@@ -98,19 +108,17 @@
             "codigo": "DJ 1847",
             "nombre": "Balance 8 columnas",
             "tipo": "Cálculos",
-            "fuente": "pendiente",
-            "abrir14": "DJ1847",
-            "etapa": 4,
-            "ayuda": "Declaración jurada con el balance de 8 columnas."
+            "fuente": "dj1847",
+            "abrir": "DJ1847",
+            "ayuda": "Declaración jurada con el balance de 8 columnas clasificado al Anexo N° 1 del SII."
           },
           {
             "codigo": "DJ 1926",
             "nombre": "Base imponible y balance",
             "tipo": "Cálculos",
-            "fuente": "pendiente",
-            "abrir14": "DJ1926",
-            "etapa": 4,
-            "ayuda": "Declaración jurada de la base imponible y del balance."
+            "fuente": "dj1926",
+            "abrir": "DJ1926",
+            "ayuda": "Declaración jurada de la base imponible de primera categoría según Anexo N° 1 del SII."
           },
           {
             "codigo": "DJ 1948",

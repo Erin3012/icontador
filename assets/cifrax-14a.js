@@ -236,12 +236,37 @@
     }
     function ventana(r) { return 'data-abrir14="' + r + '"'; }
     function chipAbrir(r, texto) { return ' <span class="cv-chip" ' + ventana(r) + '>' + (texto || r) + '</span>'; }
-    function activar() {
+    function activar(regimen) {
         if (activa) return;
         activa = true;
         // El inicio de 14 A y de persona natural lo pinta cifrax-inicio.js desde la API.
-        // Aquí solo se ocultan los reportes de Pro Pyme, que no corresponden.
-        document.querySelectorAll('#cv-vista-reportes .cv-card').forEach(function (c, i) { if (i > 0) c.hidden = true; });
+        // Para 14 A, se reemplazan las tarjetas de reportes de Pro Pyme por los reportes de 14 A.
+        var cards = document.querySelectorAll('#cv-vista-reportes .cv-card');
+        if (regimen !== '14A') {
+            cards.forEach(function (c, i) { if (i > 0) c.hidden = true; });
+            return;
+        }
+        var repFila = function (cod, nombre, doc, azul) {
+            return '<div class="cv-rep"><span class="cv-cod' + (azul ? ' cv-cod-azul' : '') + '">' + esc(cod) + '</span>' +
+                '<span class="cv-rep-nombre">' + esc(nombre) + '</span>' +
+                '<span class="cv-rep-acc"><button type="button" class="cv-btn-pdf" data-pdf="' + esc(doc) + '"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Ver PDF</button></span></div>';
+        };
+        if (cards[1]) cards[1].innerHTML = '<h2>Gestión General <span class="cv-count">3</span></h2>' +
+            repFila('Balance', 'Balance General importado', 'BALANCE', false) +
+            repFila('Homol.', 'Homologación de cuentas (cuenta → R12)', 'HOMOLOGACION', false) +
+            repFila('Retiros', 'Retiros y Dividendos por socio y mes', 'RETIROS', false);
+        if (cards[2]) cards[2].innerHTML = '<h2>Recuadros F22 · 14 A <span class="cv-count">7</span></h2>' +
+            repFila('R4', 'Enajenación de acciones y derechos sociales', 'R4', false) +
+            repFila('R6', 'Datos Informativos', 'R6', false) +
+            repFila('R12', 'Base Imponible (RLI)', 'R12', false) +
+            repFila('R13', 'Determinación del RAI', 'R13', false) +
+            repFila('R14', 'Razonabilidad del Capital Propio Tributario', 'R14', false) +
+            repFila('R15', 'RTRE y movimiento STUT', 'R15', false) +
+            repFila('R16', 'Registro SAC', 'R16', false);
+        if (cards[3]) cards[3].innerHTML = '<h2>Declaraciones Juradas (DJ) · 14 A <span class="cv-count">3</span></h2>' +
+            repFila('DJ 1847', 'Balance 8 columnas y clasificador Anexo N° 1', 'DJ1847', true) +
+            repFila('DJ 1926', 'Base imponible de Primera Categoría', 'DJ1926', true) +
+            repFila('DJ 1948', 'Retiros y Dividendos (Certificado 70)', 'DJ1948', true);
     }
 
     // ---------- Fundación / régimen especial: lo declarado ante el SII, tomado de la consulta guardada ----------
@@ -428,13 +453,13 @@
         if (regimen === 'PERSONA') {
             if (selector && !selector.querySelector('option[value="PERSONA"]')) selector.add(new Option('Persona natural (honorarios)', 'PERSONA'));
             if (selector) selector.value = 'PERSONA';
-            activar();
+            activar('PERSONA');
             return;
         }
         var vista = regimen === '14G' ? 'ESP' : regimen;
         if (selector) selector.value = vista === '14A' || vista === 'ESP' || vista === '14D8' ? vista : '14D3';
         if (vista === '14D8') activarTransparente();
-        if (vista === '14A') activar();
+        if (vista === '14A') activar('14A');
         if (vista === 'ESP') activarEspecial();
     }
     if (selector) selector.addEventListener('change', function () { recargarCon(selector.value); });

@@ -100,17 +100,62 @@ check($m13['1718'] === 200937408, 'R13 subtotal Fénix (200.937.408)');
 check($m13['1199'] === 80382996, 'R13 RAI final Fénix (80.382.996)');
 ctrib_r13_finalizar($pdo, $e, 2026, 'prueba');
 
-// 5. Inicio, cierre (R4, R6, R12, R14, R13) y PDFs
-$inicio = ctrib_inicio($pdo, $e, 2026);
-check($inicio['propio'] && $inicio['regimen'] === '14A' && $inicio['cierre'] !== null, 'inicio 14 A con cierre habilitado');
+// 5. Retiros efectivos + R15 (RTRE) y R16 (SAC): reproducir exactamente Sociedad Fénix Ltda (14a.xlsx)
+ctrib_retiros_importar($pdo, $e, 2026, [
+    ['rut' => '1-9', 'nombre' => 'Sociedad NSD Ltda.', 'fecha' => '2025-03-20', 'monto' => 54000000, 'tipo' => 'Retiro'],
+    ['rut' => '20-5', 'nombre' => 'Srta. Arriagada', 'fecha' => '2025-04-13', 'monto' => 6000000, 'tipo' => 'Retiro'],
+], 'retiros_fenix.csv', 'prueba');
+
+foreach ([
+    ['1.1', 'RAI', 12728890], ['1.1', 'DDAN', 82160], ['1.1', 'REX_EXENTAS', 51350], ['1.1', 'REX_INR', 123240],
+    ['1.1', 'SAC_REST_CON_DEV', -92466], ['4.6', 'SAC_REST_CON_DEV', 142857], ['6.4', 'SAC_REST_CON_DEV', 93012],
+] as [$fila, $col, $val]) {
+    ctrib_r15_guardar_celda($pdo, $e, 2026, $fila, $col, $val, 'prueba');
+}
+$r15 = ctrib_r15($pdo, $e, 2026);
+$c15 = $r15['formularioR15']['codigos'];
+$c16 = $r15['formularioR16']['codigos'];
+check($c15['1200'] === 13161672 && $c15['1211'] === 84953 && $c15['1234'] === 53096 && $c15['1246'] === 127430, 'R15 remanentes reajustados Fénix');
+check($c15['1204'] === 13161672 && $c15['1205'] === 80382996 && $c15['1208'] === 61284000, 'R15 reverso RAI, RAI ejercicio y retiros Fénix');
+check($c15['1210'] === 19098996 && $c15['1220'] === 84953 && $c15['1244'] === 53096 && $c15['1256'] === 127430, 'R15 remanentes ejercicio siguiente Fénix');
+check($c16['1302'] === 95610 && $c16['1292'] === 3399428 && $c16['1305'] === 20682124 && $c16['1316'] === 1130242, 'R16 créditos IDPC e IPE Fénix');
+check($c16['1296'] === 3399428 && $c16['1309'] === 19685291 && $c16['1320'] === 1130242 && $c16['1311'] === 93012, 'R16 imputación retiros y art. 21 Fénix');
+check($c16['1312'] === 0 && $c16['1300'] === 951068 && $c16['1323'] === 0, 'R16 remanente final SAC Fénix (951.068)');
+
+// Limpiar celda con string vacío no falla
+ctrib_r15_guardar_celda($pdo, $e, 2026, '5.1', 'STUT', 100, 'prueba');
+ctrib_r15_guardar_celda($pdo, $e, 2026, '5.1', 'STUT', '', 'prueba');
+
+// DJ 1948 exige R15 finalizado en 14 A; cierre exige R15
+check(ctrib_dj1948($pdo, $e, 2026)['paso1']['listo'] === false, 'DJ 1948 bloqueada hasta finalizar R15 en 14 A');
+ctrib_r15_finalizar($pdo, $e, 2026, 'prueba');
+check(ctrib_dj1948($pdo, $e, 2026)['paso1']['listo'] === true, 'DJ 1948 habilitada tras finalizar R15');
+
+// 6. DJ 1847 y DJ 1926 (Sociedad Fénix Ltda)
+$dj1847 = ctrib_dj1847($pdo, $e, 2026);
+check($dj1847['totales']['cuentasInformadas'] === 9 && $dj1847['totales']['cptPositivo'] === 139854589, 'DJ 1847 totales y CPT Fénix');
+ctrib_dj1847_guardar_cuenta($pdo, $e, 2026, '101001', '1.01.01.00', 'prueba');
+ctrib_dj1847_finalizar($pdo, $e, 2026, 'prueba');
+
+$dj1926 = ctrib_dj1926($pdo, $e, 2026);
+check($dj1926['resumen']['resultadoFinanciero'] === 83400500, 'DJ 1926 resultado financiero Fénix');
+check($dj1926['resumen']['totalAgregados'] === 27398922, 'DJ 1926 total agregados Fénix (27.398.922)');
+check($dj1926['resumen']['totalDeducciones'] === 11509513, 'DJ 1926 total deducciones Fénix (11.509.513)');
+check($dj1926['resumen']['beneficio14E'] === 10098976, 'DJ 1926 beneficio 14E Fénix (10.098.976)');
+check($dj1926['resumen']['rli'] === 89190933 && $dj1926['resumen']['rli'] === $dj1926['resumen']['rliCodigo1690'], 'DJ 1926 RLI Fénix (89.190.933)');
+ctrib_dj1926_finalizar($pdo, $e, 2026, 'prueba');
+
+// 7. Inicio, cierre (R4, R6, R12, R14, R13, R15/R16) y PDFs
 foreach (['R4', 'R6'] as $rec) {
     ($rec === 'R4' ? 'ctrib_r4_finalizar' : 'ctrib_r6_finalizar')($pdo, $e, 2026, 'prueba');
 }
 $cierre = ctrib_cierre_sellar($pdo, $e, 2026, 'prueba');
-check($cierre['cerrado'] === true, 'cierre anual 14 A sellado');
-foreach (['R12', 'R13', 'R14'] as $doc) {
+check($cierre['cerrado'] === true, 'cierre anual 14 A sellado con R15/R16');
+$inicio = ctrib_inicio($pdo, $e, 2026);
+check($inicio['propio'] && $inicio['regimen'] === '14A' && $inicio['cierre']['cerrado'] === true, 'inicio 14 A cerrado y completo');
+foreach (['R12', 'R13', 'R14', 'R15', 'R16', 'DJ1847', 'DJ1926'] as $doc) {
     $html = ctrib_documento_html($pdo, $e, 2026, $doc);
     check(str_contains($html, 'SOCIEDAD FÉNIX LTDA') && !str_contains($html, '<span class="sello">BORRADOR</span>'), "PDF $doc finalizado");
 }
 
-echo "Cifrax Tributario 14 A (Sociedad Fénix Ltda: R12, R14, R13, homologación, cierre y PDF): verificado\n";
+echo "Cifrax Tributario 14 A (Sociedad Fénix Ltda: R12..R16, DJ 1847, DJ 1926, DJ 1948, cierre y PDFs): verificado\n";
