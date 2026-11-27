@@ -119,4 +119,10 @@ foreach (['Aceptada' => 'ok', 'En proceso' => 'proceso', 'Con inconsistencia' =>
     check($estadoF22($estado) === $clase, "F22 «{$estado}» debe quedar como $clase");
 }
 
+// Sin la tabla de consultas del SII el Inicio no falla.
+$pdo->exec('DROP TABLE sii_consultas');
+$estados = [];
+foreach (ctrib_inicio($pdo, $p, 2026)['grupos'] as $g) foreach ($g['filas'] as $f) $estados[] = $f['estado'];
+check(in_array('SIN CONSULTAR', $estados, true), 'sin tabla de consultas: sin consultar');
+
 fwrite(STDOUT, "Cifrax Tributario: sugerencias, cambio de régimen, años cerrados, balance anterior y estados del SII verificados\n");

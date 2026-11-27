@@ -52,9 +52,13 @@ function ctrib_inicio_estado(PDO $pdo, int $empresa, int $anio, array $fila): ar
             return $completos && ctrib_estado_recuadro($pdo, $empresa, $anio, 'R22')['estado'] === 'FINALIZADO'
                 ? ['texto' => 'COMPLETADO', 'clase' => 'ok'] : ['texto' => 'PENDIENTE', 'clase' => 'pend'];
         case 'sii_consulta':
-            $st = $pdo->prepare('SELECT estado FROM sii_consultas WHERE empresa_id = ? AND tipo = ? AND anio = ? ORDER BY id DESC LIMIT 1');
-            $st->execute([$empresa, $fila['consulta'], $anio]);
-            $estado = trim((string) $st->fetchColumn());
+            try {
+                $st = $pdo->prepare('SELECT estado FROM sii_consultas WHERE empresa_id = ? AND tipo = ? AND anio = ? ORDER BY id DESC LIMIT 1');
+                $st->execute([$empresa, $fila['consulta'], $anio]);
+                $estado = trim((string) $st->fetchColumn());
+            } catch (PDOException $ex) {
+                $estado = ''; // instalación cuyo módulo SII no guarda consultas: Inicio sigue funcionando
+            }
             if ($estado === '') {
                 return ['texto' => 'SIN CONSULTAR', 'clase' => 'pend'];
             }
