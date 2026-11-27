@@ -100,11 +100,12 @@
         if (!empresaId) return;
         // El selector de régimen cambia la vista (?regimen=): el inicio muestra ese régimen aunque no esté guardado.
         var vista = new URLSearchParams(window.location.search).get('regimen') || '';
-        var url = '../api/cifrax-tributario.php?accion=inicio&anio=' + encodeURIComponent(anioActual()) +
+        var anioPedido = anioActual();
+        var url = '../api/cifrax-tributario.php?accion=inicio&anio=' + encodeURIComponent(anioPedido) +
             '&empresa_id=' + encodeURIComponent(empresaId) + (vista ? '&regimen=' + encodeURIComponent(vista === 'ESP' ? '14G' : vista) : '');
         fetch(url, { credentials: 'same-origin' })
             .then(function (r) { return r.ok ? r.json() : null; })
-            .then(pintar)
+            .then(function (d) { if (anioPedido === anioActual()) pintar(d); }) // se ignora la respuesta de un año ya cambiado
             .catch(function () { window.cvInicioPropio = false; });
     }
 
